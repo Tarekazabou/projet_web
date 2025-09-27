@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipe & Meal Planner - AI-Powered Personalized Cooking</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-utensils"></i>
+                <span>Recipe Planner</span>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#" class="nav-link active" data-page="home">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-page="recipe-generator">Recipe Generator</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-page="meal-planner">Meal Planner</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-page="nutrition-tracker">Nutrition</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-page="grocery-list">Grocery List</a>
+                </li>
+            </ul>
+            <div class="nav-actions">
+                <button class="btn btn-outline" id="user-preferences-btn">
+                    <i class="fas fa-cog"></i>
+                </button>
+                <button class="btn btn-primary" id="user-profile-btn">
+                    <i class="fas fa-user"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Home Page -->
+        <section id="home-page" class="page active">
+            <!-- Hero Section -->
+            <div class="hero-section">
+                <div class="hero-content">
+                    <h1 class="hero-title">AI-Powered Recipe & Meal Planning</h1>
+                    <p class="hero-subtitle">
+                        Discover personalized recipes, create balanced meal plans, and streamline your grocery shopping 
+                        with our intelligent cooking companion designed for health-conscious individuals.
+                    </p>
+                    <div class="hero-actions">
+                        <button class="btn btn-primary btn-large" data-action="start-cooking">
+                            <i class="fas fa-magic"></i>
+                            Start Cooking
+                        </button>
+                        <button class="btn btn-outline btn-large" data-action="explore-recipes">
+                            <i class="fas fa-search"></i>
+                            Explore Recipes
+                        </button>
+                    </div>
+                </div>
+                <div class="hero-image">
+                    <div class="recipe-preview-card">
+                        <div class="card-image-placeholder">
+                            <i class="fas fa-camera"></i>
+                        </div>
+                        <h3>Quinoa Veggie Bowl</h3>
+                        <div class="recipe-tags">
+                            <span class="tag tag-vegan">Vegan</span>
+                            <span class="tag tag-healthy">Healthy</span>
+                        </div>
+                        <div class="recipe-stats">
+                            <span><i class="fas fa-clock"></i> 25 min</span>
+                            <span><i class="fas fa-users"></i> 2 servings</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Features Section -->
+            <div class="features-section">
+                <div class="container">
+                    <h2 class="section-title">Everything You Need for Healthy Cooking</h2>
+                    <div class="features-grid">
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <h3>AI Recipe Generation</h3>
+                            <p>Get personalized recipes based on your available ingredients, dietary preferences, and nutritional goals.</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                            <h3>Smart Meal Planning</h3>
+                            <p>Create balanced weekly meal plans with visual timelines and automatic nutritional analysis.</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <h3>Nutrition Tracking</h3>
+                            <p>Monitor your daily nutrition intake with detailed breakdowns and progress towards your health goals.</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <h3>Grocery Integration</h3>
+                            <p>Generate smart grocery lists and integrate with online stores for seamless shopping experiences.</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-heart"></i>
+                            </div>
+                            <h3>Dietary Preferences</h3>
+                            <p>Support for all dietary needs including vegan, keto, gluten-free, and custom restrictions.</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-mobile-alt"></i>
+                            </div>
+                            <h3>AR Recipe Guides</h3>
+                            <p>Optional augmented reality cooking guidance for step-by-step visual assistance in your kitchen.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="stats-section">
+                <div class="container">
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-number" id="total-recipes">1,247</div>
+                            <div class="stat-label">Recipes Available</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="meal-plans-created">3,892</div>
+                            <div class="stat-label">Meal Plans Created</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="users-helped">12,567</div>
+                            <div class="stat-label">Users Helped</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">98%</div>
+                            <div class="stat-label">Satisfaction Rate</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Popular Recipes -->
+            <div class="popular-recipes-section">
+                <div class="container">
+                    <div class="section-header">
+                        <h2 class="section-title">Popular Recipes</h2>
+                        <button class="btn btn-outline" id="view-all-recipes">View All</button>
+                    </div>
+                    <div class="recipes-grid" id="popular-recipes-grid">
+                        <!-- Popular recipes will be loaded here dynamically -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recipe Generator Page -->
+        <section id="recipe-generator-page" class="page">
+            <div class="container">
+                <div class="page-header">
+                    <h1>AI Recipe Generator</h1>
+                    <p>Create personalized recipes based on your ingredients and preferences</p>
+                </div>
+
+                <div class="generator-container">
+                    <div class="generator-form">
+                        <div class="form-section">
+                            <h3>Available Ingredients</h3>
+                            <div class="ingredients-input">
+                                <input type="text" id="ingredient-input" placeholder="Type an ingredient and press Enter...">
+                                <div class="ingredients-tags" id="selected-ingredients"></div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h3>Dietary Preferences</h3>
+                            <div class="preferences-grid" id="dietary-preferences">
+                                <label class="preference-item">
+                                    <input type="checkbox" value="vegan">
+                                    <span class="checkmark"></span>
+                                    Vegan
+                                </label>
+                                <label class="preference-item">
+                                    <input type="checkbox" value="vegetarian">
+                                    <span class="checkmark"></span>
+                                    Vegetarian
+                                </label>
+                                <label class="preference-item">
+                                    <input type="checkbox" value="gluten-free">
+                                    <span class="checkmark"></span>
+                                    Gluten-Free
+                                </label>
+                                <label class="preference-item">
+                                    <input type="checkbox" value="keto">
+                                    <span class="checkmark"></span>
+                                    Keto
+                                </label>
+                                <label class="preference-item">
+                                    <input type="checkbox" value="dairy-free">
+                                    <span class="checkmark"></span>
+                                    Dairy-Free
+                                </label>
+                                <label class="preference-item">
+                                    <input type="checkbox" value="low-sodium">
+                                    <span class="checkmark"></span>
+                                    Low Sodium
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="max-cooking-time">Max Cooking Time</label>
+                                <select id="max-cooking-time">
+                                    <option value="15">15 minutes</option>
+                                    <option value="30">30 minutes</option>
+                                    <option value="45">45 minutes</option>
+                                    <option value="60" selected>1 hour</option>
+                                    <option value="90">1.5 hours</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="difficulty-level">Difficulty</label>
+                                <select id="difficulty-level">
+                                    <option value="any" selected>Any</option>
+                                    <option value="easy">Easy</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="hard">Hard</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="servings">Servings</label>
+                                <input type="number" id="servings" min="1" max="12" value="2">
+                            </div>
+                        </div>
+
+                        <button class="btn btn-primary btn-large" id="generate-recipes-btn">
+                            <i class="fas fa-magic"></i>
+                            Generate Recipes
+                        </button>
+                    </div>
+
+                    <div class="results-section" id="recipe-results">
+                        <!-- Generated recipes will appear here -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Meal Planner Page -->
+        <section id="meal-planner-page" class="page">
+            <div class="container">
+                <div class="page-header">
+                    <h1>Smart Meal Planner</h1>
+                    <p>Create balanced weekly meal plans tailored to your nutritional goals</p>
+                </div>
+
+                <div class="meal-planner-container">
+                    <div class="planner-controls">
+                        <div class="controls-row">
+                            <div class="date-picker">
+                                <label for="plan-start-date">Start Date</label>
+                                <input type="date" id="plan-start-date">
+                            </div>
+                            <div class="plan-type">
+                                <label for="plan-duration">Duration</label>
+                                <select id="plan-duration">
+                                    <option value="7" selected>1 Week</option>
+                                    <option value="14">2 Weeks</option>
+                                    <option value="30">1 Month</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-primary" id="generate-meal-plan-btn">
+                                <i class="fas fa-calendar-plus"></i>
+                                Generate Plan
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="meal-timeline" id="meal-timeline">
+                        <!-- Meal timeline will be generated here -->
+                    </div>
+
+                    <div class="plan-summary" id="plan-summary">
+                        <!-- Nutritional summary and grocery list preview -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Nutrition Tracker Page -->
+        <section id="nutrition-tracker-page" class="page">
+            <div class="container">
+                <div class="page-header">
+                    <h1>Nutrition Tracker</h1>
+                    <p>Monitor your daily nutrition and track progress towards your health goals</p>
+                </div>
+
+                <div class="nutrition-dashboard">
+                    <div class="dashboard-controls">
+                        <div class="date-selector">
+                            <button class="btn btn-outline" id="prev-day">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <input type="date" id="tracking-date">
+                            <button class="btn btn-outline" id="next-day">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                        <button class="btn btn-primary" id="set-goals-btn">
+                            <i class="fas fa-target"></i>
+                            Set Goals
+                        </button>
+                    </div>
+
+                    <div class="nutrition-overview" id="nutrition-overview">
+                        <!-- Daily nutrition summary -->
+                    </div>
+
+                    <div class="meals-tracking" id="meals-tracking">
+                        <!-- Breakfast, lunch, dinner, snacks tracking -->
+                    </div>
+
+                    <div class="nutrition-charts" id="nutrition-charts">
+                        <!-- Charts and visualizations -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Grocery List Page -->
+        <section id="grocery-list-page" class="page">
+            <div class="container">
+                <div class="page-header">
+                    <h1>Smart Grocery List</h1>
+                    <p>Generate and manage grocery lists with store integrations</p>
+                </div>
+
+                <div class="grocery-container">
+                    <div class="grocery-controls">
+                        <div class="generation-options">
+                            <button class="btn btn-primary" id="generate-from-meal-plan">
+                                <i class="fas fa-calendar"></i>
+                                From Meal Plan
+                            </button>
+                            <button class="btn btn-outline" id="generate-from-recipes">
+                                <i class="fas fa-utensils"></i>
+                                From Recipes
+                            </button>
+                            <button class="btn btn-outline" id="manual-grocery-list">
+                                <i class="fas fa-edit"></i>
+                                Manual List
+                            </button>
+                        </div>
+                        <div class="export-options">
+                            <button class="btn btn-success" id="export-pdf">
+                                <i class="fas fa-file-pdf"></i>
+                                Export PDF
+                            </button>
+                            <button class="btn btn-info" id="integrate-store">
+                                <i class="fas fa-shopping-cart"></i>
+                                Store Integration
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grocery-list-container" id="grocery-list-container">
+                        <!-- Grocery list will be displayed here -->
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modals -->
+    <!-- User Preferences Modal -->
+    <div class="modal" id="preferences-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>User Preferences</h2>
+                <button class="modal-close" aria-label="Close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- Preferences form will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Recipe Detail Modal -->
+    <div class="modal" id="recipe-modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2 id="recipe-modal-title"></h2>
+                <button class="modal-close" aria-label="Close">&times;</button>
+            </div>
+            <div class="modal-body" id="recipe-modal-body">
+                <!-- Recipe details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Processing your request...</p>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toast-container">
+        <!-- Toast notifications will appear here -->
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/recipe-generator.js"></script>
+    <script src="js/meal-planner.js"></script>
+    <script src="js/nutrition-tracker.js"></script>
+    <script src="js/grocery-list.js"></script>
+    <script src="js/app.js"></script>
+    
+    <script>
+        // Initialize the application when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            window.app = new RecipeMealPlannerApp();
+        });
+    </script>
+</body>
+</html>
