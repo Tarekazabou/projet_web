@@ -22,6 +22,9 @@
                     <a href="#" class="nav-link active" data-page="home">Home</a>
                 </li>
                 <li class="nav-item">
+                    <a href="#" class="nav-link" data-page="your-fridge">Your Fridge</a>
+                </li>
+                <li class="nav-item">
                     <a href="#" class="nav-link" data-page="recipe-generator">Recipe Generator</a>
                 </li>
                 <li class="nav-item">
@@ -170,6 +173,117 @@
                     </div>
                     <div class="recipes-grid" id="popular-recipes-grid">
                         <!-- Popular recipes will be loaded here dynamically -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Your Fridge Page -->
+        <section id="your-fridge-page" class="page">
+            <div class="container">
+                <div class="page-header">
+                    <h1><i class="fas fa-refrigerator"></i> Your Fridge</h1>
+                    <p>Track your ingredients and get recipe suggestions based on what you have at home</p>
+                </div>
+
+                <div class="fridge-container">
+                    <!-- Quick Actions -->
+                    <div class="fridge-actions">
+                        <div class="action-buttons">
+                            <button class="btn btn-primary" id="add-ingredient-btn">
+                                <i class="fas fa-plus"></i>
+                                Add Ingredient
+                            </button>
+                            <button class="btn btn-outline" id="scan-receipt-btn">
+                                <i class="fas fa-camera"></i>
+                                Scan Receipt
+                            </button>
+                            <button class="btn btn-outline" id="bulk-add-btn">
+                                <i class="fas fa-list"></i>
+                                Bulk Add
+                            </button>
+                            <button class="btn btn-secondary" id="suggest-recipes-btn">
+                                <i class="fas fa-magic"></i>
+                                Suggest Recipes
+                            </button>
+                        </div>
+                        
+                        <div class="fridge-stats">
+                            <div class="stat-card">
+                                <div class="stat-value" id="total-ingredients">0</div>
+                                <div class="stat-label">Total Items</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="expiring-soon">0</div>
+                                <div class="stat-label">Expiring Soon</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="fresh-items">0</div>
+                                <div class="stat-label">Fresh Items</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Search and Filter -->
+                    <div class="fridge-controls">
+                        <div class="search-container">
+                            <input type="text" id="fridge-search" placeholder="Search your ingredients..." class="form-input">
+                            <i class="fas fa-search search-icon"></i>
+                        </div>
+                        
+                        <div class="filter-controls">
+                            <select id="category-filter" class="form-input">
+                                <option value="all">All Categories</option>
+                                <option value="produce">Produce</option>
+                                <option value="dairy">Dairy</option>
+                                <option value="meat">Meat & Seafood</option>
+                                <option value="pantry">Pantry</option>
+                                <option value="frozen">Frozen</option>
+                                <option value="beverages">Beverages</option>
+                                <option value="other">Other</option>
+                            </select>
+                            
+                            <select id="freshness-filter" class="form-input">
+                                <option value="all">All Items</option>
+                                <option value="fresh">Fresh</option>
+                                <option value="expiring-soon">Expiring Soon</option>
+                                <option value="expired">Expired</option>
+                            </select>
+                            
+                            <button class="btn btn-outline" id="clear-filters">
+                                <i class="fas fa-times"></i>
+                                Clear
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Fridge Inventory -->
+                    <div class="fridge-inventory" id="fridge-inventory">
+                        <!-- Ingredient items will be populated here -->
+                    </div>
+
+                    <!-- Empty State -->
+                    <div class="empty-fridge" id="empty-fridge" style="display: none;">
+                        <div class="empty-fridge-icon">
+                            <i class="fas fa-refrigerator"></i>
+                        </div>
+                        <h3>Your fridge is empty!</h3>
+                        <p>Start adding ingredients to get personalized recipe suggestions</p>
+                        <button class="btn btn-primary" onclick="document.getElementById('add-ingredient-btn').click()">
+                            <i class="fas fa-plus"></i>
+                            Add Your First Ingredient
+                        </button>
+                    </div>
+
+                    <!-- Recipe Suggestions -->
+                    <div class="recipe-suggestions-section" id="recipe-suggestions-section" style="display: none;">
+                        <div class="section-header">
+                            <h3>Recipes You Can Make</h3>
+                            <button class="btn btn-outline" id="view-all-suggestions">View All</button>
+                        </div>
+                        <div class="suggested-recipes-grid" id="suggested-recipes-grid">
+                            <!-- Recipe suggestions will appear here -->
+                        </div>
                     </div>
                 </div>
             </div>
@@ -434,6 +548,7 @@
     </div>
 
     <!-- Scripts -->
+    <script src="js/your-fridge.js"></script>
     <script src="js/recipe-generator.js"></script>
     <script src="js/meal-planner.js"></script>
     <script src="js/nutrition-tracker.js"></script>

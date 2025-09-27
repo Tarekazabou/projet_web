@@ -230,3 +230,82 @@ class Ingredient:
         )
         ingredient.created_at = data.get("created_at", datetime.utcnow())
         return ingredient
+
+
+class FridgeItem:
+    """Model for tracking items in user's fridge/pantry"""
+    
+    def __init__(self, name: str, category: str, quantity: float, unit: str, 
+                 expiry_date: str, location: str = "Main fridge", notes: str = "",
+                 added_date: str = None, user_id: str = "default_user"):
+        self.name = name
+        self.category = category  # produce, dairy, meat, pantry, frozen, beverages, other
+        self.quantity = quantity
+        self.unit = unit
+        self.expiry_date = expiry_date  # ISO date string YYYY-MM-DD
+        self.location = location  # Main fridge, Freezer, Pantry, Door, etc.
+        self.notes = notes
+        self.added_date = added_date or datetime.now().strftime('%Y-%m-%d')
+        self.user_id = user_id
+        self.created_at = datetime.utcnow()
+        self.updated_at = datetime.utcnow()
+    
+    def to_dict(self) -> Dict:
+        """Convert fridge item to dictionary for MongoDB storage"""
+        return {
+            "name": self.name,
+            "category": self.category,
+            "quantity": self.quantity,
+            "unit": self.unit,
+            "expiryDate": self.expiry_date,
+            "location": self.location,
+            "notes": self.notes,
+            "addedDate": self.added_date,
+            "userId": self.user_id,
+            "createdAt": self.created_at,
+            "updatedAt": self.updated_at
+        }
+    
+    @classmethod
+    def from_dict(cls, data: Dict):
+        """Create FridgeItem instance from dictionary"""
+        item = cls(
+            name=data.get("name", ""),
+            category=data.get("category", "other"),
+            quantity=data.get("quantity", 0.0),
+            unit=data.get("unit", ""),
+            expiry_date=data.get("expiryDate", ""),
+            location=data.get("location", "Main fridge"),
+            notes=data.get("notes", ""),
+            added_date=data.get("addedDate"),
+            user_id=data.get("userId", "default_user")
+        )
+        item.created_at = data.get("createdAt", datetime.utcnow())
+        item.updated_at = data.get("updatedAt", datetime.utcnow())
+        return item
+    
+    def is_expired(self) -> bool:
+        """Check if item is expired"""
+        try:
+            expiry_date = datetime.strptime(self.expiry_date, '%Y-%m-%d').date()
+            return expiry_date < datetime.now().date()
+        except ValueError:
+            return False
+    
+    def days_until_expiry(self) -> int:
+        """Get days until expiry (negative if expired)"""
+        try:
+            expiry_date = datetime.strptime(self.expiry_date, '%Y-%m-%d').date()
+            return (expiry_date - datetime.now().date()).days
+        except ValueError:
+            return 0
+    
+    def freshness_status(self) -> str:
+        """Get freshness status: fresh, expiring-soon, expired"""
+        days = self.days_until_expiry()
+        if days < 0:
+            return "expired"
+        elif days <= 2:
+            return "expiring-soon"
+        else:
+            return "fresh"

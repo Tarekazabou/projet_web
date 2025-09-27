@@ -13,6 +13,7 @@ from backend.routes.meal_plans import meal_plans_bp
 from backend.routes.grocery import grocery_bp
 from backend.routes.feedback import feedback_bp
 from backend.routes.users import users_bp
+from backend.routes.fridge import fridge_bp
 
 # Load environment variables
 load_dotenv()
@@ -48,6 +49,7 @@ app.register_blueprint(meal_plans_bp, url_prefix='/api/meal-plans')
 app.register_blueprint(grocery_bp, url_prefix='/api/grocery')
 app.register_blueprint(feedback_bp, url_prefix='/api/feedback')
 app.register_blueprint(users_bp, url_prefix='/api/users')
+app.register_blueprint(fridge_bp, url_prefix='/api/fridge')
 
 @app.route('/')
 def index():

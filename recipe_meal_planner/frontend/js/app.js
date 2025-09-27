@@ -6,6 +6,7 @@ class RecipeMealPlannerApp {
         this.currentPage = 'home';
         
         // Initialize specialized components
+        this.yourFridge = new YourFridge(this);
         this.recipeGenerator = new RecipeGenerator(this);
         this.mealPlanner = new MealPlanner(this);
         this.nutritionTracker = new NutritionTracker(this);
@@ -244,6 +245,13 @@ class RecipeMealPlannerApp {
     
     initializeComponents() {
         // Initialize specialized components
+        try {
+            this.yourFridge.initialize();
+            console.log('Your Fridge initialized');
+        } catch (error) {
+            console.error('Error initializing Your Fridge:', error);
+        }
+        
         try {
             this.recipeGenerator.initialize();
             console.log('Recipe Generator initialized');
