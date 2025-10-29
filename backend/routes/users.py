@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from backend.utils.firebase_connector import get_db
+from utils.firebase_connector import get_db
 import logging
 from datetime import datetime
 
