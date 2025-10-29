@@ -38,6 +38,10 @@
                 </li>
             </ul>
             <div class="nav-actions">
+                <div id="api-key-status-indicator"></div>
+                <button class="btn btn-outline" id="ai-setup-btn" title="Configure AI">
+                    <i class="fas fa-robot"></i>
+                </button>
                 <button class="btn btn-outline" id="user-preferences-btn">
                     <i class="fas fa-cog"></i>
                 </button>
@@ -610,6 +614,7 @@
       const app = initializeApp(firebaseConfig);
       const analytics = getAnalytics(app);
     </script>
+    <script src="js/settings.js"></script>
     <script src="js/your-fridge.js"></script>
     <script src="js/recipe-generator.js"></script>
     <script src="js/meal-planner.js"></script>

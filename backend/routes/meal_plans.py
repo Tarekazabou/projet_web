@@ -42,6 +42,41 @@ def create_meal_plan():
         logger.error(f"Error creating meal plan: {e}")
         return jsonify({'error': 'Failed to create meal plan'}), 500
 
+@meal_plans_bp.route('/', methods=['GET'])
+def get_meal_plans():
+    """Get meal plans for the authenticated user with optional date filtering"""
+    try:
+        user_id = require_current_user()
+        db = get_db()
+        
+        # Get query parameters
+        start_date = request.args.get('start_date')
+        end_date = request.args.get('end_date')
+        
+        query = db.collection('MealPlan').where('user', '==', db.collection('User').document(user_id))
+        
+        # Apply date filters if provided
+        if start_date:
+            query = query.where('planDate', '>=', start_date)
+        if end_date:
+            query = query.where('planDate', '<=', end_date)
+        
+        docs = query.stream()
+        
+        meal_plans = []
+        for doc in docs:
+            plan = doc.to_dict()
+            plan['id'] = doc.id
+            meal_plans.append(plan)
+        
+        return jsonify({
+            'meal_plans': meal_plans,
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Error getting meal plans: {e}")
+        return jsonify({'error': 'Failed to get meal plans'}), 500
+
 @meal_plans_bp.route('/user/<user_id>', methods=['GET'])
 def get_user_meal_plans(user_id):
     """Get all meal plans for a user"""

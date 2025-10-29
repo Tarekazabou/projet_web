@@ -14,7 +14,15 @@ def search_recipes():
         
         # Get query parameters
         query_text = request.args.get('q', '')
+        
+        # Handle dietary_tags as both list and comma-separated string
         dietary_tags = request.args.getlist('dietary_tags')
+        if not dietary_tags:
+            # Try to get as comma-separated string
+            dietary_tags_str = request.args.get('dietary_tags', '')
+            if dietary_tags_str:
+                dietary_tags = [tag.strip() for tag in dietary_tags_str.split(',') if tag.strip()]
+        
         cuisine_type = request.args.get('cuisine_type', '')
         max_cooking_time = request.args.get('max_cooking_time', type=int)
         difficulty = request.args.get('difficulty', '')
@@ -24,39 +32,48 @@ def search_recipes():
 
         # Start with a base query
         query = db.collection('Recipe')
+        
+        # Track if we need ordering
+        has_inequality_filter = False
 
-        # Apply filters
+        # Apply filters - be careful with Firestore limitations
+        # Firestore allows only ONE range/inequality filter per query
         if query_text:
             # Firestore doesn't support full-text search natively.
             # This is a simplified example. For real full-text search,
             # you would use a third-party service like Algolia or Elasticsearch.
             # Here we just filter by title.
             query = query.where('title', '>=', query_text).where('title', '<=', query_text + '\uf8ff')
+            has_inequality_filter = True
 
+        # For now, skip max_cooking_time if we already have a range filter
+        if max_cooking_time and not has_inequality_filter:
+            query = query.where('cookTimeMinutes', '<=', max_cooking_time)
+            has_inequality_filter = True
+
+        # Equality filters can be combined
         if dietary_tags:
             query = query.where('dietaryPreferences', 'array_contains_any', dietary_tags)
         
         if cuisine_type:
             query = query.where('cuisine', '==', cuisine_type)
 
-        if max_cooking_time:
-            query = query.where('cookTimeMinutes', '<=', max_cooking_time)
-
         if difficulty:
             query = query.where('difficulty', '==', difficulty)
 
-        # Sorting
-        if sort_by == 'rating':
-            # Assuming 'rating' field exists
+        # Sorting - must match inequality filter field if present
+        if sort_by == 'rating' and not has_inequality_filter:
             query = query.order_by('rating', direction='DESCENDING')
         elif sort_by == 'cooking_time':
             query = query.order_by('cookTimeMinutes', direction='ASCENDING')
+        elif has_inequality_filter and query_text:
+            # If we filtered by title, we need to order by title first
+            pass  # Already ordered by title constraint
         
         # Pagination
         # For Firestore, you'd typically use cursors (start_after) for pagination.
-        # A simple offset-based pagination is less efficient but easier for a quick migration.
-        offset = (page - 1) * per_page
-        docs = query.limit(per_page).offset(offset).stream()
+        # For now, just use limit without offset to avoid issues
+        docs = query.limit(per_page).stream()
 
         recipes = []
         for doc in docs:

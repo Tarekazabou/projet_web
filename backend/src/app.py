@@ -21,6 +21,8 @@ from routes.grocery import grocery_bp
 from routes.feedback import feedback_bp
 from routes.users import users_bp
 from routes.fridge import fridge_bp
+from routes.ai_recipes import ai_recipes_bp
+from routes.settings import settings_bp
 from utils.auth import attach_current_user
 
 # Load environment variables
@@ -59,6 +61,8 @@ app.register_blueprint(grocery_bp, url_prefix='/api/grocery')
 app.register_blueprint(feedback_bp, url_prefix='/api/feedback')
 app.register_blueprint(users_bp, url_prefix='/api/users')
 app.register_blueprint(fridge_bp, url_prefix='/api/fridge')
+app.register_blueprint(ai_recipes_bp, url_prefix='/api/recipes')
+app.register_blueprint(settings_bp, url_prefix='/api/settings')
 
 @app.before_request
 def load_authenticated_user():
@@ -127,8 +131,12 @@ if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))
     debug = os.getenv('FLASK_ENV') == 'development'
     
+    # Fix for Windows socket error on reload
+    # Use 'stat' reloader instead of 'watchdog' to avoid socket issues
     app.run(
         host='0.0.0.0',
         port=port,
-        debug=debug
+        debug=debug,
+        use_reloader=debug,
+        reloader_type='stat'  # More stable on Windows
     )
