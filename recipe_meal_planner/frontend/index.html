@@ -534,6 +534,56 @@
         </div>
     </div>
 
+    <!-- Dynamic Modals -->
+    <div class="modal" id="add-ingredient-modal">
+        <div class="modal-content modal-dynamic">
+            <button class="modal-close" aria-label="Close">&times;</button>
+            <div class="modal-body" data-modal-body></div>
+        </div>
+    </div>
+
+    <div class="modal" id="scan-receipt-modal">
+        <div class="modal-content modal-dynamic">
+            <button class="modal-close" aria-label="Close">&times;</button>
+            <div class="modal-body" data-modal-body></div>
+        </div>
+    </div>
+
+    <div class="modal" id="bulk-add-modal">
+        <div class="modal-content modal-dynamic">
+            <button class="modal-close" aria-label="Close">&times;</button>
+            <div class="modal-body" data-modal-body></div>
+        </div>
+    </div>
+
+    <div class="modal" id="meal-selector-modal">
+        <div class="modal-content modal-large modal-dynamic">
+            <button class="modal-close" aria-label="Close">&times;</button>
+            <div class="modal-body" data-modal-body></div>
+        </div>
+    </div>
+
+    <div class="modal" id="quick-log-modal">
+        <div class="modal-content modal-dynamic">
+            <button class="modal-close" aria-label="Close">&times;</button>
+            <div class="modal-body" data-modal-body></div>
+        </div>
+    </div>
+
+    <div class="modal" id="nutrition-goals-modal">
+        <div class="modal-content modal-dynamic">
+            <button class="modal-close" aria-label="Close">&times;</button>
+            <div class="modal-body" data-modal-body></div>
+        </div>
+    </div>
+
+    <div class="modal" id="edit-item-modal">
+        <div class="modal-content modal-dynamic">
+            <button class="modal-close" aria-label="Close">&times;</button>
+            <div class="modal-body" data-modal-body></div>
+        </div>
+    </div>
+
     <!-- Loading Spinner -->
     <div class="loading-overlay" id="loading-overlay">
         <div class="loading-spinner">
@@ -548,6 +598,18 @@
     </div>
 
     <!-- Scripts -->
+    <script type="module">
+      // Import the functions you need from the SDKs you need
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+      import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-analytics.js";
+      import { firebaseConfig } from './js/config.js';
+      // TODO: Add SDKs for Firebase products that you want to use
+      // https://firebase.google.com/docs/web/setup#available-libraries
+
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const analytics = getAnalytics(app);
+    </script>
     <script src="js/your-fridge.js"></script>
     <script src="js/recipe-generator.js"></script>
     <script src="js/meal-planner.js"></script>

@@ -143,7 +143,7 @@ class RecipeMealPlannerApp {
         const reviewCount = recipe.review_count || 0;
         
         return `
-            <div class="recipe-card" data-recipe-id="${recipe._id}">
+            <div class="recipe-card" data-recipe-id="${recipe.id}">
                 <div class="recipe-image">
                     <i class="fas fa-camera placeholder-icon"></i>
                     <div class="recipe-rating">
@@ -154,8 +154,8 @@ class RecipeMealPlannerApp {
                 <div class="recipe-content">
                     <h3 class="recipe-title">${recipe.title}</h3>
                     <div class="recipe-meta">
-                        <span><i class="fas fa-clock"></i> ${recipe.cooking_time + recipe.prep_time} min</span>
-                        <span><i class="fas fa-users"></i> ${recipe.servings} servings</span>
+                        <span><i class="fas fa-clock"></i> ${recipe.cookTimeMinutes + recipe.prepTimeMinutes} min</span>
+                        <span><i class="fas fa-users"></i> ${recipe.servingSize} servings</span>
                         <span><i class="fas fa-signal"></i> ${recipe.difficulty}</span>
                     </div>
                     <div class="recipe-tags">
@@ -335,25 +335,55 @@ class RecipeMealPlannerApp {
                 }
                 break;
             case 'grocery-list':
-                if (this.groceryList) {
-                    this.groceryList.initialize();
+                if (this.groceryListManager) {
+                    this.groceryListManager.initialize();
                 }
                 break;
         }
     }
     
     // Modal management
-    openModal(modalId) {
-        const modal = document.getElementById(modalId);
-        if (modal) {
-            modal.classList.add('active');
-            document.body.style.overflow = 'hidden';
+    openModal(modalId, content = null, onOpen = null) {
+        const modal = typeof modalId === 'string' ? document.getElementById(modalId) : modalId;
+        if (!modal) {
+            console.warn(`Modal with id "${modalId}" not found.`);
+            return null;
         }
+
+        if (typeof content === 'string') {
+            const target = modal.querySelector('[data-modal-body]') || modal.querySelector('.modal-body');
+            if (target) {
+                target.innerHTML = content;
+            }
+        }
+
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+
+        if (typeof onOpen === 'function') {
+            onOpen(modal);
+        }
+
+        return modal;
     }
     
-    closeModal(modal) {
-        if (modal) {
-            modal.classList.remove('active');
+    closeModal(target = null) {
+        let modal = target;
+
+        if (typeof modal === 'string') {
+            modal = document.getElementById(modal);
+        } else if (!modal) {
+            const activeModals = Array.from(document.querySelectorAll('.modal.active'));
+            modal = activeModals.pop() || null;
+        }
+
+        if (!modal) {
+            return;
+        }
+
+        modal.classList.remove('active');
+
+        if (!document.querySelector('.modal.active')) {
             document.body.style.overflow = '';
         }
     }
@@ -406,9 +436,9 @@ class RecipeMealPlannerApp {
                         </div>
                         <div class="recipe-info">
                             <div class="recipe-meta">
-                                <span><i class="fas fa-clock"></i> Prep: ${recipe.prep_time} min</span>
-                                <span><i class="fas fa-fire"></i> Cook: ${recipe.cooking_time} min</span>
-                                <span><i class="fas fa-users"></i> Serves: ${recipe.servings}</span>
+                                <span><i class="fas fa-clock"></i> Prep: ${recipe.prepTimeMinutes} min</span>
+                                <span><i class="fas fa-fire"></i> Cook: ${recipe.cookTimeMinutes} min</span>
+                                <span><i class="fas fa-users"></i> Serves: ${recipe.servingSize}</span>
                                 <span><i class="fas fa-signal"></i> ${recipe.difficulty}</span>
                             </div>
                             <div class="recipe-tags">
@@ -427,19 +457,19 @@ class RecipeMealPlannerApp {
                         <div class="ingredients-section">
                             <h3>Ingredients</h3>
                             <ul class="ingredients-list">
-                                ${recipe.ingredients.map(ing => `
+                                ${recipe.ingredients ? recipe.ingredients.map(ing => `
                                     <li>
                                         <span class="amount">${ing.amount} ${ing.unit}</span>
                                         <span class="name">${ing.name}</span>
                                     </li>
-                                `).join('')}
+                                `).join('') : '<li>No ingredients listed.</li>'}
                             </ul>
                         </div>
                         
                         <div class="instructions-section">
                             <h3>Instructions</h3>
                             <ol class="instructions-list">
-                                ${recipe.instructions.map(instruction => `
+                                ${recipe.instructions.split('\n').map(instruction => `
                                     <li>${instruction}</li>
                                 `).join('')}
                             </ol>
@@ -471,15 +501,15 @@ class RecipeMealPlannerApp {
                     </div>
                     
                     <div class="recipe-actions">
-                        <button class="btn btn-outline" onclick="app.saveRecipe('${recipe._id}')">
+                        <button class="btn btn-outline" onclick="app.saveRecipe('${recipe.id}')">
                             <i class="fas fa-heart"></i>
                             Save Recipe
                         </button>
-                        <button class="btn btn-primary" onclick="app.addToMealPlan('${recipe._id}')">
+                        <button class="btn btn-primary" onclick="app.addToMealPlan('${recipe.id}')">
                             <i class="fas fa-calendar-plus"></i>
                             Add to Meal Plan
                         </button>
-                        <button class="btn btn-secondary" onclick="app.generateGroceryList(['${recipe._id}'])">
+                        <button class="btn btn-secondary" onclick="app.generateGroceryList(['${recipe.id}'])">
                             <i class="fas fa-shopping-cart"></i>
                             Add to Grocery List
                         </button>
@@ -597,7 +627,7 @@ class RecipeMealPlannerApp {
             
             if (this.currentUser) {
                 // Update existing user
-                const response = await fetch(`${this.apiBase}/users/${this.currentUser._id}/preferences`, {
+                const response = await fetch(`${this.apiBase}/users/${this.currentUser.id}/preferences`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json'
@@ -701,7 +731,7 @@ class RecipeMealPlannerApp {
                 return;
             }
             
-            const response = await fetch(`${this.apiBase}/users/${this.currentUser._id}/favorites/${recipeId}`, {
+            const response = await fetch(`${this.apiBase}/users/${this.currentUser.id}/favorites/${recipeId}`, {
                 method: 'POST'
             });
             

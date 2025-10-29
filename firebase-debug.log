@@ -1,0 +1,191 @@
+[debug] [2025-10-29T12:53:22.644Z] ----------------------------------------------------------------------
+[debug] [2025-10-29T12:53:22.648Z] Command:       C:\nodejs\node.exe C:\Users\Tarek\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js init
+[debug] [2025-10-29T12:53:22.649Z] CLI Version:   14.22.0
+[debug] [2025-10-29T12:53:22.649Z] Platform:      win32
+[debug] [2025-10-29T12:53:22.649Z] Node Version:  v22.16.0
+[debug] [2025-10-29T12:53:22.650Z] Time:          Wed Oct 29 2025 13:53:22 GMT+0100 (Mitteleuropäische Normalzeit)
+[debug] [2025-10-29T12:53:22.650Z] ----------------------------------------------------------------------
+[debug] 
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  C:\Users\Tarek\Pictures\projet_web
+
+[info] 
+=== Project Setup
+[info] 
+[info] First, let's associate this project directory with a Firebase project.
+[info] You can create multiple project aliases by running firebase use --add, 
+[info] 
+[debug] [2025-10-29T12:53:34.686Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-10-29T12:53:34.687Z] > authorizing via signed-in user (azabou04@gmail.com)
+[debug] [2025-10-29T12:53:34.688Z] Checked if tokens are valid: true, expires at: 1761744961193
+[debug] [2025-10-29T12:53:34.689Z] Checked if tokens are valid: true, expires at: 1761744961193
+[debug] [2025-10-29T12:53:34.690Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/mealy-41bf0 [none]
+[debug] [2025-10-29T12:53:35.288Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/mealy-41bf0 200
+[debug] [2025-10-29T12:53:35.288Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/mealy-41bf0 {"projectId":"mealy-41bf0","projectNumber":"821075488273","displayName":"mealy","name":"projects/mealy-41bf0","resources":{"hostingSite":"mealy-41bf0"},"state":"ACTIVE","etag":"1_5286ff3c-cc70-43e6-b292-d2e07b165893"}
+[info] i  Using project mealy-41bf0 (mealy) . 
+[info] 
+=== Dataconnect Setup
+[debug] [2025-10-29T12:53:35.336Z] Checked if tokens are valid: true, expires at: 1761744961193
+[debug] [2025-10-29T12:53:35.336Z] Checked if tokens are valid: true, expires at: 1761744961193
+[debug] [2025-10-29T12:53:35.336Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/mealy-41bf0/billingInfo [none]
+[debug] [2025-10-29T12:53:36.304Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/mealy-41bf0/billingInfo 200
+[debug] [2025-10-29T12:53:36.304Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/mealy-41bf0/billingInfo {"name":"projects/mealy-41bf0/billingInfo","projectId":"mealy-41bf0","billingAccountName":"","billingEnabled":false}
+[info] i  dataconnect: ensuring required API firebasedataconnect.googleapis.com is enabled... 
+[info] i  dataconnect: ensuring required API sqladmin.googleapis.com is enabled... 
+[debug] [2025-10-29T12:53:36.309Z] Checked if tokens are valid: true, expires at: 1761744961193
+[debug] [2025-10-29T12:53:36.309Z] Checked if tokens are valid: true, expires at: 1761744961193
+[debug] [2025-10-29T12:53:36.309Z] >>> [apiv2][query] GET https://firebasedataconnect.googleapis.com/v1/projects/mealy-41bf0/locations/-/services [none]
+[debug] [2025-10-29T12:53:38.096Z] <<< [apiv2][status] GET https://firebasedataconnect.googleapis.com/v1/projects/mealy-41bf0/locations/-/services 200
+[debug] [2025-10-29T12:53:38.097Z] <<< [apiv2][body] GET https://firebasedataconnect.googleapis.com/v1/projects/mealy-41bf0/locations/-/services {"services":[{"name":"projects/mealy-41bf0/locations/us-east4/services/projetweb","createTime":"2025-10-29T12:39:00.217564527Z","updateTime":"2025-10-29T12:40:08.751910246Z","uid":"1025ff62-3487-4036-8a2d-b0b026d66fb3","reconciling":false,"etag":"5sfPfnokpsvCLol2DLslkbUzrLkp0pv7_-or793MtOI"}]}
+[debug] [2025-10-29T12:53:47.824Z] Checked if tokens are valid: true, expires at: 1761744961193
+[debug] [2025-10-29T12:53:47.824Z] Checked if tokens are valid: true, expires at: 1761744961193
+[debug] [2025-10-29T12:53:47.825Z] >>> [apiv2][query] GET https://firebasedataconnect.googleapis.com/v1/projects/mealy-41bf0/locations/us-east4/services/projetweb/schemas/main [none]
+[debug] [2025-10-29T12:53:48.714Z] <<< [apiv2][status] GET https://firebasedataconnect.googleapis.com/v1/projects/mealy-41bf0/locations/us-east4/services/projetweb/schemas/main 200
+[debug] [2025-10-29T12:53:48.714Z] <<< [apiv2][body] GET https://firebasedataconnect.googleapis.com/v1/projects/mealy-41bf0/locations/us-east4/services/projetweb/schemas/main {"name":"projects/mealy-41bf0/locations/us-east4/services/projetweb/schemas/main","createTime":"2025-10-29T12:39:10.838965144Z","updateTime":"2025-10-29T12:40:08.756759566Z","source":{"files":[{"path":"schema.gql","content":"type User @table {\n  displayName: String!\n  email: String!\n  createdAt: Timestamp!\n  dietaryPreferences: [String]\n  dietaryRestrictions: [String]\n}\n\ntype Recipe @table {\n  title: String!\n  instructions: String!\n  servingSize: Int!\n  prepTimeMinutes: Int!\n  cookTimeMinutes: Int!\n  createdAt: Timestamp!\n  description: String\n  imageUrl: String\n  cuisine: String\n  difficulty: String\n}\n\ntype Ingredient @table {\n  name: String!\n  unit: String!\n}\n\ntype RecipeIngredient @table(key: [\"recipe\", \"ingredient\"]) {\n  recipe: Recipe!\n  ingredient: Ingredient!\n  quantity: Float!\n  unit: String!\n  notes: String\n}\n\ntype FridgeItem @table(key: [\"user\", \"ingredient\"]) {\n  user: User!\n  ingredient: Ingredient!\n  quantity: Float!\n  unit: String!\n  addedAt: Timestamp!\n  expirationDate: Date\n}\n\ntype MealPlan @table {\n  user: User!\n  recipe: Recipe!\n  planDate: Date!\n  mealType: String!\n}"}]},"uid":"739f042f-755f-4ba7-8f24-723b3c937694","reconciling":false,"datasources":[{"postgresql":{"ephemeral":true}}],"etag":"-NZlYPJV9hsP0fQmZJe4W83yItI41ljg7z2PhK68Ex0"}
+[debug] [2025-10-29T12:53:48.715Z] Checked if tokens are valid: true, expires at: 1761744961193
+[debug] [2025-10-29T12:53:48.715Z] Checked if tokens are valid: true, expires at: 1761744961193
+[debug] [2025-10-29T12:53:48.715Z] >>> [apiv2][query] GET https://firebasedataconnect.googleapis.com/v1/projects/mealy-41bf0/locations/us-east4/services/projetweb/connectors pageSize=100&pageToken=&fields=connectors.name%2Cconnectors.source.files
+[debug] [2025-10-29T12:53:48.927Z] <<< [apiv2][status] GET https://firebasedataconnect.googleapis.com/v1/projects/mealy-41bf0/locations/us-east4/services/projetweb/connectors 200
+[debug] [2025-10-29T12:53:48.927Z] <<< [apiv2][body] GET https://firebasedataconnect.googleapis.com/v1/projects/mealy-41bf0/locations/us-east4/services/projetweb/connectors {}
+[info] +  dataconnect: Detected existing apps . (web), functions (web) 
+[info] i  dataconnect\dataconnect.yaml is unchanged 
+[info] i  dataconnect\schema\schema.gql is unchanged 
+[info] +  Wrote dataconnect\example\connector.yaml 
+[info] +  Wrote dataconnect\example\connector.yaml 
+[info] i  dataconnect: Installing the generated SDKs ... 
+[debug] [2025-10-29T12:54:02.895Z] defaultcredentials: writing to file C:\Users\Tarek\AppData\Roaming\firebase\azabou04_gmail_com_application_default_credentials.json
+[info] +  dataconnect: Installed generated SDKs for . (web) 
+[info] 
+=== Firestore Setup
+[info] i  firestore: ensuring required API firestore.googleapis.com is enabled... 
+[debug] [2025-10-29T12:54:03.387Z] Checked if tokens are valid: true, expires at: 1761744961193
+[debug] [2025-10-29T12:54:03.387Z] Checked if tokens are valid: true, expires at: 1761744961193
+[debug] [2025-10-29T12:54:03.387Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/mealy-41bf0/databases [none]
+[debug] [2025-10-29T12:54:04.344Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/mealy-41bf0/databases 200
+[debug] [2025-10-29T12:54:04.344Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/mealy-41bf0/databases {}
+[debug] [2025-10-29T12:54:04.344Z] Checked if tokens are valid: true, expires at: 1761744961193
+[debug] [2025-10-29T12:54:04.344Z] Checked if tokens are valid: true, expires at: 1761744961193
+[debug] [2025-10-29T12:54:04.344Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/mealy-41bf0/locations [none]
+[debug] [2025-10-29T12:54:04.469Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/mealy-41bf0/locations 200
+[debug] [2025-10-29T12:54:04.470Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/mealy-41bf0/locations {"locations":[{"name":"projects/mealy-41bf0/locations/eur3","labels":{"appengine.googleapis.com/geo":"europe-west","cloud.googleapis.com/location":"eur3","cloud.googleapis.com/geo":"eur3"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"eur3","displayName":"Europe"},{"name":"projects/mealy-41bf0/locations/nam5","labels":{"appengine.googleapis.com/geo":"us-central","cloud.googleapis.com/location":"nam5","cloud.googleapis.com/geo":"nam5"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"nam5","displayName":"United States"},{"name":"projects/mealy-41bf0/locations/nam7","labels":{"cloud.googleapis.com/location":"nam7","cloud.googleapis.com/geo":"nam7"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"nam7","displayName":"United States"},{"name":"projects/mealy-41bf0/locations/africa-south1","labels":{"cloud.googleapis.com/location":"africa-south1","cloud.googleapis.com/region":"africa-south1"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"africa-south1","displayName":"Johannesburg"},{"name":"projects/mealy-41bf0/locations/asia-east1","labels":{"appengine.googleapis.com/region":"asia-east1","cloud.googleapis.com/location":"asia-east1","cloud.googleapis.com/region":"asia-east1"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"asia-east1","displayName":"Taiwan"},{"name":"projects/mealy-41bf0/locations/asia-east2","labels":{"appengine.googleapis.com/region":"asia-east2","cloud.googleapis.com/location":"asia-east2","cloud.googleapis.com/region":"asia-east2"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"asia-east2","displayName":"Hong Kong"},{"name":"projects/mealy-41bf0/locations/asia-northeast1","labels":{"appengine.googleapis.com/region":"asia-northeast1","cloud.googleapis.com/location":"asia-northeast1","cloud.googleapis.com/region":"asia-northeast1"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"asia-northeast1","displayName":"Tokyo"},{"name":"projects/mealy-41bf0/locations/asia-northeast2","labels":{"appengine.googleapis.com/region":"asia-northeast2","cloud.googleapis.com/location":"asia-northeast2","cloud.googleapis.com/region":"asia-northeast2"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"asia-northeast2","displayName":"Osaka"},{"name":"projects/mealy-41bf0/locations/asia-northeast3","labels":{"appengine.googleapis.com/region":"asia-northeast3","cloud.googleapis.com/location":"asia-northeast3","cloud.googleapis.com/region":"asia-northeast3"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"asia-northeast3","displayName":"Seoul"},{"name":"projects/mealy-41bf0/locations/asia-south1","labels":{"appengine.googleapis.com/region":"asia-south1","cloud.googleapis.com/location":"asia-south1","cloud.googleapis.com/region":"asia-south1"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"asia-south1","displayName":"Mumbai"},{"name":"projects/mealy-41bf0/locations/asia-south2","labels":{"cloud.googleapis.com/location":"asia-south2","cloud.googleapis.com/region":"asia-south2"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"asia-south2","displayName":"Delhi"},{"name":"projects/mealy-41bf0/locations/asia-southeast1","labels":{"appengine.googleapis.com/region":"asia-southeast1","cloud.googleapis.com/location":"asia-southeast1","cloud.googleapis.com/region":"asia-southeast1"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"asia-southeast1","displayName":"Singapore"},{"name":"projects/mealy-41bf0/locations/asia-southeast2","labels":{"appengine.googleapis.com/region":"asia-southeast2","cloud.googleapis.com/location":"asia-southeast2","cloud.googleapis.com/region":"asia-southeast2"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"asia-southeast2","displayName":"Jakarta"},{"name":"projects/mealy-41bf0/locations/australia-southeast1","labels":{"appengine.googleapis.com/region":"australia-southeast1","cloud.googleapis.com/location":"australia-southeast1","cloud.googleapis.com/region":"australia-southeast1"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"australia-southeast1","displayName":"Sydney"},{"name":"projects/mealy-41bf0/locations/australia-southeast2","labels":{"cloud.googleapis.com/location":"australia-southeast2","cloud.googleapis.com/region":"australia-southeast2"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"australia-southeast2","displayName":"Melbourne"},{"name":"projects/mealy-41bf0/locations/europe-central2","labels":{"appengine.googleapis.com/region":"europe-central2","cloud.googleapis.com/location":"europe-central2","cloud.googleapis.com/region":"europe-central2"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"europe-central2","displayName":"Warsaw"},{"name":"projects/mealy-41bf0/locations/europe-north1","labels":{"cloud.googleapis.com/location":"europe-north1","cloud.googleapis.com/region":"europe-north1"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"europe-north1","displayName":"Finland"},{"name":"projects/mealy-41bf0/locations/europe-north2","labels":{"cloud.googleapis.com/location":"europe-north2","cloud.googleapis.com/region":"europe-north2"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"europe-north2","displayName":"Stockholm"},{"name":"projects/mealy-41bf0/locations/europe-southwest1","labels":{"cloud.googleapis.com/location":"europe-southwest1","cloud.googleapis.com/region":"europe-southwest1"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"europe-southwest1","displayName":"Madrid"},{"name":"projects/mealy-41bf0/locations/europe-west1","labels":{"cloud.googleapis.com/location":"europe-west1","cloud.googleapis.com/region":"europe-west1"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"europe-west1","displayName":"Belgium"},{"name":"projects/mealy-41bf0/locations/europe-west10","labels":{"cloud.googleapis.com/location":"europe-west10","cloud.googleapis.com/region":"europe-west10"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"europe-west10","displayName":"Berlin"},{"name":"projects/mealy-41bf0/locations/europe-west12","labels":{"cloud.googleapis.com/location":"europe-west12","cloud.googleapis.com/region":"europe-west12"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"europe-west12","displayName":"Turin"},{"name":"projects/mealy-41bf0/locations/europe-west2","labels":{"appengine.googleapis.com/region":"europe-west2","cloud.googleapis.com/location":"europe-west2","cloud.googleapis.com/region":"europe-west2"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"europe-west2","displayName":"London"},{"name":"projects/mealy-41bf0/locations/europe-west3","labels":{"appengine.googleapis.com/region":"europe-west3","cloud.googleapis.com/location":"europe-west3","cloud.googleapis.com/region":"europe-west3"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"europe-west3","displayName":"Frankfurt"},{"name":"projects/mealy-41bf0/locations/europe-west4","labels":{"cloud.googleapis.com/location":"europe-west4","cloud.googleapis.com/region":"europe-west4"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"europe-west4","displayName":"Netherlands"},{"name":"projects/mealy-41bf0/locations/europe-west6","labels":{"appengine.googleapis.com/region":"europe-west6","cloud.googleapis.com/location":"europe-west6","cloud.googleapis.com/region":"europe-west6"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"europe-west6","displayName":"Zurich"},{"name":"projects/mealy-41bf0/locations/europe-west8","labels":{"cloud.googleapis.com/location":"europe-west8","cloud.googleapis.com/region":"europe-west8"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"europe-west8","displayName":"Milan"},{"name":"projects/mealy-41bf0/locations/europe-west9","labels":{"cloud.googleapis.com/location":"europe-west9","cloud.googleapis.com/region":"europe-west9"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"europe-west9","displayName":"Paris"},{"name":"projects/mealy-41bf0/locations/me-central1","labels":{"cloud.googleapis.com/location":"me-central1","cloud.googleapis.com/region":"me-central1"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"me-central1","displayName":"Doha"},{"name":"projects/mealy-41bf0/locations/me-central2","labels":{"cloud.googleapis.com/location":"me-central2","cloud.googleapis.com/region":"me-central2"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"me-central2","displayName":"Dammam"},{"name":"projects/mealy-41bf0/locations/me-west1","labels":{"cloud.googleapis.com/location":"me-west1","cloud.googleapis.com/region":"me-west1"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"me-west1","displayName":"Tel Aviv"},{"name":"projects/mealy-41bf0/locations/northamerica-northeast1","labels":{"appengine.googleapis.com/region":"northamerica-northeast1","cloud.googleapis.com/location":"northamerica-northeast1","cloud.googleapis.com/region":"northamerica-northeast1"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"northamerica-northeast1","displayName":"Montréal"},{"name":"projects/mealy-41bf0/locations/northamerica-northeast2","labels":{"cloud.googleapis.com/location":"northamerica-northeast2","cloud.googleapis.com/region":"northamerica-northeast2"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"northamerica-northeast2","displayName":"Toronto"},{"name":"projects/mealy-41bf0/locations/northamerica-south1","labels":{"cloud.googleapis.com/location":"northamerica-south1","cloud.googleapis.com/region":"northamerica-south1"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"northamerica-south1","displayName":"Mexico"},{"name":"projects/mealy-41bf0/locations/southamerica-east1","labels":{"appengine.googleapis.com/region":"southamerica-east1","cloud.googleapis.com/location":"southamerica-east1","cloud.googleapis.com/region":"southamerica-east1"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"southamerica-east1","displayName":"São Paulo"},{"name":"projects/mealy-41bf0/locations/southamerica-west1","labels":{"cloud.googleapis.com/location":"southamerica-west1","cloud.googleapis.com/region":"southamerica-west1"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"southamerica-west1","displayName":"Santiago"},{"name":"projects/mealy-41bf0/locations/us-central1","labels":{"cloud.googleapis.com/location":"us-central1","cloud.googleapis.com/region":"us-central1"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"us-central1","displayName":"Iowa"},{"name":"projects/mealy-41bf0/locations/us-east1","labels":{"appengine.googleapis.com/region":"us-east1","cloud.googleapis.com/location":"us-east1","cloud.googleapis.com/region":"us-east1"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"us-east1","displayName":"South Carolina"},{"name":"projects/mealy-41bf0/locations/us-east4","labels":{"appengine.googleapis.com/region":"us-east4","cloud.googleapis.com/location":"us-east4","cloud.googleapis.com/region":"us-east4"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"us-east4","displayName":"Northern Virginia"},{"name":"projects/mealy-41bf0/locations/us-east5","labels":{"cloud.googleapis.com/location":"us-east5","cloud.googleapis.com/region":"us-east5"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"us-east5","displayName":"Columbus"},{"name":"projects/mealy-41bf0/locations/us-south1","labels":{"cloud.googleapis.com/location":"us-south1","cloud.googleapis.com/region":"us-south1"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"us-south1","displayName":"Dallas"},{"name":"projects/mealy-41bf0/locations/us-west1","labels":{"appengine.googleapis.com/region":"us-west1","cloud.googleapis.com/location":"us-west1","cloud.googleapis.com/region":"us-west1"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"us-west1","displayName":"Oregon"},{"name":"projects/mealy-41bf0/locations/us-west2","labels":{"appengine.googleapis.com/region":"us-west2","cloud.googleapis.com/location":"us-west2","cloud.googleapis.com/region":"us-west2"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"us-west2","displayName":"Los Angeles"},{"name":"projects/mealy-41bf0/locations/us-west3","labels":{"appengine.googleapis.com/region":"us-west3","cloud.googleapis.com/location":"us-west3","cloud.googleapis.com/region":"us-west3"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"us-west3","displayName":"Salt Lake City"},{"name":"projects/mealy-41bf0/locations/us-west4","labels":{"appengine.googleapis.com/region":"us-west4","cloud.googleapis.com/location":"us-west4","cloud.googleapis.com/region":"us-west4"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"us-west4","displayName":"Las Vegas"}]}
+[info] 
+[info] Firestore Security Rules allow you to define how and when to allow
+[info] requests. You can keep these rules in your project directory
+[info] and publish them with firebase deploy.
+[info] 
+[debug] [2025-10-29T12:54:13.565Z] Checked if tokens are valid: true, expires at: 1761744961193
+[debug] [2025-10-29T12:54:13.565Z] Checked if tokens are valid: true, expires at: 1761744961193
+[debug] [2025-10-29T12:54:13.565Z] >>> [apiv2][query] GET https://firebaserules.googleapis.com/v1/projects/mealy-41bf0/releases pageSize=10&pageToken=
+[debug] [2025-10-29T12:54:14.058Z] <<< [apiv2][status] GET https://firebaserules.googleapis.com/v1/projects/mealy-41bf0/releases 200
+[debug] [2025-10-29T12:54:14.059Z] <<< [apiv2][body] GET https://firebaserules.googleapis.com/v1/projects/mealy-41bf0/releases {}
+[info] i  firestore.rules is unchanged 
+[info] 
+[info] Firestore indexes allow you to perform complex queries while
+[info] maintaining performance that scales with the size of the result
+[info] set. You can keep index definitions in your project directory
+[info] and publish them with firebase deploy.
+[info] 
+[debug] [2025-10-29T12:54:15.274Z] Checked if tokens are valid: true, expires at: 1761744961193
+[debug] [2025-10-29T12:54:15.274Z] Checked if tokens are valid: true, expires at: 1761744961193
+[debug] [2025-10-29T12:54:15.274Z] Checked if tokens are valid: true, expires at: 1761744961193
+[debug] [2025-10-29T12:54:15.274Z] Checked if tokens are valid: true, expires at: 1761744961193
+[debug] [2025-10-29T12:54:15.274Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/mealy-41bf0/databases/(default)/collectionGroups/-/indexes [none]
+[debug] [2025-10-29T12:54:15.277Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/mealy-41bf0/databases/(default)/collectionGroups/-/fields?filter=indexConfig.usesAncestorConfig=false OR ttlConfig:* [none]
+[debug] [2025-10-29T12:54:15.719Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/mealy-41bf0/databases/(default)/collectionGroups/-/fields?filter=indexConfig.usesAncestorConfig=false OR ttlConfig:* 404
+[debug] [2025-10-29T12:54:15.719Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/mealy-41bf0/databases/(default)/collectionGroups/-/fields?filter=indexConfig.usesAncestorConfig=false OR ttlConfig:* {"error":{"code":404,"message":"Project 'mealy-41bf0' or database '(default)' does not exist.","status":"NOT_FOUND"}}
+[info] i  firestore.indexes.json is unchanged 
+[info] +  Wrote firestore.indexes.json 
+[info] 
+=== Genkit Setup
+[debug] [2025-10-29T12:54:15.775Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/mealy-41bf0/databases/(default)/collectionGroups/-/indexes 404
+[debug] [2025-10-29T12:54:15.776Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/mealy-41bf0/databases/(default)/collectionGroups/-/indexes {"error":{"code":404,"message":"Project 'mealy-41bf0' or database '(default)' does not exist.","status":"NOT_FOUND"}}
+[debug] [2025-10-29T12:54:36.051Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-10-29T12:54:36.052Z] > authorizing via signed-in user (azabou04@gmail.com)
+[debug] [2025-10-29T12:54:36.052Z] [iam] checking project mealy-41bf0 for permissions ["firebase.projects.get"]
+[debug] [2025-10-29T12:54:36.052Z] Checked if tokens are valid: true, expires at: 1761744961193
+[debug] [2025-10-29T12:54:36.052Z] Checked if tokens are valid: true, expires at: 1761744961193
+[debug] [2025-10-29T12:54:36.052Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/mealy-41bf0:testIamPermissions [none]
+[debug] [2025-10-29T12:54:36.052Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/mealy-41bf0:testIamPermissions x-goog-quota-user=projects/mealy-41bf0
+[debug] [2025-10-29T12:54:36.052Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/mealy-41bf0:testIamPermissions {"permissions":["firebase.projects.get"]}
+[debug] [2025-10-29T12:54:37.151Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/mealy-41bf0:testIamPermissions 200
+[debug] [2025-10-29T12:54:37.151Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/mealy-41bf0:testIamPermissions {"permissions":["firebase.projects.get"]}
+[info] Let's create a new codebase for your functions.
+[info] A directory corresponding to the codebase will be created in your project
+[info] with sample code pre-configured.
+
+[info] See https://firebase.google.com/docs/functions/organize-functions for
+[info] more information on organizing your functions using codebases.
+
+[info] Functions can be deployed with firebase deploy.
+
+[info] +  Wrote functions/package.json 
+[info] i  functions/.eslintrc.js is unchanged 
+[info] i  functions/tsconfig.dev.json is unchanged 
+[info] +  Wrote functions/tsconfig.json 
+[info] i  functions/src/index.ts is unchanged 
+[info] +  Wrote functions/.gitignore 
+[info] 
+[info] i  genkit: Installing Genkit CLI version 1.22.0
+ 
+[info] i  genkit: Installing NPM packages for genkit 
+[info] +  genkit: Successfully installed NPM packages 
+[info] i  genkit: Updating tsconfig.json 
+[info] +  genkit: Successfully updated tsconfig.json 
+[info] i  genkit: Updating package.json 
+[info] +  genkit: Successfully updated package.json 
+[info] Telemetry data can be used to monitor and gain insights into your AI features. There may be a cost associated with using this feature. See https://firebase.google.com/docs/genkit/observability/telemetry-collection.
+[info] i  genkit: Generating sample file 
+[info] +  genkit: Successfully generated sample file (src/genkit-sample.ts) 
+[info] 
+[info] 
+Login to Google Cloud using:
+[info]     gcloud auth application-default login --project mealy-41bf0
+
+[info] Then start the Genkit developer experience by running:
+[info]     cd functions && npm run genkit:start
+[info] 
+=== Functions Setup
+[debug] [2025-10-29T12:57:27.205Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-10-29T12:57:27.205Z] > authorizing via signed-in user (azabou04@gmail.com)
+[debug] [2025-10-29T12:57:27.205Z] [iam] checking project mealy-41bf0 for permissions ["firebase.projects.get"]
+[debug] [2025-10-29T12:57:27.205Z] Checked if tokens are valid: true, expires at: 1761744961193
+[debug] [2025-10-29T12:57:27.205Z] Checked if tokens are valid: true, expires at: 1761744961193
+[debug] [2025-10-29T12:57:27.205Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/mealy-41bf0:testIamPermissions [none]
+[debug] [2025-10-29T12:57:27.205Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/mealy-41bf0:testIamPermissions x-goog-quota-user=projects/mealy-41bf0
+[debug] [2025-10-29T12:57:27.205Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/mealy-41bf0:testIamPermissions {"permissions":["firebase.projects.get"]}
+[debug] [2025-10-29T12:57:28.434Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/mealy-41bf0:testIamPermissions 200
+[debug] [2025-10-29T12:57:28.434Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/mealy-41bf0:testIamPermissions {"permissions":["firebase.projects.get"]}
+[info] 
+Detected existing codebase(s): default
+
+[info] Let's create a new codebase for your functions.
+[info] A directory corresponding to the codebase will be created in your project
+[info] with sample code pre-configured.
+
+[info] See https://firebase.google.com/docs/functions/organize-functions for
+[info] more information on organizing your functions using codebases.
+
+[info] Functions can be deployed with firebase deploy.
+
+[error] Invalid codebase name. Codebase must be less than 64 characters and can contain only lowercase letters, numeric characters, underscores, and dashes.
+[error] Invalid codebase name. Codebase must be less than 64 characters and can contain only lowercase letters, numeric characters, underscores, and dashes.
+[info] +  Wrote mealy/requirements.txt 
+[info] +  Wrote mealy/.gitignore 
+[info] +  Wrote mealy/main.py 
+[debug] [2025-10-29T12:58:19.923Z] Running command with virtualenv: command="C:\Users\Tarek\Pictures\projet_web\mealy\venv\Scripts\activate.bat", args=["","&&","pip3","install","--upgrade","pip"]
+[debug] [2025-10-29T12:58:22.500Z] Error: spawn "C:\Users\Tarek\Pictures\projet_web\mealy\venv\Scripts\activate.bat" ENOENT
+    at notFoundError (C:\Users\Tarek\AppData\Roaming\npm\node_modules\firebase-tools\node_modules\cross-spawn\lib\enoent.js:6:26)
+    at verifyENOENT (C:\Users\Tarek\AppData\Roaming\npm\node_modules\firebase-tools\node_modules\cross-spawn\lib\enoent.js:40:16)
+    at cp.emit (C:\Users\Tarek\AppData\Roaming\npm\node_modules\firebase-tools\node_modules\cross-spawn\lib\enoent.js:27:25)
+    at ChildProcess._handle.onexit (node:internal/child_process:293:12)
+    at Process.callbackTrampoline (node:internal/async_hooks:130:17)
+[error] 
+[error] Error: An unexpected error has occurred.

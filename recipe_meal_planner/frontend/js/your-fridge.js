@@ -91,7 +91,7 @@ class YourFridge {
             const data = await response.json();
             
             if (response.ok) {
-                this.fridgeItems = data.items || [];
+                this.fridgeItems = data || [];
             } else {
                 // If no fridge data exists, create sample items for demo
                 this.fridgeItems = this.createSampleItems();
@@ -119,7 +119,7 @@ class YourFridge {
         
         return [
             {
-                _id: 'sample-1',
+                id: 'sample-1',
                 name: 'Milk',
                 category: 'dairy',
                 quantity: 1,
@@ -130,7 +130,7 @@ class YourFridge {
                 addedDate: today.toISOString().split('T')[0]
             },
             {
-                _id: 'sample-2',
+                id: 'sample-2',
                 name: 'Chicken Breast',
                 category: 'meat',
                 quantity: 2,
@@ -141,7 +141,7 @@ class YourFridge {
                 addedDate: today.toISOString().split('T')[0]
             },
             {
-                _id: 'sample-3',
+                id: 'sample-3',
                 name: 'Spinach',
                 category: 'produce',
                 quantity: 1,
@@ -152,7 +152,7 @@ class YourFridge {
                 addedDate: today.toISOString().split('T')[0]
             },
             {
-                _id: 'sample-4',
+                id: 'sample-4',
                 name: 'Rice',
                 category: 'pantry',
                 quantity: 2,
@@ -241,7 +241,7 @@ class YourFridge {
         const categoryInfo = this.categories[item.category] || this.categories.other;
         
         return `
-            <div class="ingredient-item ${freshness.class}" data-item-id="${item._id}">
+            <div class="ingredient-item ${freshness.class}" data-item-id="${item.id}">
                 <div class="ingredient-header">
                     <div class="ingredient-info">
                         <h4 class="ingredient-name">${item.name}</h4>
@@ -251,10 +251,10 @@ class YourFridge {
                         </span>
                     </div>
                     <div class="ingredient-actions">
-                        <button class="btn btn-outline btn-tiny" onclick="app.yourFridge.editIngredient('${item._id}')">
+                        <button class="btn btn-outline btn-tiny" onclick="app.yourFridge.editIngredient('${item.id}')">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="btn btn-outline btn-tiny" onclick="app.yourFridge.deleteIngredient('${item._id}')">
+                        <button class="btn btn-outline btn-tiny" onclick="app.yourFridge.deleteIngredient('${item.id}')">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
@@ -265,11 +265,11 @@ class YourFridge {
                         <span class="detail-label">Quantity</span>
                         <div class="ingredient-quantity">
                             <div class="quantity-controls">
-                                <button class="quantity-btn" onclick="app.yourFridge.updateQuantity('${item._id}', -1)">
+                                <button class="quantity-btn" onclick="app.yourFridge.updateQuantity('${item.id}', -1)">
                                     <i class="fas fa-minus"></i>
                                 </button>
                                 <span class="quantity-value">${item.quantity}</span>
-                                <button class="quantity-btn" onclick="app.yourFridge.updateQuantity('${item._id}', 1)">
+                                <button class="quantity-btn" onclick="app.yourFridge.updateQuantity('${item.id}', 1)">
                                     <i class="fas fa-plus"></i>
                                 </button>
                             </div>
@@ -537,7 +537,7 @@ class YourFridge {
             const data = await response.json();
             
             if (response.ok) {
-                this.fridgeItems.push(data.item);
+                this.fridgeItems.push(data);
                 this.filterItems();
                 this.updateStats();
                 this.app.closeModal();
@@ -551,7 +551,7 @@ class YourFridge {
             
             // Add locally for demo purposes
             const newItem = {
-                _id: 'temp-' + Date.now(),
+                id: 'temp-' + Date.now(),
                 ...formData
             };
             
@@ -564,7 +564,7 @@ class YourFridge {
     }
     
     async updateQuantity(itemId, change) {
-        const item = this.fridgeItems.find(item => item._id === itemId);
+        const item = this.fridgeItems.find(item => item.id === itemId);
         if (!item) return;
         
         const newQuantity = Math.max(0, item.quantity + change);
@@ -593,14 +593,14 @@ class YourFridge {
     }
     
     async deleteIngredient(itemId) {
-        const item = this.fridgeItems.find(item => item._id === itemId);
+        const item = this.fridgeItems.find(item => item.id === itemId);
         if (!item) return;
         
         if (!confirm(`Are you sure you want to remove ${item.name} from your fridge?`)) {
             return;
         }
         
-        this.fridgeItems = this.fridgeItems.filter(item => item._id !== itemId);
+        this.fridgeItems = this.fridgeItems.filter(item => item.id !== itemId);
         this.filterItems();
         this.updateStats();
         
@@ -617,7 +617,6 @@ class YourFridge {
     
     async generateRecipeSuggestions() {
         const suggestBtn = document.getElementById('suggest-recipes-btn');
-        const recipeSuggestionsSection = document.getElementById('recipe-suggestions-section');
         
         if (suggestBtn) {
             suggestBtn.disabled = true;
@@ -641,18 +640,8 @@ class YourFridge {
                 return;
             }
             
-            // Call recipe generator API
-            const response = await fetch(`${this.app.apiBase}/recipes/generate`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    ingredients: availableIngredients,
-                    max_cooking_time: 60,
-                    difficulty: 'any'
-                })
-            });
+            // Call recipe search API
+            const response = await fetch(`${this.app.apiBase}/recipes/search?q=${encodeURIComponent(availableIngredients.join(' '))}`);
             
             const data = await response.json();
             
@@ -710,15 +699,15 @@ class YourFridge {
     
     createSimpleRecipeCard(recipe) {
         return `
-            <div class="recipe-card" data-recipe-id="${recipe._id}">
+            <div class="recipe-card" data-recipe-id="${recipe.id}">
                 <div class="recipe-image">
                     <i class="fas fa-camera placeholder-icon"></i>
                 </div>
                 <div class="recipe-content">
                     <h3 class="recipe-title">${recipe.title}</h3>
                     <div class="recipe-meta">
-                        <span><i class="fas fa-clock"></i> ${(recipe.cooking_time || 0) + (recipe.prep_time || 0)} min</span>
-                        <span><i class="fas fa-users"></i> ${recipe.servings} servings</span>
+                        <span><i class="fas fa-clock"></i> ${(recipe.cookTimeMinutes || 0) + (recipe.prepTimeMinutes || 0)} min</span>
+                        <span><i class="fas fa-users"></i> ${recipe.servingSize} servings</span>
                     </div>
                     <div class="recipe-match">
                         <span class="match-indicator">
@@ -839,7 +828,7 @@ class YourFridge {
         // Add all items
         newItems.forEach(item => {
             this.fridgeItems.push({
-                _id: 'temp-' + Date.now() + Math.random(),
+                id: 'temp-' + Date.now() + Math.random(),
                 ...item
             });
         });

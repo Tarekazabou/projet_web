@@ -229,18 +229,12 @@ class RecipeGenerator {
             };
             
             // Make API request
-            const response = await fetch(`${this.app.apiBase}/recipes/generate`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(requestData)
-            });
+            const response = await fetch(`${this.app.apiBase}/recipes/search?q=${encodeURIComponent(requestData.ingredients.join(' '))}&dietary_tags=${requestData.dietary_preferences.join(',')}&max_cooking_time=${requestData.max_cooking_time}&difficulty=${requestData.difficulty}`);
             
             const data = await response.json();
             
             if (response.ok) {
-                this.renderRecipeResults(data.recipes, data.suggestions);
+                this.renderRecipeResults(data.recipes);
             } else {
                 throw new Error(data.error || 'Failed to generate recipes');
             }
@@ -333,7 +327,7 @@ class RecipeGenerator {
         const relevanceScore = recipe.relevance_score || 0;
         
         return `
-            <div class="recipe-card generated-recipe" data-recipe-id="${recipe._id}">
+            <div class="recipe-card generated-recipe" data-recipe-id="${recipe.id}">
                 <div class="recipe-image">
                     <i class="fas fa-camera placeholder-icon"></i>
                     <div class="recipe-rating">
@@ -348,8 +342,8 @@ class RecipeGenerator {
                 <div class="recipe-content">
                     <h3 class="recipe-title">${recipe.title}</h3>
                     <div class="recipe-meta">
-                        <span><i class="fas fa-clock"></i> ${(recipe.cooking_time || 0) + (recipe.prep_time || 0)} min</span>
-                        <span><i class="fas fa-users"></i> ${recipe.servings} servings</span>
+                        <span><i class="fas fa-clock"></i> ${(recipe.cookTimeMinutes || 0) + (recipe.prepTimeMinutes || 0)} min</span>
+                        <span><i class="fas fa-users"></i> ${recipe.servingSize} servings</span>
                         <span><i class="fas fa-signal"></i> ${recipe.difficulty}</span>
                     </div>
                     <div class="recipe-tags">
@@ -359,7 +353,7 @@ class RecipeGenerator {
                         <small>Matched ingredients: ${this.getMatchedIngredients(recipe)}</small>
                     </div>
                     <div class="recipe-actions">
-                        <button class="btn btn-outline btn-small" onclick="event.stopPropagation(); app.saveRecipe('${recipe._id}')">
+                        <button class="btn btn-outline btn-small" onclick="event.stopPropagation(); app.saveRecipe('${recipe.id}')">
                             <i class="fas fa-heart"></i>
                             Save
                         </button>

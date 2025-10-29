@@ -1,71 +1,19 @@
-from flask import Blueprint, request, jsonify, current_app
-from bson import ObjectId
+from flask import Blueprint, request, jsonify
+from backend.utils.firebase_connector import get_db
 import logging
 from datetime import datetime
-from backend.utils.recipe_generator import RecipeGenerator
-from backend.models.models import Recipe
 
 logger = logging.getLogger(__name__)
 recipes_bp = Blueprint('recipes', __name__)
-
-@recipes_bp.route('/generate', methods=['POST'])
-def generate_recipe():
-    """Generate recipes based on ingredients and dietary preferences"""
-    try:
-        data = request.get_json()
-        
-        # Validate input
-        if not data:
-            return jsonify({'error': 'No data provided'}), 400
-        
-        ingredients = data.get('ingredients', [])
-        dietary_preferences = data.get('dietary_preferences', [])
-        max_cooking_time = data.get('max_cooking_time', 60)
-        difficulty = data.get('difficulty', 'any')
-        cuisine_type = data.get('cuisine_type', 'any')
-        servings = data.get('servings', 2)
-        
-        # Initialize recipe generator
-        generator = RecipeGenerator(current_app.mongo.db)
-        
-        # Generate recipes
-        generated_recipes = generator.generate_recipes(
-            ingredients=ingredients,
-            dietary_preferences=dietary_preferences,
-            max_cooking_time=max_cooking_time,
-            difficulty=difficulty,
-            cuisine_type=cuisine_type,
-            servings=servings
-        )
-        
-        if not generated_recipes:
-            return jsonify({
-                'message': 'No recipes found matching your criteria',
-                'recipes': [],
-                'suggestions': generator.get_suggestions(ingredients, dietary_preferences)
-            }), 200
-        
-        # Convert ObjectId to string for JSON serialization
-        for recipe in generated_recipes:
-            if '_id' in recipe:
-                recipe['_id'] = str(recipe['_id'])
-        
-        return jsonify({
-            'message': f'Found {len(generated_recipes)} recipes',
-            'recipes': generated_recipes,
-            'total_count': len(generated_recipes)
-        }), 200
-        
-    except Exception as e:
-        logger.error(f"Error generating recipes: {e}")
-        return jsonify({'error': 'Failed to generate recipes'}), 500
 
 @recipes_bp.route('/search', methods=['GET'])
 def search_recipes():
     """Search recipes by various criteria"""
     try:
+        db = get_db()
+        
         # Get query parameters
-        query = request.args.get('q', '')
+        query_text = request.args.get('q', '')
         dietary_tags = request.args.getlist('dietary_tags')
         cuisine_type = request.args.get('cuisine_type', '')
         max_cooking_time = request.args.get('max_cooking_time', type=int)
@@ -73,61 +21,59 @@ def search_recipes():
         sort_by = request.args.get('sort_by', 'rating')
         page = max(1, request.args.get('page', 1, type=int))
         per_page = min(50, request.args.get('per_page', 20, type=int))
-        
-        # Build search filter
-        search_filter = {}
-        
-        if query:
-            search_filter['$or'] = [
-                {'title': {'$regex': query, '$options': 'i'}},
-                {'instructions': {'$regex': query, '$options': 'i'}},
-                {'ingredients.name': {'$regex': query, '$options': 'i'}}
-            ]
-        
+
+        # Start with a base query
+        query = db.collection('Recipe')
+
+        # Apply filters
+        if query_text:
+            # Firestore doesn't support full-text search natively.
+            # This is a simplified example. For real full-text search,
+            # you would use a third-party service like Algolia or Elasticsearch.
+            # Here we just filter by title.
+            query = query.where('title', '>=', query_text).where('title', '<=', query_text + '\uf8ff')
+
         if dietary_tags:
-            search_filter['dietary_tags'] = {'$in': dietary_tags}
+            query = query.where('dietaryPreferences', 'array_contains_any', dietary_tags)
         
         if cuisine_type:
-            search_filter['cuisine_type'] = cuisine_type
-        
+            query = query.where('cuisine', '==', cuisine_type)
+
         if max_cooking_time:
-            search_filter['cooking_time'] = {'$lte': max_cooking_time}
-        
+            query = query.where('cookTimeMinutes', '<=', max_cooking_time)
+
         if difficulty:
-            search_filter['difficulty'] = difficulty
-        
-        # Build sort criteria
-        sort_criteria = []
+            query = query.where('difficulty', '==', difficulty)
+
+        # Sorting
         if sort_by == 'rating':
-            sort_criteria = [('rating', -1), ('review_count', -1)]
+            # Assuming 'rating' field exists
+            query = query.order_by('rating', direction='DESCENDING')
         elif sort_by == 'cooking_time':
-            sort_criteria = [('cooking_time', 1)]
-        elif sort_by == 'difficulty':
-            difficulty_order = {'easy': 1, 'medium': 2, 'hard': 3}
-            sort_criteria = [('difficulty', 1)]
-        else:
-            sort_criteria = [('created_at', -1)]
+            query = query.order_by('cookTimeMinutes', direction='ASCENDING')
         
-        # Execute search with pagination
-        db = current_app.mongo.db
-        total_count = db.recipes.count_documents(search_filter)
-        
-        recipes = list(db.recipes.find(search_filter)
-                      .sort(sort_criteria)
-                      .skip((page - 1) * per_page)
-                      .limit(per_page))
-        
-        # Convert ObjectId to string
-        for recipe in recipes:
-            recipe['_id'] = str(recipe['_id'])
+        # Pagination
+        # For Firestore, you'd typically use cursors (start_after) for pagination.
+        # A simple offset-based pagination is less efficient but easier for a quick migration.
+        offset = (page - 1) * per_page
+        docs = query.limit(per_page).offset(offset).stream()
+
+        recipes = []
+        for doc in docs:
+            recipe = doc.to_dict()
+            recipe['id'] = doc.id
+            recipes.append(recipe)
+
+        # For total count, you'd need a separate query, which can be costly.
+        # For simplicity, we'll just return the count of the current page.
         
         return jsonify({
             'recipes': recipes,
             'pagination': {
                 'page': page,
                 'per_page': per_page,
-                'total_count': total_count,
-                'total_pages': (total_count + per_page - 1) // per_page
+                # 'total_count': total_count, # This would require another query
+                # 'total_pages': (total_count + per_page - 1) // per_page
             }
         }), 200
         
@@ -139,32 +85,18 @@ def search_recipes():
 def get_recipe(recipe_id):
     """Get a specific recipe by ID"""
     try:
-        if not ObjectId.is_valid(recipe_id):
-            return jsonify({'error': 'Invalid recipe ID'}), 400
+        db = get_db()
+        recipe_ref = db.collection('Recipe').document(recipe_id)
+        recipe = recipe_ref.get()
         
-        db = current_app.mongo.db
-        recipe = db.recipes.find_one({'_id': ObjectId(recipe_id)})
-        
-        if not recipe:
+        if not recipe.exists:
             return jsonify({'error': 'Recipe not found'}), 404
         
-        recipe['_id'] = str(recipe['_id'])
-        
-        # Get related recipes (same dietary tags or cuisine)
-        related_recipes = list(db.recipes.find({
-            '$or': [
-                {'dietary_tags': {'$in': recipe.get('dietary_tags', [])}},
-                {'cuisine_type': recipe.get('cuisine_type', '')}
-            ],
-            '_id': {'$ne': ObjectId(recipe_id)}
-        }).limit(5))
-        
-        for related in related_recipes:
-            related['_id'] = str(related['_id'])
+        recipe_data = recipe.to_dict()
+        recipe_data['id'] = recipe.id
         
         return jsonify({
-            'recipe': recipe,
-            'related_recipes': related_recipes
+            'recipe': recipe_data,
         }), 200
         
     except Exception as e:
@@ -176,35 +108,22 @@ def create_recipe():
     """Create a new recipe"""
     try:
         data = request.get_json()
+        db = get_db()
         
-        # Validate required fields
-        required_fields = ['title', 'ingredients', 'instructions', 'cooking_time', 'prep_time', 'servings']
+        # Validate required fields from schema.gql
+        required_fields = ['title', 'instructions', 'servingSize', 'prepTimeMinutes', 'cookTimeMinutes']
         for field in required_fields:
             if field not in data:
                 return jsonify({'error': f'Missing required field: {field}'}), 400
         
-        # Create recipe object
-        recipe = Recipe(
-            title=data['title'],
-            ingredients=data['ingredients'],
-            instructions=data['instructions'],
-            cooking_time=data['cooking_time'],
-            prep_time=data['prep_time'],
-            servings=data['servings'],
-            dietary_tags=data.get('dietary_tags', []),
-            nutrition=data.get('nutrition', {}),
-            difficulty=data.get('difficulty', 'medium'),
-            cuisine_type=data.get('cuisine_type', 'international')
-        )
+        data['createdAt'] = datetime.utcnow()
         
-        # Insert into database
-        db = current_app.mongo.db
-        result = db.recipes.insert_one(recipe.to_dict())
+        # Add a new doc with a generated id.
+        new_recipe_ref = db.collection('Recipe').add(data)[1]
         
-        # Return created recipe
-        created_recipe = db.recipes.find_one({'_id': result.inserted_id})
-        created_recipe['_id'] = str(created_recipe['_id'])
-        
+        created_recipe = new_recipe_ref.get().to_dict()
+        created_recipe['id'] = new_recipe_ref.id
+
         return jsonify({
             'message': 'Recipe created successfully',
             'recipe': created_recipe
@@ -218,29 +137,21 @@ def create_recipe():
 def update_recipe(recipe_id):
     """Update an existing recipe"""
     try:
-        if not ObjectId.is_valid(recipe_id):
-            return jsonify({'error': 'Invalid recipe ID'}), 400
-        
         data = request.get_json()
         if not data:
             return jsonify({'error': 'No data provided'}), 400
         
-        # Update timestamp
-        data['updated_at'] = datetime.utcnow()
-        
-        # Update recipe in database
-        db = current_app.mongo.db
-        result = db.recipes.update_one(
-            {'_id': ObjectId(recipe_id)},
-            {'$set': data}
-        )
-        
-        if result.matched_count == 0:
+        db = get_db()
+        recipe_ref = db.collection('Recipe').document(recipe_id)
+
+        if not recipe_ref.get().exists:
             return jsonify({'error': 'Recipe not found'}), 404
+
+        data['updatedAt'] = datetime.utcnow()
+        recipe_ref.update(data)
         
-        # Return updated recipe
-        updated_recipe = db.recipes.find_one({'_id': ObjectId(recipe_id)})
-        updated_recipe['_id'] = str(updated_recipe['_id'])
+        updated_recipe = recipe_ref.get().to_dict()
+        updated_recipe['id'] = recipe_ref.id
         
         return jsonify({
             'message': 'Recipe updated successfully',
@@ -255,14 +166,13 @@ def update_recipe(recipe_id):
 def delete_recipe(recipe_id):
     """Delete a recipe"""
     try:
-        if not ObjectId.is_valid(recipe_id):
-            return jsonify({'error': 'Invalid recipe ID'}), 400
-        
-        db = current_app.mongo.db
-        result = db.recipes.delete_one({'_id': ObjectId(recipe_id)})
-        
-        if result.deleted_count == 0:
+        db = get_db()
+        recipe_ref = db.collection('Recipe').document(recipe_id)
+
+        if not recipe_ref.get().exists:
             return jsonify({'error': 'Recipe not found'}), 404
+
+        recipe_ref.delete()
         
         return jsonify({'message': 'Recipe deleted successfully'}), 200
         
@@ -274,13 +184,9 @@ def delete_recipe(recipe_id):
 def get_categories():
     """Get available recipe categories and filters"""
     try:
-        db = current_app.mongo.db
-        
-        # Get unique dietary tags
-        dietary_tags = db.recipes.distinct('dietary_tags')
-        
-        # Get unique cuisine types
-        cuisine_types = db.recipes.distinct('cuisine_type')
+        # This is a simplified version. In a real app, you might want to
+        # maintain a separate collection for categories or use a more
+        # efficient way to get distinct values.
         
         # Get difficulty levels
         difficulties = ['easy', 'medium', 'hard']
@@ -293,6 +199,11 @@ def get_categories():
             {'label': 'Extended (> 60 min)', 'min': 60}
         ]
         
+        # For dietary tags and cuisine types, you could query all recipes
+        # and aggregate, but that's inefficient. For now, returning static lists.
+        dietary_tags = ["vegan", "gluten-free", "healthy", "vegetarian", "mediterranean", "high-protein", "keto", "low-carb"]
+        cuisine_types = ["international", "mediterranean", "american"]
+
         return jsonify({
             'dietary_tags': sorted(dietary_tags),
             'cuisine_types': sorted(cuisine_types),

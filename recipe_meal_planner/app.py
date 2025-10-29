@@ -1,6 +1,6 @@
-from flask import Flask, request, jsonify, render_template, send_file
+from flask import Flask, request, jsonify, render_template, send_file, g
 from flask_cors import CORS
-from flask_pymongo import PyMongo
+from backend.utils.firebase_connector import initialize_firebase, get_db
 from dotenv import load_dotenv
 import os
 from datetime import datetime
@@ -14,12 +14,18 @@ from backend.routes.grocery import grocery_bp
 from backend.routes.feedback import feedback_bp
 from backend.routes.users import users_bp
 from backend.routes.fridge import fridge_bp
+from backend.utils.auth import attach_current_user
 
 # Load environment variables
 load_dotenv()
 
 # Initialize Flask app
-app = Flask(__name__, template_folder='frontend', static_folder='frontend')
+app = Flask(
+    __name__,
+    template_folder='frontend',
+    static_folder='frontend',
+    static_url_path=''
+)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key')
 
 # CORS configuration
@@ -31,12 +37,8 @@ CORS(app, resources={
     }
 })
 
-# MongoDB configuration
-app.config["MONGO_URI"] = os.getenv('MONGODB_URI', 'mongodb://localhost:27017/recipe_meal_planner')
-mongo = PyMongo(app)
-
-# Make mongo accessible to blueprints
-app.mongo = mongo
+# Initialize Firebase
+initialize_firebase()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -51,37 +53,40 @@ app.register_blueprint(feedback_bp, url_prefix='/api/feedback')
 app.register_blueprint(users_bp, url_prefix='/api/users')
 app.register_blueprint(fridge_bp, url_prefix='/api/fridge')
 
+@app.before_request
+def load_authenticated_user():
+    """Attach the current user to the request context."""
+    attach_current_user()
+
+
+@app.after_request
+def inject_user_header(response):
+    """Surface the resolved user id to the client for subsequent requests."""
+    if hasattr(g, 'current_user_id'):
+        response.headers['X-User-Id'] = g.current_user_id
+    return response
+
 @app.route('/')
 def index():
     """Serve the main application page"""
     return render_template('index.html')
 
 @app.route('/recipe-generator')
-def recipe_generator():
-    """Serve the recipe generator page"""
-    return render_template('recipe_generator.html')
-
 @app.route('/meal-planner')
-def meal_planner():
-    """Serve the meal planner page"""
-    return render_template('meal_planner.html')
-
 @app.route('/nutrition-tracker')
-def nutrition_tracker():
-    """Serve the nutrition tracker page"""
-    return render_template('nutrition_tracker.html')
-
 @app.route('/grocery-list')
-def grocery_list():
-    """Serve the grocery list page"""
-    return render_template('grocery_list.html')
+def spa_entry():
+    """Serve the SPA shell for all UI entry points"""
+    return render_template('index.html')
 
 @app.route('/api/health')
 def health_check():
     """Health check endpoint"""
     try:
-        # Test database connection
-        mongo.db.command('ismaster')
+        # Test database connection by listing collections
+        db = get_db()
+        collections = db.collections()
+        list(collections) # Consume the iterator to actually trigger the API call
         db_status = "connected"
     except Exception as e:
         logger.error(f"Database connection error: {e}")
@@ -111,15 +116,6 @@ def bad_request(error):
     return jsonify({'error': 'Bad request'}), 400
 
 if __name__ == '__main__':
-    # Initialize database collections on startup
-    from backend.utils.db_init import initialize_database
-    
-    try:
-        initialize_database(mongo)
-        logger.info("Database initialized successfully")
-    except Exception as e:
-        logger.error(f"Database initialization failed: {e}")
-    
     # Run the application
     port = int(os.getenv('PORT', 5000))
     debug = os.getenv('FLASK_ENV') == 'development'

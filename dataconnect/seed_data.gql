@@ -1,0 +1,70 @@
+mutation CreateDemoData @transaction @auth(level: PUBLIC, insecureReason: "This operation is to seed the database and is safe to expose to the public") {
+  user_insertMany(data: [
+    {
+      id: "550e8400-e29b-41d4-a716-446655440000",
+      displayName: "demouser1",
+      email: "demouser1@example.com",
+      createdAt: "2024-04-26T12:00:00Z"
+    },
+    {
+      id: "550e8400-e29b-41d4-a716-446655440001",
+      displayName: "demouser2",
+      email: "demouser2@example.com",
+      createdAt: "2024-04-26T12:00:00Z"
+    }
+  ])
+  ingredient_insertMany(data: [
+    {
+      id: "650e8400-e29b-41d4-a716-446655440000",
+      name: "Tomato",
+      unit: "grams"
+    },
+    {
+      id: "650e8400-e29b-41d4-a716-446655440001",
+      name: "Basil",
+      unit: "grams"
+    }
+  ])
+  recipe_insertMany(data: [
+    {
+      id: "750e8400-e29b-41d4-a716-446655440000",
+      title: "Tomato Basil Pasta",
+      prepTimeMinutes: 15,
+      cookTimeMinutes: 20,
+      servingSize: 4,
+      instructions: "Boil pasta, add tomato and basil.",
+      createdAt: "2024-04-26T12:00:00Z"
+    }
+  ])
+  recipeIngredient_insertMany(data: [
+    {
+      recipeId: "750e8400-e29b-41d4-a716-446655440000",
+      ingredientId: "650e8400-e29b-41d4-a716-446655440000",
+      quantity: 200,
+      unit: "grams"
+    },
+    {
+      recipeId: "750e8400-e29b-41d4-a716-446655440000",
+      ingredientId: "650e8400-e29b-41d4-a716-446655440001",
+      quantity: 50,
+      unit: "grams"
+    }
+  ])
+  mealPlan_insertMany(data: [
+    {
+      userId: "550e8400-e29b-41d4-a716-446655440000",
+      recipeId: "750e8400-e29b-41d4-a716-446655440000",
+      mealType: "Dinner",
+      planDate: "2024-04-27"
+    }
+  ])
+  fridgeItem_insertMany(data: [
+    {
+      userId: "550e8400-e29b-41d4-a716-446655440000",
+      ingredientId: "650e8400-e29b-41d4-a716-446655440000",
+      addedAt: "2024-04-26T12:00:00Z",
+      quantity: 300,
+      unit: "grams"
+    }
+  ])
+}
