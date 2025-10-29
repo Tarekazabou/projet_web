@@ -51,9 +51,9 @@ class NutritionTracker {
         // Analyze recipe button
         const analyzeRecipeBtn = document.getElementById('analyze-recipe');
         if (analyzeRecipeBtn) {
-            analyzeRecipeBtn.addEventListener('click', () => {
-                this.openRecipeAnalysisModal();
-            });
+            analyzeRecipeBtn.disabled = true;
+            analyzeRecipeBtn.style.cursor = 'not-allowed';
+            analyzeRecipeBtn.title = 'This feature is temporarily unavailable.';
         }
         
         // Export nutrition data
@@ -116,7 +116,7 @@ class NutritionTracker {
             const data = await response.json();
             
             if (response.ok) {
-                this.nutritionGoals = data.goals;
+                this.nutritionGoals = data;
             } else {
                 // Set default goals
                 this.nutritionGoals = {
@@ -150,8 +150,8 @@ class NutritionTracker {
             const response = await fetch(`${this.app.apiBase}/nutrition/daily/${dateStr}`);
             const data = await response.json();
             
-            if (response.ok) {
-                this.nutritionData = data.nutrition;
+            if (response.ok && data) {
+                this.nutritionData = data;
             } else {
                 this.nutritionData = {
                     date: dateStr,

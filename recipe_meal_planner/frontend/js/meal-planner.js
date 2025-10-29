@@ -34,8 +34,12 @@ class MealPlanner {
         // Auto-generate button
         const autoGenerateBtn = document.getElementById('auto-generate-meal-plan');
         if (autoGenerateBtn) {
-            autoGenerateBtn.addEventListener('click', () => {
-                this.autoGenerateMealPlan();
+            autoGenerateBtn.disabled = true;
+            autoGenerateBtn.title = "This feature is temporarily disabled.";
+            autoGenerateBtn.style.cursor = 'not-allowed';
+            autoGenerateBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.app.showToast('Auto-generation is currently unavailable.', 'info');
             });
         }
         
@@ -116,8 +120,8 @@ class MealPlanner {
             const response = await fetch(`${this.app.apiBase}/meal-plans?start_date=${startDate}&end_date=${endDate}`);
             const data = await response.json();
             
-            if (response.ok && data.meal_plans && data.meal_plans.length > 0) {
-                this.mealPlan = data.meal_plans[0];
+            if (response.ok && data && data.length > 0) {
+                this.mealPlan = data[0];
             } else {
                 this.mealPlan = this.createEmptyMealPlan();
             }
@@ -146,7 +150,7 @@ class MealPlanner {
         });
         
         return {
-            _id: null,
+            id: null,
             start_date: this.currentWeek.start.toISOString().split('T')[0],
             end_date: this.currentWeek.end.toISOString().split('T')[0],
             meals: meals,
@@ -242,7 +246,7 @@ class MealPlanner {
         return `
             <div class="meal-item" data-recipe-id="${meal.recipe_id}">
                 <div class="meal-item-header">
-                    <h4 class="meal-title">${meal.recipe_title || meal.title}</h4>
+                    <h4 class="meal-title">${meal.title}</h4>
                     <button class="remove-meal-btn" onclick="app.mealPlanner.removeMeal(event)">
                         <i class="fas fa-times"></i>
                     </button>
@@ -362,11 +366,12 @@ class MealPlanner {
     
     async loadRecommendedRecipes(mealType) {
         try {
-            const response = await fetch(`${this.app.apiBase}/recipes/recommended?meal_type=${mealType}&limit=12`);
+            // Using search as a stand-in for recommendations
+            const response = await fetch(`${this.app.apiBase}/recipes/search?q=${mealType}&limit=12`);
             const data = await response.json();
             
-            if (response.ok && data.recipes) {
-                this.renderMealSelectorRecipes(data.recipes, 'recommended-tab');
+            if (response.ok) {
+                this.renderMealSelectorRecipes(data, 'recommended-tab');
             } else {
                 throw new Error('Failed to load recommendations');
             }
@@ -383,11 +388,13 @@ class MealPlanner {
     
     async loadFavoriteRecipes(mealType) {
         try {
-            const response = await fetch(`${this.app.apiBase}/recipes/favorites?meal_type=${mealType}`);
+            // Using search as a stand-in for favorites. A real implementation would have a dedicated endpoint.
+            const response = await fetch(`${this.app.apiBase}/recipes/search?q=&limit=20`);
             const data = await response.json();
             
-            if (response.ok && data.recipes) {
-                this.renderMealSelectorRecipes(data.recipes, 'favorites-tab');
+            if (response.ok) {
+                // In a real app, you'd filter for favorited recipes here.
+                this.renderMealSelectorRecipes(data, 'favorites-tab');
             } else {
                 throw new Error('Failed to load favorites');
             }
@@ -422,8 +429,8 @@ class MealPlanner {
             const response = await fetch(`${this.app.apiBase}/recipes/search?q=${encodeURIComponent(query)}&meal_type=${mealType}`);
             const data = await response.json();
             
-            if (response.ok && data.recipes) {
-                this.renderMealSelectorRecipes(data.recipes, 'meal-search-results');
+            if (response.ok) {
+                this.renderMealSelectorRecipes(data, 'meal-search-results');
             } else {
                 throw new Error('Search failed');
             }
@@ -463,17 +470,19 @@ class MealPlanner {
             card.addEventListener('click', () => {
                 const recipeId = card.dataset.recipeId;
                 const recipeTitle = card.querySelector('.recipe-title').textContent;
-                this.addRecipeToMeal(recipeId, recipeTitle);
+                const day = document.querySelector('.meal-selector').dataset.day;
+                const mealType = document.querySelector('.meal-selector').dataset.mealType;
+                this.addRecipeToMeal(recipeId, recipeTitle, day, mealType);
             });
         });
     }
     
     createMealSelectorRecipeCard(recipe) {
         const calories = recipe.nutrition ? recipe.nutrition.calories : 0;
-        const cookTime = (recipe.cooking_time || 0) + (recipe.prep_time || 0);
+        const cookTime = recipe.cookTimeMinutes || 0;
         
         return `
-            <div class="recipe-card meal-selector-card" data-recipe-id="${recipe._id}">
+            <div class="recipe-card meal-selector-card" data-recipe-id="${recipe.id}">
                 <div class="recipe-image">
                     <i class="fas fa-camera placeholder-icon"></i>
                 </div>
@@ -492,19 +501,17 @@ class MealPlanner {
         `;
     }
     
-    addRecipeToMeal(recipeId, recipeTitle, day = null, mealType = null) {
-        // If day and mealType are not provided, get them from the current modal context
+    addRecipeToMeal(recipeId, recipeTitle, day, mealType) {
         if (!day || !mealType) {
-            // This should be set when opening the modal
-            const modalData = this.getCurrentMealModalData();
-            day = modalData.day;
-            mealType = modalData.mealType;
+            console.error("Could not determine day and meal type to add recipe.");
+            this.app.showToast('Could not add meal. Please try again.', 'error');
+            return;
         }
         
         // Create meal item
         const mealItem = {
             recipe_id: recipeId,
-            recipe_title: recipeTitle,
+            title: recipeTitle,
             servings: 1,
             scheduled_for: new Date(this.currentWeek.start.getTime() + this.getDayOffset(day) * 24 * 60 * 60 * 1000).toISOString(),
             nutrition: null // Will be calculated when saved
@@ -533,9 +540,14 @@ class MealPlanner {
     }
     
     getCurrentMealModalData() {
-        // This would need to be stored when opening the modal
-        // For now, return default values
-        return { day: 'monday', mealType: 'breakfast' };
+        const modal = document.querySelector('.meal-selector');
+        if (modal) {
+            return {
+                day: modal.dataset.day,
+                mealType: modal.dataset.mealType
+            };
+        }
+        return { day: null, mealType: null };
     }
     
     removeMeal(event) {
@@ -662,6 +674,8 @@ class MealPlanner {
             snacks: 0
         };
         
+        if (!this.mealPlan || !this.mealPlan.meals) return counts;
+
         for (const day in this.mealPlan.meals) {
             const dayMeals = this.mealPlan.meals[day];
             
@@ -680,65 +694,17 @@ class MealPlanner {
                 counts.total++;
             }
             
-            counts.snacks += dayMeals.snacks.length;
-            counts.total += dayMeals.snacks.length;
+            if (Array.isArray(dayMeals.snacks)) {
+                counts.snacks += dayMeals.snacks.length;
+                counts.total += dayMeals.snacks.length;
+            }
         }
         
         return counts;
     }
     
     async autoGenerateMealPlan() {
-        if (!confirm('This will replace your current meal plan. Continue?')) {
-            return;
-        }
-        
-        const autoGenerateBtn = document.getElementById('auto-generate-meal-plan');
-        if (autoGenerateBtn) {
-            autoGenerateBtn.disabled = true;
-            autoGenerateBtn.innerHTML = `
-                <i class="fas fa-spinner fa-spin"></i>
-                Generating...
-            `;
-        }
-        
-        try {
-            const requestData = {
-                start_date: this.currentWeek.start.toISOString().split('T')[0],
-                end_date: this.currentWeek.end.toISOString().split('T')[0],
-                preferences: this.app.userPreferences || {}
-            };
-            
-            const response = await fetch(`${this.app.apiBase}/meal-plans/generate`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(requestData)
-            });
-            
-            const data = await response.json();
-            
-            if (response.ok) {
-                this.mealPlan = data.meal_plan;
-                this.renderMealPlan();
-                this.updateMealPlanStats();
-                this.app.showToast('Meal plan generated successfully!', 'success');
-            } else {
-                throw new Error(data.error || 'Failed to generate meal plan');
-            }
-            
-        } catch (error) {
-            console.error('Error generating meal plan:', error);
-            this.app.showToast('Failed to generate meal plan. Please try again.', 'error');
-        } finally {
-            if (autoGenerateBtn) {
-                autoGenerateBtn.disabled = false;
-                autoGenerateBtn.innerHTML = `
-                    <i class="fas fa-magic"></i>
-                    Auto-Generate Plan
-                `;
-            }
-        }
+        this.app.showToast('Auto-generation is currently unavailable.', 'info');
     }
     
     async saveMealPlan() {
@@ -752,9 +718,9 @@ class MealPlanner {
         }
         
         try {
-            const method = this.mealPlan._id ? 'PUT' : 'POST';
-            const url = this.mealPlan._id ? 
-                `${this.app.apiBase}/meal-plans/${this.mealPlan._id}` : 
+            const method = this.mealPlan.id ? 'PUT' : 'POST';
+            const url = this.mealPlan.id ? 
+                `${this.app.apiBase}/meal-plans/${this.mealPlan.id}` : 
                 `${this.app.apiBase}/meal-plans`;
             
             const response = await fetch(url, {
@@ -768,7 +734,7 @@ class MealPlanner {
             const data = await response.json();
             
             if (response.ok) {
-                this.mealPlan = data.meal_plan;
+                this.mealPlan = data;
                 this.app.showToast('Meal plan saved successfully!', 'success');
             } else {
                 throw new Error(data.error || 'Failed to save meal plan');
@@ -810,19 +776,19 @@ class MealPlanner {
             exportText += `${dayNames[index]}:\n`;
             
             if (dayMeals.breakfast) {
-                exportText += `  Breakfast: ${dayMeals.breakfast.recipe_title} (${dayMeals.breakfast.servings} serving${dayMeals.breakfast.servings !== 1 ? 's' : ''})\n`;
+                exportText += `  Breakfast: ${dayMeals.breakfast.title} (${dayMeals.breakfast.servings} serving${dayMeals.breakfast.servings !== 1 ? 's' : ''})\n`;
             }
             
             if (dayMeals.lunch) {
-                exportText += `  Lunch: ${dayMeals.lunch.recipe_title} (${dayMeals.lunch.servings} serving${dayMeals.lunch.servings !== 1 ? 's' : ''})\n`;
+                exportText += `  Lunch: ${dayMeals.lunch.title} (${dayMeals.lunch.servings} serving${dayMeals.lunch.servings !== 1 ? 's' : ''})\n`;
             }
             
             if (dayMeals.dinner) {
-                exportText += `  Dinner: ${dayMeals.dinner.recipe_title} (${dayMeals.dinner.servings} serving${dayMeals.dinner.servings !== 1 ? 's' : ''})\n`;
+                exportText += `  Dinner: ${dayMeals.dinner.title} (${dayMeals.dinner.servings} serving${dayMeals.dinner.servings !== 1 ? 's' : ''})\n`;
             }
             
             if (dayMeals.snacks.length > 0) {
-                exportText += `  Snacks: ${dayMeals.snacks.map(snack => `${snack.recipe_title} (${snack.servings})`).join(', ')}\n`;
+                exportText += `  Snacks: ${dayMeals.snacks.map(snack => `${snack.title} (${snack.servings})`).join(', ')}\n`;
             }
             
             exportText += '\n';
@@ -845,16 +811,23 @@ class MealPlanner {
     // Drag and drop functionality for recipes
     handleDragOver(event) {
         event.preventDefault();
-        event.currentTarget.classList.add('drag-over');
+        const target = event.currentTarget;
+        if (target.classList.contains('meal-slot')) {
+            target.classList.add('drag-over');
+        }
     }
     
     handleDrop(event) {
         event.preventDefault();
-        event.currentTarget.classList.remove('drag-over');
+        const target = event.currentTarget;
+        target.classList.remove('drag-over');
         
-        const recipeData = JSON.parse(event.dataTransfer.getData('text/plain'));
-        const day = event.currentTarget.dataset.day;
-        const mealType = event.currentTarget.dataset.meal;
+        const recipeDataStr = event.dataTransfer.getData('application/json');
+        if (!recipeDataStr) return;
+
+        const recipeData = JSON.parse(recipeDataStr);
+        const day = target.dataset.day;
+        const mealType = target.dataset.meal;
         
         this.addRecipeToMeal(recipeData.id, recipeData.title, day, mealType);
     }

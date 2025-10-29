@@ -30,6 +30,8 @@ class GroceryListManager {
             generateFromMealPlanBtn.addEventListener('click', () => {
                 this.generateFromMealPlan();
             });
+            // Disable for now as backend logic was removed
+            generateFromMealPlanBtn.disabled = true;
         }
         
         // Add item input
@@ -102,7 +104,7 @@ class GroceryListManager {
             const data = await response.json();
             
             if (response.ok) {
-                this.groceryLists = data.grocery_lists || [];
+                this.groceryLists = data || [];
                 
                 // Load the most recent active list or create a new one
                 const activeList = this.groceryLists.find(list => list.status === 'active');
@@ -147,7 +149,7 @@ class GroceryListManager {
             const data = await response.json();
             
             if (response.ok) {
-                this.currentList = data.grocery_list;
+                this.currentList = data;
                 this.groceryLists.unshift(this.currentList);
                 this.renderGroceryList();
                 this.renderListSelector();
@@ -159,7 +161,7 @@ class GroceryListManager {
             console.error('Error creating grocery list:', error);
             // Create a default local list if API fails
             this.currentList = {
-                _id: 'local-' + Date.now(),
+                id: 'local-' + Date.now(),
                 name: listName,
                 items: [],
                 status: 'active',
@@ -184,7 +186,7 @@ class GroceryListManager {
         listSelector.innerHTML = `
             <select id="current-grocery-list" class="form-input">
                 ${this.groceryLists.map(list => `
-                    <option value="${list._id}" ${list._id === this.currentList._id ? 'selected' : ''}>
+                    <option value="${list.id}" ${list.id === this.currentList.id ? 'selected' : ''}>
                         ${list.name} (${list.items.length} items)
                     </option>
                 `).join('')}
@@ -193,7 +195,7 @@ class GroceryListManager {
         
         const selector = document.getElementById('current-grocery-list');
         selector.addEventListener('change', (e) => {
-            const selectedList = this.groceryLists.find(list => list._id === e.target.value);
+            const selectedList = this.groceryLists.find(list => list.id === e.target.value);
             if (selectedList) {
                 this.currentList = selectedList;
                 this.renderGroceryList();
@@ -324,12 +326,12 @@ class GroceryListManager {
         
         return `
             <div class="grocery-item ${isCompleted ? 'completed' : ''} priority-${priority}" 
-                 data-item-id="${item._id || item.id}" 
+                 data-item-id="${item.id}" 
                  draggable="true">
                 <div class="item-checkbox">
                     <input type="checkbox" 
                            ${isCompleted ? 'checked' : ''} 
-                           onchange="app.groceryListManager.toggleItemCompletion('${item._id || item.id}')">
+                           onchange="app.groceryListManager.toggleItemCompletion('${item.id}')">
                 </div>
                 <div class="item-content">
                     <div class="item-main">
@@ -343,10 +345,10 @@ class GroceryListManager {
                 </div>
                 <div class="item-actions">
                     ${priority === 'high' ? '<i class="fas fa-exclamation priority-indicator" title="High Priority"></i>' : ''}
-                    <button class="btn btn-outline btn-tiny" onclick="app.groceryListManager.editItem('${item._id || item.id}')">
+                    <button class="btn btn-outline btn-tiny" onclick="app.groceryListManager.editItem('${item.id}')">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="btn btn-outline btn-tiny" onclick="app.groceryListManager.deleteItem('${item._id || item.id}')">
+                    <button class="btn btn-outline btn-tiny" onclick="app.groceryListManager.deleteItem('${item.id}')">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
@@ -396,7 +398,7 @@ class GroceryListManager {
         if (!itemName) return;
         
         const newItem = {
-            _id: 'temp-' + Date.now(),
+            id: 'temp-' + Date.now(),
             name: itemName,
             category: category || this.categorizeItem(itemName),
             quantity: quantity,
@@ -461,7 +463,7 @@ class GroceryListManager {
     }
     
     async toggleItemCompletion(itemId) {
-        const item = this.currentList.items.find(item => (item._id || item.id) === itemId);
+        const item = this.currentList.items.find(item => item.id === itemId);
         if (item) {
             item.completed = !item.completed;
             item.completed_at = item.completed ? new Date().toISOString() : null;
@@ -477,7 +479,7 @@ class GroceryListManager {
     }
     
     async editItem(itemId) {
-        const item = this.currentList.items.find(item => (item._id || item.id) === itemId);
+        const item = this.currentList.items.find(item => item.id === itemId);
         if (!item) return;
         
         const modalContent = `
@@ -537,7 +539,7 @@ class GroceryListManager {
     }
     
     async saveItemEdit(itemId) {
-        const item = this.currentList.items.find(item => (item._id || item.id) === itemId);
+        const item = this.currentList.items.find(item => item.id === itemId);
         if (!item) return;
         
         // Update item properties
@@ -565,7 +567,7 @@ class GroceryListManager {
             return;
         }
         
-        this.currentList.items = this.currentList.items.filter(item => (item._id || item.id) !== itemId);
+        this.currentList.items = this.currentList.items.filter(item => item.id !== itemId);
         this.renderGroceryList();
         
         try {
@@ -599,75 +601,14 @@ class GroceryListManager {
     }
     
     async generateFromMealPlan() {
-        const generateBtn = document.getElementById('generate-from-meal-plan');
-        if (generateBtn) {
-            generateBtn.disabled = true;
-            generateBtn.innerHTML = `
-                <i class="fas fa-spinner fa-spin"></i>
-                Generating...
-            `;
-        }
-        
-        try {
-            // Get current week meal plan
-            const response = await fetch(`${this.app.apiBase}/grocery-lists/generate-from-meal-plan`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    list_id: this.currentList._id
-                })
-            });
-            
-            const data = await response.json();
-            
-            if (response.ok) {
-                // Add new items to current list
-                const newItems = data.items || [];
-                newItems.forEach(item => {
-                    // Check if item already exists
-                    const exists = this.currentList.items.some(existing => 
-                        existing.name.toLowerCase() === item.name.toLowerCase()
-                    );
-                    
-                    if (!exists) {
-                        this.currentList.items.push({
-                            ...item,
-                            _id: 'temp-' + Date.now() + Math.random(),
-                            completed: false,
-                            added_at: new Date().toISOString()
-                        });
-                    }
-                });
-                
-                this.renderGroceryList();
-                this.app.showToast(`${newItems.length} items added from meal plan!`, 'success');
-                
-                // Save the updated list
-                await this.saveGroceryList();
-            } else {
-                throw new Error(data.error || 'Failed to generate from meal plan');
-            }
-            
-        } catch (error) {
-            console.error('Error generating from meal plan:', error);
-            this.app.showToast('Failed to generate from meal plan. Please try again.', 'error');
-        } finally {
-            if (generateBtn) {
-                generateBtn.disabled = false;
-                generateBtn.innerHTML = `
-                    <i class="fas fa-utensils"></i>
-                    Generate from Meal Plan
-                `;
-            }
-        }
+        this.app.showToast('This feature is temporarily disabled.', 'info');
+        return;
     }
     
     async saveGroceryList() {
-        if (!this.currentList._id.startsWith('temp-') && !this.currentList._id.startsWith('local-')) {
+        if (!this.currentList.id.startsWith('temp-') && !this.currentList.id.startsWith('local-')) {
             // Update existing list
-            const response = await fetch(`${this.app.apiBase}/grocery-lists/${this.currentList._id}`, {
+            const response = await fetch(`${this.app.apiBase}/grocery-lists/${this.currentList.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -677,7 +618,7 @@ class GroceryListManager {
             
             if (response.ok) {
                 const data = await response.json();
-                this.currentList = data.grocery_list;
+                this.currentList = data;
             }
         }
     }
@@ -867,14 +808,14 @@ class GroceryListManager {
         }
         
         try {
-            if (!this.currentList._id.startsWith('local-')) {
-                await fetch(`${this.app.apiBase}/grocery-lists/${this.currentList._id}`, {
+            if (!this.currentList.id.startsWith('local-')) {
+                await fetch(`${this.app.apiBase}/grocery-lists/${this.currentList.id}`, {
                     method: 'DELETE'
                 });
             }
             
             // Remove from local array
-            this.groceryLists = this.groceryLists.filter(list => list._id !== this.currentList._id);
+            this.groceryLists = this.groceryLists.filter(list => list.id !== this.currentList.id);
             
             // Switch to another list
             this.currentList = this.groceryLists[0];
@@ -927,7 +868,7 @@ class GroceryListManager {
     }
     
     async moveItemToCategory(itemId, newCategory) {
-        const item = this.currentList.items.find(item => (item._id || item.id) === itemId);
+        const item = this.currentList.items.find(item => item.id === itemId);
         if (item && item.category !== newCategory) {
             item.category = newCategory;
             this.renderGroceryList();
