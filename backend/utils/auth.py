@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional
 
 from flask import g, request
-from backend.utils.firebase_connector import get_db
+from utils.firebase_connector import get_db
 
 DEMO_USER_ID = 'demo_user_01'
 

@@ -35,6 +35,10 @@ ENV/
 env.bak/
 venv.bak/
 
+# Firebase credentials - IMPORTANT: Never commit these files!
+*firebase-adminsdk*.json
+serviceAccountKey.json
+
 # IDEs
 .vscode/
 .idea/

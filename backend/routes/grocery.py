@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
-from backend.utils.firebase_connector import get_db
-from backend.utils.auth import require_current_user
+from utils.firebase_connector import get_db
+from utils.auth import require_current_user
 import logging
 from datetime import datetime
 

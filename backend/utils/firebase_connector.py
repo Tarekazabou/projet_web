@@ -9,29 +9,23 @@ def initialize_firebase():
     # Check if the app is already initialized
     if not firebase_admin._apps:
         # Use a service account
-        # You need to download your service account key from the Firebase console
-        # and set the GOOGLE_APPLICATION_CREDENTIALS environment variable.
         try:
-            cred = credentials.ApplicationDefault()
-            firebase_admin.initialize_app(cred, {
-                'projectId': os.environ.get('FIREBASE_PROJECT_ID', 'mealy-41bf0'),
-            })
-            print("Firebase initialized successfully.")
+            # First try to use the service account key file
+            cred_path = os.path.join(os.path.dirname(__file__), '..', 'mealy-41bf0-firebase-adminsdk-fbsvc-7d493e86ea.json')
+            if os.path.exists(cred_path):
+                cred = credentials.Certificate(cred_path)
+                firebase_admin.initialize_app(cred)
+                print("Firebase initialized successfully with service account key.")
+            else:
+                # Fallback to Application Default Credentials (for production/cloud environments)
+                cred = credentials.ApplicationDefault()
+                firebase_admin.initialize_app(cred, {
+                    'projectId': os.environ.get('FIREBASE_PROJECT_ID', 'mealy-41bf0'),
+                })
+                print("Firebase initialized successfully with Application Default Credentials.")
         except Exception as e:
             print(f"Error initializing Firebase: {e}")
-            # Fallback for local development if GOOGLE_APPLICATION_CREDENTIALS is not set
-            # This is not recommended for production.
-            # Create a serviceAccountKey.json file in your backend root for this to work.
-            try:
-                cred_path = os.path.join(os.path.dirname(__file__), '..', 'serviceAccountKey.json')
-                if os.path.exists(cred_path):
-                    cred = credentials.Certificate(cred_path)
-                    firebase_admin.initialize_app(cred)
-                    print("Firebase initialized successfully with local key.")
-                else:
-                    print("Could not initialize Firebase. Service account key not found.")
-            except Exception as e_local:
-                print(f"Error initializing Firebase with local key: {e_local}")
+            raise
 
 
 def get_db():

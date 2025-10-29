@@ -1,3 +1,10 @@
+import sys
+from pathlib import Path
+
+# Add the backend directory to the Python path
+backend_dir = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(backend_dir))
+
 from flask import Flask, request, jsonify, render_template, send_file, g
 from flask_cors import CORS
 from utils.firebase_connector import initialize_firebase, get_db
