@@ -447,7 +447,7 @@ class NutritionTracker {
         });
         
         return `
-            <div class="meal-entry" data-meal-id="${meal._id}">
+            <div class="meal-entry" data-meal-id="${meal.id}">
                 <div class="meal-entry-header">
                     <div class="meal-info">
                         <h4 class="meal-name">${meal.name}</h4>
@@ -457,10 +457,10 @@ class NutritionTracker {
                         </div>
                     </div>
                     <div class="meal-actions">
-                        <button class="btn btn-outline btn-tiny" onclick="app.nutritionTracker.editMeal('${meal._id}')">
+                        <button class="btn btn-outline btn-tiny" onclick="app.nutritionTracker.editMeal('${meal.id}')">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="btn btn-outline btn-tiny" onclick="app.nutritionTracker.deleteMeal('${meal._id}')">
+                        <button class="btn btn-outline btn-tiny" onclick="app.nutritionTracker.deleteMeal('${meal.id}')">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
@@ -499,19 +499,18 @@ class NutritionTracker {
                 <h3>Quick Log Meal</h3>
                 
                 <div class="log-method-tabs">
-                    <button class="tab-btn active" data-tab="search">Search Food</button>
-                    <button class="tab-btn" data-tab="recipe">From Recipe</button>
+                    <button class="tab-btn active" data-tab="recipe">From Recipe</button>
                     <button class="tab-btn" data-tab="custom">Custom Entry</button>
+                    <button class="tab-btn" data-tab="search" disabled title="Feature unavailable">Search Food</button>
                 </div>
                 
-                <div class="tab-content" id="search-tab">
+                <div class="tab-content hidden" id="search-tab">
                     <div class="food-search">
-                        <input type="text" id="food-search-input" placeholder="Search for food..." class="form-input">
-                        <div id="food-search-results"></div>
+                        <p>Food database search is temporarily unavailable.</p>
                     </div>
                 </div>
                 
-                <div class="tab-content hidden" id="recipe-tab">
+                <div class="tab-content" id="recipe-tab">
                     <div class="recipe-search">
                         <input type="text" id="recipe-search-input" placeholder="Search your recipes..." class="form-input">
                         <div id="recipe-search-results"></div>
@@ -578,18 +577,6 @@ class NutritionTracker {
             });
         });
         
-        // Food search
-        const foodSearchInput = document.getElementById('food-search-input');
-        if (foodSearchInput) {
-            let searchTimeout;
-            foodSearchInput.addEventListener('input', (e) => {
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(() => {
-                    this.searchFoodDatabase(e.target.value);
-                }, 500);
-            });
-        }
-        
         // Recipe search
         const recipeSearchInput = document.getElementById('recipe-search-input');
         if (recipeSearchInput) {
@@ -624,70 +611,6 @@ class NutritionTracker {
         });
     }
     
-    async searchFoodDatabase(query) {
-        const resultsContainer = document.getElementById('food-search-results');
-        if (!query.trim()) {
-            resultsContainer.innerHTML = '';
-            return;
-        }
-        
-        resultsContainer.innerHTML = `
-            <div class="loading-spinner">
-                <i class="fas fa-spinner fa-spin"></i>
-                Searching food database...
-            </div>
-        `;
-        
-        try {
-            const response = await fetch(`${this.app.apiBase}/nutrition/search-food?query=${encodeURIComponent(query)}`);
-            const data = await response.json();
-            
-            if (response.ok && data.foods) {
-                this.renderFoodSearchResults(data.foods);
-            } else {
-                throw new Error('Search failed');
-            }
-        } catch (error) {
-            console.error('Error searching food database:', error);
-            resultsContainer.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-search"></i>
-                    <p>Search failed. Try a different term.</p>
-                </div>
-            `;
-        }
-    }
-    
-    renderFoodSearchResults(foods) {
-        const resultsContainer = document.getElementById('food-search-results');
-        
-        if (foods.length === 0) {
-            resultsContainer.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-search"></i>
-                    <p>No foods found</p>
-                </div>
-            `;
-            return;
-        }
-        
-        resultsContainer.innerHTML = `
-            <div class="food-results">
-                ${foods.map(food => `
-                    <div class="food-item" onclick="app.nutritionTracker.selectFood('${food.id}', '${food.name}', ${JSON.stringify(food.nutrition).replace(/"/g, '&quot;')})">
-                        <div class="food-info">
-                            <h4 class="food-name">${food.name}</h4>
-                            <div class="food-nutrition">
-                                ${Math.round(food.nutrition.calories)} cal per ${food.serving_size || '100g'}
-                            </div>
-                        </div>
-                        <i class="fas fa-plus food-add-icon"></i>
-                    </div>
-                `).join('')}
-            </div>
-        `;
-    }
-    
     async searchUserRecipes(query) {
         const resultsContainer = document.getElementById('recipe-search-results');
         if (!query.trim()) {
@@ -706,8 +629,8 @@ class NutritionTracker {
             const response = await fetch(`${this.app.apiBase}/recipes/search?q=${encodeURIComponent(query)}`);
             const data = await response.json();
             
-            if (response.ok && data.recipes) {
-                this.renderRecipeSearchResults(data.recipes);
+            if (response.ok) {
+                this.renderRecipeSearchResults(data);
             } else {
                 throw new Error('Search failed');
             }
@@ -738,7 +661,7 @@ class NutritionTracker {
         resultsContainer.innerHTML = `
             <div class="recipe-results">
                 ${recipes.map(recipe => `
-                    <div class="recipe-item" onclick="app.nutritionTracker.selectRecipe('${recipe._id}', '${recipe.title}', ${JSON.stringify(recipe.nutrition || {}).replace(/"/g, '&quot;')})">
+                    <div class="recipe-item" onclick="app.nutritionTracker.selectRecipe('${recipe.id}', '${recipe.title}', ${JSON.stringify(recipe.nutrition || {}).replace(/"/g, '&quot;')})">
                         <div class="recipe-info">
                             <h4 class="recipe-name">${recipe.title}</h4>
                             <div class="recipe-nutrition">
@@ -960,7 +883,7 @@ class NutritionTracker {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ goals })
+                body: JSON.stringify(goals)
             });
             
             if (response.ok) {
