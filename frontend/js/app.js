@@ -60,6 +60,13 @@ class RecipeMealPlannerApp {
             });
         });
         
+        // AI Setup button
+        document.getElementById('ai-setup-btn')?.addEventListener('click', () => {
+            if (window.settingsManager) {
+                window.settingsManager.showApiKeyModal();
+            }
+        });
+        
         // User preferences button
         document.getElementById('user-preferences-btn')?.addEventListener('click', () => {
             this.openPreferencesModal();

@@ -1,6 +1,8 @@
 from flask import Blueprint, request, jsonify
 from utils.firebase_connector import get_db
+from utils.auth import require_current_user
 import logging
+from datetime import datetime, timedelta
 
 logger = logging.getLogger(__name__)
 nutrition_bp = Blueprint('nutrition', __name__)
@@ -94,6 +96,216 @@ def get_ingredient_nutrition(ingredient_id):
         logger.error(f"Error getting ingredient nutrition: {e}")
         return jsonify({'error': 'Failed to get ingredient nutrition'}), 500
 
-# The other endpoints (daily-goals, track, history, compare) are highly
-# dependent on the original NutritionCalculator class and are omitted here
-# as they would require a full re-implementation.
+@nutrition_bp.route('/goals', methods=['GET'])
+def get_nutrition_goals():
+    """Get user's daily nutrition goals"""
+    try:
+        user_id = require_current_user()
+        db = get_db()
+        
+        user_ref = db.collection('User').document(user_id)
+        user = user_ref.get()
+        
+        if not user.exists:
+            return jsonify({'error': 'User not found'}), 404
+        
+        user_data = user.to_dict()
+        
+        # Return default goals if not set
+        goals = user_data.get('nutritionGoals', {
+            'calories': 2000,
+            'protein': 50,
+            'carbs': 250,
+            'fat': 70,
+            'fiber': 25,
+            'water': 8
+        })
+        
+        return jsonify({'goals': goals}), 200
+        
+    except Exception as e:
+        logger.error(f"Error getting nutrition goals: {e}")
+        return jsonify({'error': 'Failed to get nutrition goals'}), 500
+
+@nutrition_bp.route('/goals', methods=['POST'])
+def set_nutrition_goals():
+    """Set user's daily nutrition goals"""
+    try:
+        user_id = require_current_user()
+        db = get_db()
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+        
+        user_ref = db.collection('User').document(user_id)
+        
+        if not user_ref.get().exists:
+            return jsonify({'error': 'User not found'}), 404
+        
+        user_ref.update({'nutritionGoals': data})
+        
+        return jsonify({
+            'message': 'Nutrition goals updated successfully',
+            'goals': data
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Error setting nutrition goals: {e}")
+        return jsonify({'error': 'Failed to set nutrition goals'}), 500
+
+@nutrition_bp.route('/daily/<date_str>', methods=['GET'])
+def get_daily_nutrition(date_str):
+    """Get nutrition data for a specific date"""
+    try:
+        user_id = require_current_user()
+        db = get_db()
+        
+        # Query meals for the specific date
+        query = db.collection('NutritionLog').where('user', '==', db.collection('User').document(user_id)).where('date', '==', date_str)
+        
+        docs = query.stream()
+        
+        meals = []
+        total_nutrition = {
+            'calories': 0,
+            'protein': 0,
+            'carbs': 0,
+            'fat': 0,
+            'fiber': 0
+        }
+        
+        for doc in docs:
+            meal = doc.to_dict()
+            meal['id'] = doc.id
+            meals.append(meal)
+            
+            # Aggregate nutrition
+            nutrition = meal.get('nutrition', {})
+            for key in total_nutrition:
+                total_nutrition[key] += nutrition.get(key, 0)
+        
+        return jsonify({
+            'date': date_str,
+            'meals': meals,
+            'total_nutrition': total_nutrition
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Error getting daily nutrition: {e}")
+        return jsonify({'error': 'Failed to get daily nutrition'}), 500
+
+@nutrition_bp.route('/log-meal', methods=['POST'])
+def log_meal():
+    """Log a meal with nutrition information"""
+    try:
+        user_id = require_current_user()
+        db = get_db()
+        data = request.get_json()
+        
+        required_fields = ['mealName', 'date', 'nutrition']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({'error': f'Missing required field: {field}'}), 400
+        
+        meal_data = {
+            'user': db.collection('User').document(user_id),
+            'mealName': data['mealName'],
+            'date': data['date'],
+            'mealType': data.get('mealType', 'other'),
+            'nutrition': data['nutrition'],
+            'recipe': db.collection('Recipe').document(data['recipe']) if 'recipe' in data else None,
+            'createdAt': datetime.utcnow()
+        }
+        
+        _, new_log_ref = db.collection('NutritionLog').add(meal_data)
+        
+        created_log = new_log_ref.get().to_dict()
+        created_log['id'] = new_log_ref.id
+        
+        return jsonify({
+            'message': 'Meal logged successfully',
+            'meal': created_log
+        }), 201
+        
+    except Exception as e:
+        logger.error(f"Error logging meal: {e}")
+        return jsonify({'error': 'Failed to log meal'}), 500
+
+@nutrition_bp.route('/meals/<meal_id>', methods=['DELETE'])
+def delete_meal_log(meal_id):
+    """Delete a meal log entry"""
+    try:
+        user_id = require_current_user()
+        db = get_db()
+        
+        meal_ref = db.collection('NutritionLog').document(meal_id)
+        meal_doc = meal_ref.get()
+        
+        if not meal_doc.exists:
+            return jsonify({'error': 'Meal log not found'}), 404
+        
+        meal_data = meal_doc.to_dict()
+        if meal_data['user'].id != user_id:
+            return jsonify({'error': 'Not authorized to delete this meal log'}), 403
+        
+        meal_ref.delete()
+        
+        return jsonify({'message': 'Meal log deleted successfully'}), 200
+        
+    except Exception as e:
+        logger.error(f"Error deleting meal log: {e}")
+        return jsonify({'error': 'Failed to delete meal log'}), 500
+
+@nutrition_bp.route('/water-intake', methods=['POST'])
+def log_water_intake():
+    """Log water intake"""
+    try:
+        user_id = require_current_user()
+        db = get_db()
+        data = request.get_json()
+        
+        if not data or 'amount' not in data or 'date' not in data:
+            return jsonify({'error': 'amount and date are required'}), 400
+        
+        # Find or create water log for the date
+        date_str = data['date']
+        query = db.collection('WaterIntake').where('user', '==', db.collection('User').document(user_id)).where('date', '==', date_str).limit(1)
+        docs = list(query.stream())
+        
+        if docs:
+            # Update existing
+            water_ref = docs[0].reference
+            current_data = docs[0].to_dict()
+            new_amount = current_data.get('amount', 0) + data['amount']
+            water_ref.update({'amount': new_amount})
+            
+            updated_data = water_ref.get().to_dict()
+            updated_data['id'] = water_ref.id
+            
+            return jsonify({
+                'message': 'Water intake updated',
+                'water_intake': updated_data
+            }), 200
+        else:
+            # Create new
+            water_data = {
+                'user': db.collection('User').document(user_id),
+                'date': date_str,
+                'amount': data['amount'],
+                'createdAt': datetime.utcnow()
+            }
+            
+            _, new_ref = db.collection('WaterIntake').add(water_data)
+            
+            created_data = new_ref.get().to_dict()
+            created_data['id'] = new_ref.id
+            
+            return jsonify({
+                'message': 'Water intake logged',
+                'water_intake': created_data
+            }), 201
+        
+    except Exception as e:
+        logger.error(f"Error logging water intake: {e}")
+        return jsonify({'error': 'Failed to log water intake'}), 500
