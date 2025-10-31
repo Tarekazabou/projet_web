@@ -29,28 +29,42 @@ def test_rag_service():
         print(f"✅ Loaded {len(rag.recipes_df)} recipes")
         
         # Test retrieval
-        print("\n2. Testing ingredient search...")
+        print("\n2. Testing semantic retrieval...")
         ingredients = ['chicken', 'garlic', 'tomatoes']
-        results = rag.retrieve_similar_recipes(ingredients, limit=3)
-        
-        if results:
-            print(f"✅ Found {len(results)} matching recipes:")
-            for i, recipe in enumerate(results, 1):
-                print(f"   {i}. {recipe['title']} (score: {recipe['match_score']})")
-        else:
-            print("❌ No recipes found")
-            return False
-        
-        # Test context building
-        print("\n3. Testing context prompt building...")
+        user_query = "Suggest a chicken recipe with garlic and tomatoes."
         user_req = {
             'ingredients': ingredients,
             'dietary_preferences': ['healthy'],
             'max_cooking_time': 30,
             'difficulty': 'easy'
         }
+
+        semantic_results = rag.retrieve_relevant_recipes(
+            user_query=user_query,
+            user_requirements=user_req,
+            top_k=3
+        )
+
+        if semantic_results:
+            print(f"✅ Semantic retrieval returned {len(semantic_results)} recipes:")
+            for recipe in semantic_results:
+                print(f"   • {recipe['title']} (similarity: {recipe.get('similarity')})")
+        else:
+            print("⚠️  Semantic retrieval unavailable, falling back to lexical search")
+            semantic_results = rag.retrieve_similar_recipes(ingredients, limit=3)
+            if not semantic_results:
+                print("❌ No recipes found via fallback search")
+                return False
+            print(f"✅ Fallback search returned {len(semantic_results)} recipes")
         
-        context = rag.build_context_prompt(results, user_req)
+        # Test context building
+        print("\n3. Testing context prompt building...")
+        
+        context = rag.build_context_prompt(
+            user_query=user_query,
+            similar_recipes=semantic_results,
+            user_requirements=user_req
+        )
         print(f"✅ Built context prompt ({len(context)} characters)")
         print(f"\nFirst 200 chars:\n{context[:200]}...")
         
