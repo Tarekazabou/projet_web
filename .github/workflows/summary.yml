@@ -3,6 +3,9 @@ name: Summarize new issues
 on:
   issues:
     types: [opened]
+  push:
+    branches:
+      - main
 
 jobs:
   summary:
