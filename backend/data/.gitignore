@@ -1,0 +1,3 @@
+# Cached Gemini embedding artifacts
+*.npz
+*.meta.json

@@ -63,6 +63,7 @@ def generate_recipe_with_ai():
         if not data:
             return jsonify({'error': 'No data provided'}), 400
         
+        user_query = data.get('query')
         ingredients = data.get('ingredients', [])
         dietary_preferences = data.get('dietary_preferences', [])
         max_cooking_time = data.get('max_cooking_time')
@@ -70,26 +71,12 @@ def generate_recipe_with_ai():
         servings = data.get('servings', 4)
         save_to_db = data.get('save_to_db', True)
         
-        if not ingredients:
-            return jsonify({'error': 'At least one ingredient is required'}), 400
+        if not user_query and not ingredients:
+            return jsonify({'error': 'Provide a user query or at least one ingredient'}), 400
         
         logger.info(f"Generating recipe with ingredients: {ingredients}")
         
-        # STEP 1: RETRIEVAL - Find similar recipes from 13k dataset
-        similar_recipes = rag_service.retrieve_similar_recipes(
-            ingredients=ingredients,
-            limit=5
-        )
-        
-        if not similar_recipes:
-            # Fallback: try keyword search
-            logger.info("No ingredient matches, trying keyword search")
-            similar_recipes = rag_service.retrieve_by_keywords(
-                keywords=ingredients + dietary_preferences,
-                limit=3
-            )
-        
-        # STEP 2: AUGMENTATION - Build context prompt
+        # STEP 1: RETRIEVAL - Find semantically similar recipes from 13k dataset
         user_requirements = {
             'ingredients': ingredients,
             'dietary_preferences': dietary_preferences,
@@ -97,8 +84,42 @@ def generate_recipe_with_ai():
             'difficulty': difficulty,
             'servings': servings
         }
+
+        similar_recipes = rag_service.retrieve_relevant_recipes(
+            user_query=user_query,
+            user_requirements=user_requirements,
+            top_k=5
+        )
+
+        retrieval_strategy = 'semantic'
         
+        if not similar_recipes and ingredients:
+            logger.info("Semantic retrieval returned no results, trying ingredient fallback")
+            similar_recipes = rag_service.retrieve_similar_recipes(
+                ingredients=ingredients,
+                limit=5
+            )
+            retrieval_strategy = 'ingredient-fallback' if similar_recipes else retrieval_strategy
+        
+        if not similar_recipes:
+            logger.info("No matches found, trying keyword fallback")
+            keywords = []
+            if user_query:
+                keywords.extend(user_query.replace(',', ' ').split())
+            keywords.extend(ingredients)
+            keywords.extend(dietary_preferences)
+            similar_recipes = rag_service.retrieve_by_keywords(
+                keywords=keywords,
+                limit=3
+            )
+            retrieval_strategy = 'keyword-fallback' if similar_recipes else retrieval_strategy
+
+        if not similar_recipes:
+            retrieval_strategy = 'none'
+        
+        # STEP 2: AUGMENTATION - Build context prompt
         context_prompt = rag_service.build_context_prompt(
+            user_query=user_query,
             similar_recipes=similar_recipes,
             user_requirements=user_requirements
         )
@@ -113,6 +134,9 @@ def generate_recipe_with_ai():
         generated_recipe['createdAt'] = datetime.utcnow()
         generated_recipe['generatedByAI'] = True
         generated_recipe['basedOnRecipes'] = [r['title'] for r in similar_recipes[:3]]
+        generated_recipe['retrievalStrategy'] = retrieval_strategy
+        if user_query:
+            generated_recipe['userQuery'] = user_query
         
         # STEP 4: SAVE to Firestore (optional)
         if save_to_db:

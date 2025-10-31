@@ -83,12 +83,29 @@ def index():
     return render_template('index.html')
 
 @app.route('/recipe-generator')
+def recipe_generator_page():
+    """Serve the recipe generator page"""
+    return render_template('recipe-generator.html')
+
 @app.route('/meal-planner')
+def meal_planner_page():
+    """Serve the meal planner page"""
+    return render_template('meal-planner.html')
+
 @app.route('/nutrition-tracker')
+def nutrition_tracker_page():
+    """Serve the nutrition tracker page"""
+    return render_template('nutrition-tracker.html')
+
 @app.route('/grocery-list')
-def spa_entry():
-    """Serve the SPA shell for all UI entry points"""
-    return render_template('index.html')
+def grocery_list_page():
+    """Serve the grocery list page"""
+    return render_template('grocery-list.html')
+
+@app.route('/your-fridge')
+def your_fridge_page():
+    """Serve the your fridge page"""
+    return render_template('your-fridge.html')
 
 @app.route('/api/health')
 def health_check():
