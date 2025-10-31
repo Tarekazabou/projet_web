@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify
+from google.cloud.firestore_v1.base_query import FieldFilter
 from utils.firebase_connector import get_db
 from utils.auth import require_current_user
 import logging
@@ -53,13 +54,13 @@ def get_meal_plans():
         start_date = request.args.get('start_date')
         end_date = request.args.get('end_date')
         
-        query = db.collection('MealPlan').where('user', '==', db.collection('User').document(user_id))
+        query = db.collection('MealPlan').where(filter=FieldFilter('user', '==', db.collection('User').document(user_id)))
         
         # Apply date filters if provided
         if start_date:
-            query = query.where('planDate', '>=', start_date)
+            query = query.where(filter=FieldFilter('planDate', '>=', start_date))
         if end_date:
-            query = query.where('planDate', '<=', end_date)
+            query = query.where(filter=FieldFilter('planDate', '<=', end_date))
         
         docs = query.stream()
         
@@ -83,7 +84,7 @@ def get_user_meal_plans(user_id):
     try:
         db = get_db()
         
-        query = db.collection('MealPlan').where('user', '==', db.collection('User').document(user_id))
+        query = db.collection('MealPlan').where(filter=FieldFilter('user', '==', db.collection('User').document(user_id)))
         
         docs = query.stream()
         

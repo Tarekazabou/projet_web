@@ -1,6 +1,8 @@
 import firebase_admin
 from firebase_admin import credentials, firestore
+from firebase_admin import auth as firebase_auth  # noqa: F401 (imported for side effects)
 import os
+from pathlib import Path
 
 def initialize_firebase():
     """
@@ -11,9 +13,15 @@ def initialize_firebase():
         # Use a service account
         try:
             # First try to use the service account key file
-            cred_path = os.path.join(os.path.dirname(__file__), '..', 'mealy-41bf0-firebase-adminsdk-fbsvc-7d493e86ea.json')
-            if os.path.exists(cred_path):
-                cred = credentials.Certificate(cred_path)
+            env_cred_path = os.getenv('FIREBASE_CREDENTIAL_PATH')
+            if env_cred_path:
+                cred_file = Path(env_cred_path)
+            else:
+                base_dir = Path(__file__).resolve().parents[2]
+                cred_file = base_dir / 'mealy-41bf0-firebase-adminsdk-fbsvc-7d493e86ea.json'
+
+            if cred_file.exists():
+                cred = credentials.Certificate(str(cred_file))
                 firebase_admin.initialize_app(cred)
                 print("Firebase initialized successfully with service account key.")
             else:

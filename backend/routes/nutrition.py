@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify
+from google.cloud.firestore_v1.base_query import FieldFilter
 from utils.firebase_connector import get_db
 from utils.auth import require_current_user
 import logging
@@ -55,7 +56,7 @@ def search_ingredients():
         if not query_text:
             return jsonify({'error': 'Search query is required'}), 400
         
-        query = db.collection('Ingredient').where('name', '>=', query_text).where('name', '<=', query_text + '\uf8ff').limit(limit)
+        query = db.collection('Ingredient').where(filter=FieldFilter('name', '>=', query_text)).where(filter=FieldFilter('name', '<=', query_text + '\uf8ff')).limit(limit)
         
         docs = query.stream()
         
@@ -162,7 +163,7 @@ def get_daily_nutrition(date_str):
         db = get_db()
         
         # Query meals for the specific date
-        query = db.collection('NutritionLog').where('user', '==', db.collection('User').document(user_id)).where('date', '==', date_str)
+        query = db.collection('NutritionLog').where(filter=FieldFilter('user', '==', db.collection('User').document(user_id))).where(filter=FieldFilter('date', '==', date_str))
         
         docs = query.stream()
         
@@ -270,7 +271,7 @@ def log_water_intake():
         
         # Find or create water log for the date
         date_str = data['date']
-        query = db.collection('WaterIntake').where('user', '==', db.collection('User').document(user_id)).where('date', '==', date_str).limit(1)
+        query = db.collection('WaterIntake').where(filter=FieldFilter('user', '==', db.collection('User').document(user_id))).where(filter=FieldFilter('date', '==', date_str)).limit(1)
         docs = list(query.stream())
         
         if docs:
