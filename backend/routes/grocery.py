@@ -1,6 +1,8 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request
+from google.cloud.firestore_v1.base_query import FieldFilter
 from utils.firebase_connector import get_db
 from utils.auth import require_current_user
+from utils.response_handler import success_response, error_response
 import logging
 from datetime import datetime
 
@@ -14,7 +16,7 @@ def get_grocery_lists():
         user_id = require_current_user()
         db = get_db()
         
-        query = db.collection('GroceryList').where('user', '==', db.collection('User').document(user_id))
+        query = db.collection('GroceryList').where(filter=FieldFilter('user', '==', db.collection('User').document(user_id)))
         docs = query.stream()
         
         lists = []
@@ -23,13 +25,11 @@ def get_grocery_lists():
             grocery_list['id'] = doc.id
             lists.append(grocery_list)
         
-        return jsonify({
-            'grocery_lists': lists
-        }), 200
+        return success_response({'grocery_lists': lists})
         
     except Exception as e:
         logger.error(f"Error getting grocery lists: {e}")
-        return jsonify({'error': 'Failed to get grocery lists'}), 500
+        return error_response('Failed to get grocery lists', 500)
 
 @grocery_bp.route('/grocery-lists', methods=['POST'])
 def create_grocery_list():
@@ -40,7 +40,7 @@ def create_grocery_list():
         data = request.get_json()
         
         if not data:
-            return jsonify({'error': 'No data provided'}), 400
+            return error_response('No data provided', 400)
         
         list_data = {
             'user': db.collection('User').document(user_id),
@@ -55,14 +55,14 @@ def create_grocery_list():
         created_list = new_list_ref.get().to_dict()
         created_list['id'] = new_list_ref.id
         
-        return jsonify({
+        return success_response({
             'message': 'Grocery list created successfully',
             'grocery_list': created_list
-        }), 201
+        }, 201)
         
     except Exception as e:
         logger.error(f"Error creating grocery list: {e}")
-        return jsonify({'error': 'Failed to create grocery list'}), 500
+        return error_response('Failed to create grocery list', 500)
 
 @grocery_bp.route('/grocery-lists/<list_id>', methods=['GET'])
 def get_grocery_list(list_id):
@@ -75,23 +75,21 @@ def get_grocery_list(list_id):
         list_doc = list_ref.get()
         
         if not list_doc.exists:
-            return jsonify({'error': 'Grocery list not found'}), 404
+            return error_response('Grocery list not found', 404)
         
         list_data = list_doc.to_dict()
         
         # Verify ownership
         if list_data['user'].id != user_id:
-            return jsonify({'error': 'Not authorized'}), 403
+            return error_response('Not authorized', 403)
         
         list_data['id'] = list_doc.id
         
-        return jsonify({
-            'grocery_list': list_data
-        }), 200
+        return success_response({'grocery_list': list_data})
         
     except Exception as e:
         logger.error(f"Error getting grocery list: {e}")
-        return jsonify({'error': 'Failed to get grocery list'}), 500
+        return error_response('Failed to get grocery list', 500)
 
 @grocery_bp.route('/grocery-lists/<list_id>', methods=['PUT'])
 def update_grocery_list(list_id):
@@ -102,19 +100,19 @@ def update_grocery_list(list_id):
         data = request.get_json()
         
         if not data:
-            return jsonify({'error': 'No data provided'}), 400
+            return error_response('No data provided', 400)
         
         list_ref = db.collection('GroceryList').document(list_id)
         list_doc = list_ref.get()
         
         if not list_doc.exists:
-            return jsonify({'error': 'Grocery list not found'}), 404
+            return error_response('Grocery list not found', 404)
         
         list_data = list_doc.to_dict()
         
         # Verify ownership
         if list_data['user'].id != user_id:
-            return jsonify({'error': 'Not authorized'}), 403
+            return error_response('Not authorized', 403)
         
         update_data = {}
         allowed_fields = ['name', 'items']
@@ -129,14 +127,14 @@ def update_grocery_list(list_id):
         updated_list = list_ref.get().to_dict()
         updated_list['id'] = list_ref.id
         
-        return jsonify({
+        return success_response({
             'message': 'Grocery list updated successfully',
             'grocery_list': updated_list
-        }), 200
+        })
         
     except Exception as e:
         logger.error(f"Error updating grocery list: {e}")
-        return jsonify({'error': 'Failed to update grocery list'}), 500
+        return error_response('Failed to update grocery list', 500)
 
 @grocery_bp.route('/grocery-lists/<list_id>', methods=['DELETE'])
 def delete_grocery_list(list_id):
@@ -149,23 +147,21 @@ def delete_grocery_list(list_id):
         list_doc = list_ref.get()
         
         if not list_doc.exists:
-            return jsonify({'error': 'Grocery list not found'}), 404
+            return error_response('Grocery list not found', 404)
         
         list_data = list_doc.to_dict()
         
         # Verify ownership
         if list_data['user'].id != user_id:
-            return jsonify({'error': 'Not authorized'}), 403
+            return error_response('Not authorized', 403)
         
         list_ref.delete()
         
-        return jsonify({
-            'message': 'Grocery list deleted successfully'
-        }), 200
+        return success_response({'message': 'Grocery list deleted successfully'})
         
     except Exception as e:
         logger.error(f"Error deleting grocery list: {e}")
-        return jsonify({'error': 'Failed to delete grocery list'}), 500
+        return error_response('Failed to delete grocery list', 500)
 
 @grocery_bp.route('/generate', methods=['POST'])
 def generate_grocery_list():
@@ -179,7 +175,7 @@ def generate_grocery_list():
         data = request.get_json()
 
         if not data or 'recipe_ids' not in data:
-            return jsonify({'error': 'recipe_ids must be provided'}), 400
+            return error_response('recipe_ids must be provided', 400)
 
         recipe_ids = data['recipe_ids']
         grocery_list = {}
@@ -206,11 +202,11 @@ def generate_grocery_list():
         
         # Here you would typically save the grocery list to a 'GroceryList' collection.
         
-        return jsonify({
+        return success_response({
             'grocery_list': grocery_list,
             'generated_at': datetime.utcnow().isoformat(),
-        }), 200
+        })
         
     except Exception as e:
         logger.error(f"Error generating grocery list: {e}")
-        return jsonify({'error': 'Failed to generate grocery list'}), 500
+        return error_response('Failed to generate grocery list', 500)

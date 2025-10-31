@@ -1,0 +1,101 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "Recipe",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "dietaryPreferences",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "difficulty",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "title",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Recipe",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "dietaryPreferences",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "difficulty",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Recipe",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "difficulty",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "rating",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Recipe",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "cuisine",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "difficulty",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "rating",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Recipe",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "cookTimeMinutes",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "rating",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Recipe",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "dietaryPreferences",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "rating",
+          "order": "DESCENDING"
+        }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

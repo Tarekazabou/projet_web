@@ -47,6 +47,10 @@
                 </button>
                 <button class="btn btn-primary" id="user-profile-btn">
                     <i class="fas fa-user"></i>
+                    <span class="nav-user-label">Sign In</span>
+                </button>
+                <button class="btn btn-outline hidden" id="logout-btn" title="Sign out">
+                    <i class="fas fa-sign-out-alt"></i>
                 </button>
             </div>
         </div>
@@ -236,7 +240,7 @@
                         </div>
                         
                         <div class="filter-controls">
-                            <select id="category-filter" class="form-input">
+                            <select id="category-filter" class="form-input" aria-label="Category filter">
                                 <option value="all">All Categories</option>
                                 <option value="produce">Produce</option>
                                 <option value="dairy">Dairy</option>
@@ -247,7 +251,7 @@
                                 <option value="other">Other</option>
                             </select>
                             
-                            <select id="freshness-filter" class="form-input">
+                            <select id="freshness-filter" class="form-input" aria-label="Freshness filter">
                                 <option value="all">All Items</option>
                                 <option value="fresh">Fresh</option>
                                 <option value="expiring-soon">Expiring Soon</option>
@@ -267,7 +271,7 @@
                     </div>
 
                     <!-- Empty State -->
-                    <div class="empty-fridge" id="empty-fridge" style="display: none;">
+                    <div class="empty-fridge hidden" id="empty-fridge">
                         <div class="empty-fridge-icon">
                             <i class="fas fa-refrigerator"></i>
                         </div>
@@ -280,7 +284,7 @@
                     </div>
 
                     <!-- Recipe Suggestions -->
-                    <div class="recipe-suggestions-section" id="recipe-suggestions-section" style="display: none;">
+                    <div class="recipe-suggestions-section hidden" id="recipe-suggestions-section">
                         <div class="section-header">
                             <h3>Recipes You Can Make</h3>
                             <button class="btn btn-outline" id="view-all-suggestions">View All</button>
@@ -438,11 +442,11 @@
                 <div class="nutrition-dashboard">
                     <div class="dashboard-controls">
                         <div class="date-selector">
-                            <button class="btn btn-outline" id="prev-day">
+                            <button class="btn btn-outline" id="prev-day" title="Previous day">
                                 <i class="fas fa-chevron-left"></i>
                             </button>
-                            <input type="date" id="tracking-date">
-                            <button class="btn btn-outline" id="next-day">
+                            <input type="date" id="tracking-date" aria-label="Tracking date">
+                            <button class="btn btn-outline" id="next-day" title="Next day">
                                 <i class="fas fa-chevron-right"></i>
                             </button>
                         </div>
@@ -512,6 +516,55 @@
     </main>
 
     <!-- Modals -->
+    <!-- Authentication Modal -->
+    <div class="modal" id="auth-modal">
+        <div class="modal-content modal-dynamic">
+            <div class="modal-header">
+                <h2 id="auth-modal-title">Sign In</h2>
+                <button class="modal-close" aria-label="Close">&times;</button>
+            </div>
+            <div class="modal-body auth-modal-body">
+                <form id="login-form" class="auth-form">
+                    <div class="form-group">
+                        <label for="login-email">Email</label>
+                        <input type="email" id="login-email" name="email" class="form-input" required autocomplete="email" placeholder="you@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" name="password" class="form-input" required autocomplete="current-password" placeholder="********">
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary btn-large">Sign In</button>
+                    </div>
+                    <p class="auth-switch">
+                        Need an account?
+                        <a href="#" data-auth-toggle="signup">Create one</a>
+                    </p>
+                </form>
+                <form id="signup-form" class="auth-form hidden">
+                    <div class="form-group">
+                        <label for="signup-display-name">Name</label>
+                        <input type="text" id="signup-display-name" name="displayName" class="form-input" required autocomplete="name" placeholder="Jane Doe">
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-email">Email</label>
+                        <input type="email" id="signup-email" name="email" class="form-input" required autocomplete="email" placeholder="you@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-password">Password</label>
+                        <input type="password" id="signup-password" name="password" class="form-input" required autocomplete="new-password" placeholder="At least 6 characters">
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary btn-large">Create Account</button>
+                    </div>
+                    <p class="auth-switch">
+                        Already have an account?
+                        <a href="#" data-auth-toggle="login">Sign in</a>
+                    </p>
+                </form>
+            </div>
+        </div>
+    </div>
     <!-- User Preferences Modal -->
     <div class="modal" id="preferences-modal">
         <div class="modal-content">
@@ -601,19 +654,9 @@
         <!-- Toast notifications will appear here -->
     </div>
 
-    <!-- Scripts -->
-    <script type="module">
-      // Import the functions you need from the SDKs you need
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-      import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-analytics.js";
-      import { firebaseConfig } from './js/config.js';
-      // TODO: Add SDKs for Firebase products that you want to use
-      // https://firebase.google.com/docs/web/setup#available-libraries
-
-      // Initialize Firebase
-      const app = initializeApp(firebaseConfig);
-      const analytics = getAnalytics(app);
-    </script>
+        <!-- Scripts -->
+        <script type="module" src="js/firebase-init.js"></script>
+        <script type="module" src="js/auth.js"></script>
     <script src="js/settings.js"></script>
     <script src="js/your-fridge.js"></script>
     <script src="js/recipe-generator.js"></script>

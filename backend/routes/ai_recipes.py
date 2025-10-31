@@ -6,6 +6,7 @@ from utils.firebase_connector import get_db
 from utils.auth import require_current_user
 from services.rag_service import RecipeRAGService
 from services.ai_service import AIRecipeGenerator
+from utils.response_handler import success_response, error_response
 import logging
 from datetime import datetime
 
@@ -54,14 +55,12 @@ def generate_recipe_with_ai():
         initialize_services()
         
         if not rag_service or not ai_generator:
-            return jsonify({
-                'error': 'AI services not initialized. Check GEMINI_API_KEY.'
-            }), 503
+            return error_response('AI services not initialized. Check GEMINI_API_KEY.', 503)
         
         # Get request data
         data = request.get_json()
         if not data:
-            return jsonify({'error': 'No data provided'}), 400
+            return error_response('No data provided', 400)
         
         user_query = data.get('query')
         ingredients = data.get('ingredients', [])
@@ -72,7 +71,7 @@ def generate_recipe_with_ai():
         save_to_db = data.get('save_to_db', True)
         
         if not user_query and not ingredients:
-            return jsonify({'error': 'Provide a user query or at least one ingredient'}), 400
+            return error_response('Provide a user query or at least one ingredient', 400)
         
         logger.info(f"Generating recipe with ingredients: {ingredients}")
         
@@ -145,22 +144,21 @@ def generate_recipe_with_ai():
             generated_recipe['id'] = recipe_ref.id
             logger.info(f"Saved generated recipe: {recipe_ref.id}")
         
-        return jsonify({
-            'success': True,
+        return success_response({
             'recipe': generated_recipe,
             'similar_recipes_found': len(similar_recipes),
             'message': 'Recipe generated successfully with AI!'
-        }), 201
+        }, 201)
         
     except ValueError as e:
         logger.error(f"Validation error: {e}")
-        return jsonify({'error': str(e)}), 400
+        return error_response(str(e), 400)
         
     except Exception as e:
         logger.error(f"Error generating recipe with AI: {e}")
         import traceback
         traceback.print_exc()
-        return jsonify({'error': f'Failed to generate recipe: {str(e)}'}), 500
+        return error_response(f'Failed to generate recipe: {str(e)}', 500)
 
 @ai_recipes_bp.route('/generate-simple', methods=['POST'])
 def generate_simple_recipe():
@@ -171,7 +169,7 @@ def generate_simple_recipe():
         initialize_services()
         
         if not ai_generator:
-            return jsonify({'error': 'AI service not initialized'}), 503
+            return error_response('AI service not initialized', 503)
         
         data = request.get_json()
         ingredients = data.get('ingredients', [])
@@ -179,7 +177,7 @@ def generate_simple_recipe():
         cooking_time = data.get('max_cooking_time')
         
         if not ingredients:
-            return jsonify({'error': 'Ingredients required'}), 400
+            return error_response('Ingredients required', 400)
         
         recipe = ai_generator.generate_simple_recipe(
             ingredients=ingredients,
@@ -195,14 +193,11 @@ def generate_simple_recipe():
             _, recipe_ref = db.collection('Recipe').add(recipe)
             recipe['id'] = recipe_ref.id
         
-        return jsonify({
-            'success': True,
-            'recipe': recipe
-        }), 201
+        return success_response({'recipe': recipe}, 201)
         
     except Exception as e:
         logger.error(f"Error in simple generation: {e}")
-        return jsonify({'error': str(e)}), 500
+        return error_response(str(e), 500)
 
 @ai_recipes_bp.route('/test-rag', methods=['POST'])
 def test_rag():
@@ -211,20 +206,19 @@ def test_rag():
         initialize_services()
         
         if not rag_service:
-            return jsonify({'error': 'RAG service not initialized'}), 503
+            return error_response('RAG service not initialized', 503)
         
         data = request.get_json()
         ingredients = data.get('ingredients', ['chicken'])
         
         similar = rag_service.retrieve_similar_recipes(ingredients, limit=3)
         
-        return jsonify({
-            'success': True,
+        return success_response({
             'ingredients_searched': ingredients,
             'similar_recipes_found': len(similar),
             'recipes': similar
-        }), 200
+        })
         
     except Exception as e:
         logger.error(f"Error testing RAG: {e}")
-        return jsonify({'error': str(e)}), 500
+        return error_response(str(e), 500)

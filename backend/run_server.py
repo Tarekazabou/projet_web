@@ -30,7 +30,8 @@ if __name__ == '__main__':
             print(f"Starting Waitress server on http://0.0.0.0:{port}")
             print("This server is more stable on Windows and doesn't have socket reload issues.")
             print("Press Ctrl+C to stop the server.")
-            serve(app, host='0.0.0.0', port=port, threads=4)
+            threads = int(os.getenv('WAITRESS_THREADS', 4))
+            serve(app, host='0.0.0.0', port=port, threads=threads)
         except ImportError:
             print("Waitress not installed. Install it with: pip install waitress")
             print("Falling back to Flask development server...")

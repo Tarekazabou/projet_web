@@ -38,11 +38,14 @@ app = Flask(
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key')
 
 # CORS configuration
+allowed_origins = os.getenv('CORS_ORIGINS', 'http://localhost:3000,http://localhost:5000').split(',')
+
 CORS(app, resources={
     r"/api/*": {
-        "origins": ["http://localhost:3000", "http://localhost:5000"],
+        "origins": allowed_origins,
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization"]
+        "allow_headers": ["Content-Type", "Authorization"],
+        "supports_credentials": True
     }
 })
 
@@ -57,7 +60,7 @@ logger = logging.getLogger(__name__)
 app.register_blueprint(recipes_bp, url_prefix='/api/recipes')
 app.register_blueprint(nutrition_bp, url_prefix='/api/nutrition')
 app.register_blueprint(meal_plans_bp, url_prefix='/api/meal-plans')
-app.register_blueprint(grocery_bp, url_prefix='/api/grocery')
+app.register_blueprint(grocery_bp, url_prefix='/api/grocery-lists')
 app.register_blueprint(feedback_bp, url_prefix='/api/feedback')
 app.register_blueprint(users_bp, url_prefix='/api/users')
 app.register_blueprint(fridge_bp, url_prefix='/api/fridge')
@@ -130,18 +133,18 @@ def health_check():
 @app.errorhandler(404)
 def not_found(error):
     """Handle 404 errors"""
-    return jsonify({'error': 'Endpoint not found'}), 404
+    return jsonify({'error': 'Endpoint not found', 'message': str(error)}), 404
 
 @app.errorhandler(500)
 def internal_error(error):
     """Handle 500 errors"""
     logger.error(f"Internal server error: {error}")
-    return jsonify({'error': 'Internal server error'}), 500
+    return jsonify({'error': 'Internal server error', 'message': str(error)}), 500
 
 @app.errorhandler(400)
 def bad_request(error):
     """Handle 400 errors"""
-    return jsonify({'error': 'Bad request'}), 400
+    return jsonify({'error': 'Bad request', 'message': str(error)}), 400
 
 if __name__ == '__main__':
     # Run the application
