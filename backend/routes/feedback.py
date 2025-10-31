@@ -1,6 +1,8 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request
+from google.cloud.firestore_v1.base_query import FieldFilter
 from utils.firebase_connector import get_db
 from utils.auth import require_current_user
+from utils.response_handler import success_response, error_response
 import logging
 from datetime import datetime
 
@@ -16,17 +18,17 @@ def submit_feedback():
         data = request.get_json()
         
         if not data:
-            return jsonify({'error': 'No data provided'}), 400
+            return error_response('No data provided', 400)
         
         required_fields = ['recipe_id', 'rating']
         for field in required_fields:
             if field not in data:
-                return jsonify({'error': f'Missing required field: {field}'}), 400
+                return error_response(f'Missing required field: {field}', 400)
         
         recipe_id = data['recipe_id']
         rating = data['rating']
         if not isinstance(rating, (int, float)) or not 1 <= rating <= 5:
-            return jsonify({'error': 'Rating must be between 1 and 5'}), 400
+            return error_response('Rating must be between 1 and 5', 400)
         
         feedback_data = {
             'user': db.collection('User').document(user_id),
@@ -42,14 +44,14 @@ def submit_feedback():
         created_feedback = new_feedback_ref.get().to_dict()
         created_feedback['id'] = new_feedback_ref.id
         
-        return jsonify({
+        return success_response({
             'message': 'Feedback submitted successfully',
             'feedback': created_feedback
-        }), 201
+        }, 201)
         
     except Exception as e:
         logger.error(f"Error submitting feedback: {e}")
-        return jsonify({'error': 'Failed to submit feedback'}), 500
+        return error_response('Failed to submit feedback', 500)
 
 @feedback_bp.route('/recipe/<recipe_id>', methods=['GET'])
 def get_recipe_feedback(recipe_id):
@@ -57,7 +59,7 @@ def get_recipe_feedback(recipe_id):
     try:
         db = get_db()
         
-        query = db.collection('Feedback').where('recipe', '==', db.collection('Recipe').document(recipe_id))
+        query = db.collection('Feedback').where(filter=FieldFilter('recipe', '==', db.collection('Recipe').document(recipe_id)))
         
         docs = query.stream()
         
@@ -68,13 +70,11 @@ def get_recipe_feedback(recipe_id):
             # You would need to fetch user and recipe details separately if needed
             feedback_list.append(feedback)
         
-        return jsonify({
-            'feedback': feedback_list,
-        }), 200
+        return success_response({'feedback': feedback_list})
         
     except Exception as e:
         logger.error(f"Error getting recipe feedback: {e}")
-        return jsonify({'error': 'Failed to get feedback'}), 500
+        return error_response('Failed to get feedback', 500)
 
 @feedback_bp.route('/user/<user_id>', methods=['GET'])
 def get_user_feedback(user_id):
@@ -82,7 +82,7 @@ def get_user_feedback(user_id):
     try:
         db = get_db()
         
-        query = db.collection('Feedback').where('user', '==', db.collection('User').document(user_id))
+        query = db.collection('Feedback').where(filter=FieldFilter('user', '==', db.collection('User').document(user_id)))
         
         docs = query.stream()
         
@@ -93,13 +93,11 @@ def get_user_feedback(user_id):
             # You would need to fetch recipe details separately if needed
             feedback_list.append(feedback)
         
-        return jsonify({
-            'feedback': feedback_list,
-        }), 200
+        return success_response({'feedback': feedback_list})
         
     except Exception as e:
         logger.error(f"Error getting user feedback: {e}")
-        return jsonify({'error': 'Failed to get user feedback'}), 500
+        return error_response('Failed to get user feedback', 500)
 
 @feedback_bp.route('/<feedback_id>', methods=['DELETE'])
 def delete_feedback(feedback_id):
@@ -112,17 +110,17 @@ def delete_feedback(feedback_id):
         feedback = feedback_ref.get()
         
         if not feedback.exists:
-            return jsonify({'error': 'Feedback not found'}), 404
+            return error_response('Feedback not found', 404)
         
         feedback_data = feedback.to_dict()
         if feedback_data['user'].id != user_id:
-            return jsonify({'error': 'Not authorized to delete this feedback'}), 403
+            return error_response('Not authorized to delete this feedback', 403)
         
         # Delete feedback
         feedback_ref.delete()
         
-        return jsonify({'message': 'Feedback deleted successfully'}), 200
+        return success_response({'message': 'Feedback deleted successfully'})
         
     except Exception as e:
         logger.error(f"Error deleting feedback: {e}")
-        return jsonify({'error': 'Failed to delete feedback'}), 500
+        return error_response('Failed to delete feedback', 500)

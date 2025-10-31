@@ -6,7 +6,7 @@ import os
 import json
 import logging
 from typing import Dict, Any, Optional
-import google.generativeai as genai
+from google import generativeai as genai
 
 logger = logging.getLogger(__name__)
 

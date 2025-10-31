@@ -1,6 +1,8 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request
+from google.cloud.firestore_v1.base_query import FieldFilter
 from utils.firebase_connector import get_db
 from utils.auth import require_current_user
+from utils.response_handler import success_response, error_response
 import logging
 from datetime import datetime
 
@@ -15,7 +17,7 @@ def get_fridge_items():
         db = get_db()
 
         # Start with a base query for the user's items
-        query = db.collection('FridgeItem').where('user', '==', db.collection('User').document(user_id))
+        query = db.collection('FridgeItem').where(filter=FieldFilter('user', '==', db.collection('User').document(user_id)))
 
         # Get query parameters
         search = request.args.get('search', '')
@@ -23,7 +25,7 @@ def get_fridge_items():
 
         if search:
             # Firestore doesn't support regex search. This is a basic prefix search.
-            query = query.where('ingredient.name', '>=', search).where('ingredient.name', '<=', search + '\uf8ff')
+            query = query.where(filter=FieldFilter('ingredient.name', '>=', search)).where(filter=FieldFilter('ingredient.name', '<=', search + '\uf8ff'))
 
         docs = query.stream()
         
@@ -54,18 +56,14 @@ def get_fridge_items():
                         continue # Skip items with invalid date format
             items = filtered_items
 
-        return jsonify({
-            'success': True,
+        return success_response({
             'items': items,
             'total': len(items)
         })
         
     except Exception as e:
         logger.error(f"Error getting fridge items: {e}")
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+        return error_response(str(e), 500)
 
 @fridge_bp.route('/items', methods=['POST'])  
 def add_fridge_item():
@@ -77,12 +75,12 @@ def add_fridge_item():
         data = request.get_json() or {}
 
         if not data:
-            return jsonify({'success': False, 'error': 'No data provided'}), 400
+            return error_response('No data provided', 400)
         
         required_fields = ['ingredient', 'quantity', 'unit']
         for field in required_fields:
             if field not in data or not data[field]:
-                return jsonify({'success': False, 'error': f'Missing required field: {field}'}), 400
+                return error_response(f'Missing required field: {field}', 400)
         
         # You might need to resolve ingredient name to an ingredient reference
         # For simplicity, assuming 'ingredient' is an ID for now.
@@ -100,15 +98,14 @@ def add_fridge_item():
         created_item = new_item_ref.get().to_dict()
         created_item['id'] = new_item_ref.id
 
-        return jsonify({
-            'success': True,
+        return success_response({
             'item': created_item,
             'message': 'Item added to fridge'
-        }), 201
+        }, 201)
         
     except Exception as e:
         logger.error(f"Error adding fridge item: {e}")
-        return jsonify({'success': False, 'error': str(e)}), 500
+        return error_response(str(e), 500)
 
 @fridge_bp.route('/items/<item_id>', methods=['PUT'])
 def update_fridge_item(item_id):
@@ -119,14 +116,14 @@ def update_fridge_item(item_id):
 
         data = request.get_json() or {}
         if not data:
-            return jsonify({'success': False, 'error': 'No data provided'}), 400
+            return error_response('No data provided', 400)
         
         item_ref = db.collection('FridgeItem').document(item_id)
         
         # Verify the item belongs to the user
         item_doc = item_ref.get()
         if not item_doc.exists or item_doc.to_dict()['user'].id != user_id:
-            return jsonify({'success': False, 'error': 'Item not found'}), 404
+            return error_response('Item not found', 404)
 
         update_data = {}
         allowed_fields = ['quantity', 'unit', 'expirationDate']
@@ -140,15 +137,14 @@ def update_fridge_item(item_id):
         updated_item = item_ref.get().to_dict()
         updated_item['id'] = item_ref.id
         
-        return jsonify({
-            'success': True,
+        return success_response({
             'item': updated_item,
             'message': 'Item updated successfully'
         })
         
     except Exception as e:
         logger.error(f"Error updating fridge item: {e}")
-        return jsonify({'success': False, 'error': str(e)}), 500
+        return error_response(str(e), 500)
 
 @fridge_bp.route('/items/<item_id>', methods=['DELETE'])
 def delete_fridge_item(item_id):
@@ -162,15 +158,12 @@ def delete_fridge_item(item_id):
         # Verify the item belongs to the user
         item_doc = item_ref.get()
         if not item_doc.exists or item_doc.to_dict()['user'].id != user_id:
-            return jsonify({'success': False, 'error': 'Item not found'}), 404
+            return error_response('Item not found', 404)
         
         item_ref.delete()
         
-        return jsonify({
-            'success': True,
-            'message': 'Item removed from fridge'
-        })
+        return success_response({'message': 'Item removed from fridge'})
         
     except Exception as e:
         logger.error(f"Error deleting fridge item: {e}")
-        return jsonify({'success': False, 'error': str(e)}), 500
+        return error_response(str(e), 500)
