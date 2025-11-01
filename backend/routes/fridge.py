@@ -15,17 +15,19 @@ def get_fridge_items():
     try:
         user_id = require_current_user()
         db = get_db()
+        
+        logger.info(f"📋 Getting fridge items for user: {user_id}")
 
-        # Start with a base query for the user's items
-        query = db.collection('FridgeItem').where(filter=FieldFilter('user', '==', db.collection('User').document(user_id)))
+        # Start with a base query for the user's items using simple userId field
+        query = db.collection('FridgeItem').where(filter=FieldFilter('userId', '==', user_id))
 
         # Get query parameters
         search = request.args.get('search', '')
         freshness = request.args.get('freshness', 'all')
 
         if search:
-            # Firestore doesn't support regex search. This is a basic prefix search.
-            query = query.where(filter=FieldFilter('ingredient.name', '>=', search)).where(filter=FieldFilter('ingredient.name', '<=', search + '\uf8ff'))
+            # For search, we'll filter client-side since Firestore has limitations
+            pass
 
         docs = query.stream()
         
@@ -33,6 +35,19 @@ def get_fridge_items():
         for doc in docs:
             item = doc.to_dict()
             item['id'] = doc.id
+            
+            # Normalize field names for frontend compatibility
+            if 'ingredientName' in item:
+                item['name'] = item['ingredientName']
+            if 'expirationDate' in item:
+                item['expiryDate'] = item['expirationDate']
+            
+            # Apply search filter client-side
+            if search:
+                ingredient_name = item.get('ingredientName', '').lower()
+                if search.lower() not in ingredient_name:
+                    continue
+            
             items.append(item)
             
         # Filter by freshness if specified
@@ -56,6 +71,8 @@ def get_fridge_items():
                         continue # Skip items with invalid date format
             items = filtered_items
 
+        logger.info(f"✅ Returning {len(items)} fridge items for user {user_id}")
+        
         return success_response({
             'items': items,
             'total': len(items)
@@ -77,20 +94,35 @@ def add_fridge_item():
         if not data:
             return error_response('No data provided', 400)
         
-        required_fields = ['ingredient', 'quantity', 'unit']
+        # Support both simple name and full ingredient object
+        ingredient_name = None
+        if 'name' in data:
+            ingredient_name = data['name']
+        elif 'ingredient' in data:
+            if isinstance(data['ingredient'], str):
+                ingredient_name = data['ingredient']
+            elif isinstance(data['ingredient'], dict) and 'name' in data['ingredient']:
+                ingredient_name = data['ingredient']['name']
+        
+        if not ingredient_name:
+            return error_response('Missing ingredient name', 400)
+        
+        required_fields = ['quantity', 'unit']
         for field in required_fields:
             if field not in data or not data[field]:
                 return error_response(f'Missing required field: {field}', 400)
         
-        # You might need to resolve ingredient name to an ingredient reference
-        # For simplicity, assuming 'ingredient' is an ID for now.
+        # Store ingredient as simple object with name
         new_item = {
-            'user': db.collection('User').document(user_id),
-            'ingredient': db.collection('Ingredient').document(data['ingredient']),
+            'userId': user_id,  # Store as simple string for easier querying
+            'ingredientName': ingredient_name,
             'quantity': float(data['quantity']),
             'unit': data['unit'],
+            'category': data.get('category', 'other'),
+            'location': data.get('location', 'Main fridge'),
+            'notes': data.get('notes', ''),
             'addedAt': datetime.utcnow(),
-            'expirationDate': data.get('expirationDate') # Should be in 'YYYY-MM-DD' format
+            'expirationDate': data.get('expirationDate')  # Should be in 'YYYY-MM-DD' format
         }
         
         _, new_item_ref = db.collection('FridgeItem').add(new_item)
@@ -122,16 +154,21 @@ def update_fridge_item(item_id):
         
         # Verify the item belongs to the user
         item_doc = item_ref.get()
-        if not item_doc.exists or item_doc.to_dict()['user'].id != user_id:
+        if not item_doc.exists:
+            return error_response('Item not found', 404)
+        
+        item_data = item_doc.to_dict()
+        if item_data.get('userId') != user_id:
             return error_response('Item not found', 404)
 
         update_data = {}
-        allowed_fields = ['quantity', 'unit', 'expirationDate']
+        allowed_fields = ['quantity', 'unit', 'expirationDate', 'category', 'location', 'notes']
         for field in allowed_fields:
             if field in data:
                 update_data[field] = data[field]
         
         if update_data:
+            update_data['updatedAt'] = datetime.utcnow()
             item_ref.update(update_data)
         
         updated_item = item_ref.get().to_dict()
@@ -157,7 +194,11 @@ def delete_fridge_item(item_id):
 
         # Verify the item belongs to the user
         item_doc = item_ref.get()
-        if not item_doc.exists or item_doc.to_dict()['user'].id != user_id:
+        if not item_doc.exists:
+            return error_response('Item not found', 404)
+        
+        item_data = item_doc.to_dict()
+        if item_data.get('userId') != user_id:
             return error_response('Item not found', 404)
         
         item_ref.delete()
@@ -166,4 +207,218 @@ def delete_fridge_item(item_id):
         
     except Exception as e:
         logger.error(f"Error deleting fridge item: {e}")
+        return error_response(str(e), 500)
+
+@fridge_bp.route('/suggest-recipes', methods=['POST'])
+def suggest_recipes_from_fridge():
+    """
+    Suggest recipes based on ingredients in user's fridge
+    Uses AI service to generate recipe recommendations
+    """
+    try:
+        user_id = require_current_user()
+        db = get_db()
+        
+        logger.info(f"🔍 Suggesting recipes for user: {user_id}")
+        
+        # Get all fridge items for the user
+        query = db.collection('FridgeItem').where(filter=FieldFilter('userId', '==', user_id))
+        docs = query.stream()
+        
+        fridge_items = []
+        ingredients_list = []
+        
+        for doc in docs:
+            item = doc.to_dict()
+            item['id'] = doc.id
+            fridge_items.append(item)
+            ingredient_name = item.get('ingredientName', '')
+            if ingredient_name:
+                ingredients_list.append(ingredient_name)
+        
+        logger.info(f"📦 Found {len(fridge_items)} fridge items for user {user_id}")
+        logger.info(f"🥗 Extracted ingredients: {ingredients_list}")
+        
+        if not ingredients_list:
+            logger.warning(f"⚠️ No ingredients found for user {user_id} in Firestore")
+            return error_response('No ingredients in fridge. Add some ingredients first!', 400)
+        
+        # Get optional filters from request
+        data = request.get_json() or {}
+        dietary_preferences = data.get('dietary_preferences', [])
+        max_cooking_time = data.get('max_cooking_time')
+        difficulty = data.get('difficulty', 'medium')
+        servings = data.get('servings', 4)
+        
+        # Import AI services
+        from services.ai_service import AIRecipeGenerator
+        
+        # Initialize AI service
+        try:
+            ai_generator = AIRecipeGenerator()
+        except Exception as e:
+            logger.error(f"Failed to initialize AI service: {e}")
+            return error_response('AI service not available. Check GEMINI_API_KEY configuration.', 503)
+        
+        # Build user query
+        user_query = f"Create a delicious recipe using these ingredients: {', '.join(ingredients_list)}"
+        
+        # Build requirements
+        user_requirements = {
+            'ingredients': ingredients_list,
+            'dietary_preferences': dietary_preferences,
+            'max_cooking_time': max_cooking_time,
+            'difficulty': difficulty,
+            'servings': servings
+        }
+        
+        # Build prompt
+        prompt_parts = []
+        prompt_parts.append("You are a creative chef AI assistant.")
+        prompt_parts.append(f"Create an original recipe using these ingredients from the user's fridge:")
+        prompt_parts.append(f"Available ingredients: {', '.join(ingredients_list)}")
+        
+        if dietary_preferences:
+            prompt_parts.append(f"Dietary preferences: {', '.join(dietary_preferences)}")
+        if max_cooking_time:
+            prompt_parts.append(f"Maximum cooking time: {max_cooking_time} minutes")
+        prompt_parts.append(f"Difficulty: {difficulty}")
+        prompt_parts.append(f"Servings: {servings}")
+        
+        prompt_parts.append("\nGuidelines:")
+        prompt_parts.append("- Use as many of the fridge ingredients as possible")
+        prompt_parts.append("- Create a practical, delicious recipe")
+        prompt_parts.append("- Provide clear instructions")
+        prompt_parts.append("- Include nutrition information")
+        
+        context_prompt = "\n".join(prompt_parts)
+        
+        # Generate recipe with AI
+        generated_recipe = ai_generator.generate_recipe(
+            context_prompt=context_prompt,
+            temperature=0.8  # Balanced creativity
+        )
+        
+        # Add metadata
+        generated_recipe['createdAt'] = datetime.utcnow()
+        generated_recipe['generatedByAI'] = True
+        generated_recipe['basedOnFridge'] = True
+        generated_recipe['fridgeIngredients'] = ingredients_list
+        
+        # Save to database
+        _, recipe_ref = db.collection('Recipe').add(generated_recipe)
+        generated_recipe['id'] = recipe_ref.id
+        
+        logger.info(f"Generated recipe from fridge for user {user_id}: {recipe_ref.id}")
+        
+        return success_response({
+            'recipe': generated_recipe,
+            'ingredients_used': ingredients_list,
+            'message': 'Recipe suggested successfully based on your fridge!'
+        }, 201)
+        
+    except Exception as e:
+        logger.error(f"Error suggesting recipes from fridge: {e}")
+        import traceback
+        traceback.print_exc()
+        return error_response(f'Failed to suggest recipes: {str(e)}', 500)
+
+@fridge_bp.route('/seed-demo-items', methods=['POST'])
+def seed_demo_items():
+    """Add demo items to user's fridge for testing"""
+    try:
+        user_id = require_current_user()
+        db = get_db()
+        
+        from datetime import timedelta
+        today = datetime.now()
+        tomorrow = today + timedelta(days=1)
+        next_week = today + timedelta(days=7)
+        next_month = today + timedelta(days=30)
+        
+        demo_items = [
+            {
+                'userId': user_id,
+                'ingredientName': 'Chicken Breast',
+                'quantity': 2.0,
+                'unit': 'pieces',
+                'category': 'meat',
+                'location': 'Main fridge',
+                'notes': 'Fresh organic',
+                'addedAt': datetime.utcnow(),
+                'expirationDate': tomorrow.strftime('%Y-%m-%d')
+            },
+            {
+                'userId': user_id,
+                'ingredientName': 'Tomatoes',
+                'quantity': 6.0,
+                'unit': 'pieces',
+                'category': 'produce',
+                'location': 'Crisper drawer',
+                'notes': 'Roma tomatoes',
+                'addedAt': datetime.utcnow(),
+                'expirationDate': next_week.strftime('%Y-%m-%d')
+            },
+            {
+                'userId': user_id,
+                'ingredientName': 'Spinach',
+                'quantity': 1.0,
+                'unit': 'bag',
+                'category': 'produce',
+                'location': 'Crisper drawer',
+                'notes': 'Baby spinach',
+                'addedAt': datetime.utcnow(),
+                'expirationDate': next_week.strftime('%Y-%m-%d')
+            },
+            {
+                'userId': user_id,
+                'ingredientName': 'Rice',
+                'quantity': 2.0,
+                'unit': 'kg',
+                'category': 'pantry',
+                'location': 'Pantry',
+                'notes': 'Basmati rice',
+                'addedAt': datetime.utcnow(),
+                'expirationDate': next_month.strftime('%Y-%m-%d')
+            },
+            {
+                'userId': user_id,
+                'ingredientName': 'Onions',
+                'quantity': 3.0,
+                'unit': 'pieces',
+                'category': 'produce',
+                'location': 'Pantry',
+                'notes': 'Yellow onions',
+                'addedAt': datetime.utcnow(),
+                'expirationDate': next_week.strftime('%Y-%m-%d')
+            },
+            {
+                'userId': user_id,
+                'ingredientName': 'Garlic',
+                'quantity': 1.0,
+                'unit': 'bulb',
+                'category': 'produce',
+                'location': 'Pantry',
+                'notes': 'Fresh garlic',
+                'addedAt': datetime.utcnow(),
+                'expirationDate': next_week.strftime('%Y-%m-%d')
+            }
+        ]
+        
+        added_items = []
+        for item in demo_items:
+            _, item_ref = db.collection('FridgeItem').add(item)
+            created_item = item_ref.get().to_dict()
+            created_item['id'] = item_ref.id
+            added_items.append(created_item)
+        
+        logger.info(f"Added {len(added_items)} demo items to fridge for user {user_id}")
+        
+        return success_response({
+            'message': f'Added {len(added_items)} demo items to your fridge',
+            'items': added_items
+        }, 201)
+        
+    except Exception as e:
+        logger.error(f"Error seeding demo items: {e}")
         return error_response(str(e), 500)
