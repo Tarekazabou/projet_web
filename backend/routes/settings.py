@@ -82,7 +82,7 @@ def test_gemini_key():
         
         try:
             genai.configure(api_key=api_key)
-            model = genai.GenerativeModel('gemini-pro')
+            model = genai.GenerativeModel('gemini-2.0-flash')
             
             # Simple test query
             response = model.generate_content(
