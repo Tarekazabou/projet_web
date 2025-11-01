@@ -56,11 +56,7 @@ class Config:
     GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-2.0-flash-exp')
     GEMINI_EMBEDDING_MODEL = os.getenv('GEMINI_EMBEDDING_MODEL', 'models/text-embedding-004')
     
-    # RAG Configuration
-    RAG_RECIPES_CSV = os.getenv('RAG_RECIPES_CSV', str(PROJECT_ROOT / '13k-recipes.csv'))
-    RAG_EMBEDDING_CACHE = os.getenv('RAG_EMBEDDING_CACHE', str(DATA_DIR / 'recipe_embeddings.npz'))
-    RAG_MAX_EMBEDDED_RECIPES = int(os.getenv('RAG_MAX_EMBEDDED_RECIPES', '5000'))
-    RAG_TOP_K = int(os.getenv('RAG_TOP_K', '5'))
+    # AI Generation Mode: Direct (no RAG, no dataset required)
     
     # Logging
     LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')

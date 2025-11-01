@@ -1,0 +1,111 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user is owner
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // User collection rules
+    match /User/{userId} {
+      // Allow read if authenticated
+      allow read: if isAuthenticated();
+      
+      // Allow create for new users
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      
+      // Allow update/delete only for own profile
+      allow update, delete: if isOwner(userId);
+    }
+    
+    // Recipe collection rules
+    match /Recipe/{recipeId} {
+      // Anyone can read recipes
+      allow read: if true;
+      
+      // Authenticated users can create recipes
+      allow create: if isAuthenticated();
+      
+      // Only owner or admin can update/delete
+      allow update, delete: if isAuthenticated() && 
+        (resource.data.createdBy == request.auth.uid || 
+         get(/databases/$(database)/documents/User/$(request.auth.uid)).data.role == 'admin');
+    }
+    
+    // Meal Plan collection rules
+    match /MealPlan/{planId} {
+      // Only owner can read their meal plans
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      
+      // Users can create their own meal plans
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      
+      // Only owner can update/delete
+      allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+    
+    // Grocery List collection rules
+    match /GroceryList/{listId} {
+      // Only owner can read their grocery lists
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      
+      // Users can create their own grocery lists
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      
+      // Only owner can update/delete
+      allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+    
+    // Fridge Item collection rules
+    match /FridgeItem/{itemId} {
+      // Only owner can read their fridge items
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      
+      // Users can create their own fridge items
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      
+      // Only owner can update/delete
+      allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+    
+    // Nutrition Log collection rules
+    match /NutritionLog/{logId} {
+      // Only owner can read their nutrition logs
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      
+      // Users can create their own nutrition logs
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      
+      // Only owner can update/delete
+      allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+    
+    // Feedback collection rules
+    match /Feedback/{feedbackId} {
+      // Only admins can read feedback
+      allow read: if isAuthenticated() && 
+        get(/databases/$(database)/documents/User/$(request.auth.uid)).data.role == 'admin';
+      
+      // Authenticated users can submit feedback
+      allow create: if isAuthenticated();
+      
+      // Only owner can update their feedback
+      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      
+      // Only admins can delete feedback
+      allow delete: if isAuthenticated() && 
+        get(/databases/$(database)/documents/User/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // Default deny all other collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

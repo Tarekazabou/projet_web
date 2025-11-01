@@ -150,6 +150,13 @@ def attach_current_user() -> dict:
     return user
 
 
+def get_current_user_id() -> Optional[str]:
+    """Get the current user ID without requiring authentication."""
+    if hasattr(g, 'current_user_id'):
+        return g.current_user_id
+    return None
+
+
 def require_current_user() -> str:
     """Ensure a user is attached to the request context and return the id."""
 
