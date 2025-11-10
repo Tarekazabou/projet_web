@@ -5,7 +5,7 @@ from pathlib import Path
 backend_dir = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(backend_dir))
 
-from flask import Flask, request, jsonify, render_template, send_file, g
+from flask import Flask, request, jsonify, send_from_directory, g
 from flask_cors import CORS
 from utils.firebase_connector import initialize_firebase, get_db
 from dotenv import load_dotenv
@@ -30,8 +30,7 @@ load_dotenv()
 # Initialize Flask app
 app = Flask(
     __name__,
-    template_folder='../../frontend',
-    static_folder='../../frontend',
+    static_folder='../../frontend-react/dist',
     static_url_path=''
 )
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key')
@@ -79,34 +78,13 @@ def inject_user_header(response):
     return response
 
 @app.route('/')
-def index():
-    """Serve the main application page"""
-    return render_template('index.html')
-
-@app.route('/recipe-generator')
-def recipe_generator_page():
-    """Serve the recipe generator page"""
-    return render_template('recipe-generator.html')
-
-@app.route('/meal-planner')
-def meal_planner_page():
-    """Serve the meal planner page"""
-    return render_template('meal-planner.html')
-
-@app.route('/nutrition-tracker')
-def nutrition_tracker_page():
-    """Serve the nutrition tracker page"""
-    return render_template('nutrition-tracker.html')
-
-@app.route('/grocery-list')
-def grocery_list_page():
-    """Serve the grocery list page"""
-    return render_template('grocery-list.html')
-
-@app.route('/your-fridge')
-def your_fridge_page():
-    """Serve the your fridge page"""
-    return render_template('your-fridge.html')
+@app.route('/<path:path>')
+def serve_react_app(path=''):
+    """Serve the React application for all non-API routes"""
+    if path and os.path.exists(os.path.join(app.static_folder, path)):
+        return send_from_directory(app.static_folder, path)
+    else:
+        return send_from_directory(app.static_folder, 'index.html')
 
 @app.route('/api/health')
 def health_check():
