@@ -1,6 +1,6 @@
 # Mealy: AI-Powered Recipe & Meal Planning Platform
 
-> **Version 2.0** - Production-Ready Release with Enhanced Security, Testing, and DevOps
+> **Version 2.1** - React Frontend Migration with Enhanced UX and Modern Architecture
 
 [![CI/CD Pipeline](https://github.com/Tarekazabou/projet_web/workflows/CI%2FCD%20Pipeline/badge.svg)](https://github.com/Tarekazabou/projet_web/actions)
 [![codecov](https://codecov.io/gh/Tarekazabou/projet_web/branch/main/graph/badge.svg)](https://codecov.io/gh/Tarekazabou/projet_web)
@@ -8,7 +8,15 @@
 
 Mealy is an intelligent web application that revolutionizes meal planning and recipe discovery using AI. From generating personalized recipes to tracking nutrition and managing grocery lists, Mealy is your comprehensive kitchen assistant.
 
-## 🚀 What's New in Version 2.0
+## 🚀 What's New in Version 2.1
+
+### Frontend Migration to React
+- ✅ **Modern React Architecture**: Migrated from vanilla JavaScript to React 18 with Vite
+- ✅ **Component-Based Design**: Modular, reusable components for better maintainability
+- ✅ **React Router**: Client-side routing for smoother navigation
+- ✅ **Context API**: Centralized state management with React Context
+- ✅ **Hot Module Replacement**: Lightning-fast development with Vite HMR
+- ✅ **Optimized Builds**: Production-ready builds with code splitting and minification
 
 ### Backend Improvements
 - ✅ **Enhanced Architecture**: Modular, maintainable code structure with separation of concerns
@@ -74,10 +82,12 @@ Mealy is an intelligent web application that revolutionizes meal planning and re
 - **Testing**: Pytest, Coverage
 
 ### Frontend
-- **Framework**: Vanilla JavaScript (ES6+)
-- **Styling**: CSS3, Custom Components
-- **Authentication**: Firebase SDK
-- **Build**: No build step (simple deployment)
+- **Framework**: React 18 with Vite
+- **Routing**: React Router v6
+- **Styling**: CSS3, Custom Components (migrated from vanilla JS)
+- **Authentication**: Firebase SDK with React Context
+- **Build**: Vite (fast HMR and optimized production builds)
+- **State Management**: React Context API
 
 ### DevOps
 - **Containerization**: Docker, Docker Compose
@@ -134,25 +144,55 @@ Mealy is an intelligent web application that revolutionizes meal planning and re
    cd projet_web
    ```
 
-2. **Set up environment variables**
+2. **Set up backend environment variables**
    ```bash
    cd backend
-   cp .env.template .env
-   # Edit .env with your configuration
+   cp .env.example .env
+   # Edit .env with your configuration (Firebase credentials, API keys, etc.)
    ```
 
-3. **Install Python dependencies**
+3. **Install backend dependencies**
    ```bash
    pip install -r requirements.txt
    ```
 
-4. **Run the development server**
+4. **Set up React frontend**
    ```bash
-   python src/app_enhanced.py
+   cd ../frontend-react
+   npm install
    ```
 
-5. **Open your browser**
+5. **Build the React frontend**
+   ```bash
+   npm run build
+   ```
+
+6. **Run the backend server** (serves both API and React app)
+   ```bash
+   cd ../backend
+   python run_server.py
+   ```
+
+7. **Open your browser**
    Navigate to `http://localhost:5000`
+
+### Development with Hot Reload
+
+For frontend development with hot module replacement:
+
+1. **Start the backend API** (in one terminal)
+   ```bash
+   cd backend
+   python run_server.py
+   ```
+
+2. **Start the React dev server** (in another terminal)
+   ```bash
+   cd frontend-react
+   npm run dev
+   ```
+
+3. **Access the app** at `http://localhost:3000`
 
 ### Quick Start (Docker)
 
@@ -177,12 +217,38 @@ Mealy is an intelligent web application that revolutionizes meal planning and re
 
 ```
 projet_web/
-├── backend/
-│   ├── config.py                 # Configuration management
-│   ├── requirements.txt          # Python dependencies
+├── frontend-react/              # React frontend (NEW)
 │   ├── src/
-│   │   ├── app.py               # Original app
-│   │   └── app_enhanced.py      # Enhanced app (v2.0)
+│   │   ├── components/          # Reusable components
+│   │   │   └── Navbar.jsx
+│   │   ├── pages/               # Page components
+│   │   │   ├── HomePage.jsx
+│   │   │   ├── YourFridgePage.jsx
+│   │   │   ├── RecipeGeneratorPage.jsx
+│   │   │   ├── MealPlannerPage.jsx
+│   │   │   ├── NutritionTrackerPage.jsx
+│   │   │   ├── GroceryListPage.jsx
+│   │   │   └── LoginPage.jsx
+│   │   ├── context/             # React Context
+│   │   │   └── AuthContext.jsx
+│   │   ├── services/            # API services
+│   │   │   └── apiClient.js
+│   │   ├── utils/               # Utilities
+│   │   ├── config/              # Configuration
+│   │   │   ├── api.js
+│   │   │   └── firebase.js
+│   │   ├── App.jsx              # Main app
+│   │   └── main.jsx             # Entry point
+│   ├── dist/                    # Production build
+│   ├── package.json
+│   ├── vite.config.js           # Vite config
+│   └── README.md
+├── frontend/                    # Legacy vanilla JS (deprecated)
+├── backend/
+│   ├── config.py                # Configuration management
+│   ├── requirements.txt         # Python dependencies
+│   ├── src/
+│   │   └── app.py               # Main Flask app (serves React build)
 │   ├── routes/                  # API endpoints
 │   │   ├── ai_recipes.py       # AI recipe generation
 │   │   ├── recipes.py          # Recipe CRUD
