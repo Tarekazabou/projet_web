@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
@@ -14,6 +15,32 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  int _statsIndex = 0;
+
+  final List<Map<String, dynamic>> stats = [
+    {
+      'label': 'Recipes',
+      'value': '12',
+      'icon': Icons.restaurant_menu,
+    },
+    {
+      'label': 'Meals Planned',
+      'value': '7',
+      'icon': Icons.calendar_today,
+    },
+    {
+      'label': 'Ingredients',
+      'value': '24',
+      'icon': Icons.kitchen,
+    },
+  ];
+
+  void _rotateStats(int direction) {
+    setState(() {
+      _statsIndex = (_statsIndex + direction) % stats.length;
+      if (_statsIndex < 0) _statsIndex += stats.length;
+    });
+  }
   final _searchController = TextEditingController();
   
   final List<HomeFeature> features = [
@@ -63,8 +90,18 @@ class _HomeScreenState extends State<HomeScreen> {
     final userName = authProvider.currentUser?.name ?? 'User';
     
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF4CAF50), // Green
+              Color(0xFF81C784), // Light Green
+            ],
+          ),
+        ),
+        child: SafeArea(
         child: RefreshIndicator(
           onRefresh: () async {
             await Provider.of<RecipeProvider>(context, listen: false).loadRecipes();
@@ -75,38 +112,37 @@ class _HomeScreenState extends State<HomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(height: 20.h),
-                
                 // Header with User Info
                 _buildHeader(userName),
+                SizedBox(height: 10.h),
+                // Rotatable Stats Row
+                _buildRotatableStatsRow(),
                 SizedBox(height: 25.h),
-                
                 // Quick Actions Grid
                 Text(
                   'Quick Actions',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 22.sp,
-                    color: Colors.black87,
+                    color: Colors.white,
                   ),
                 ),
                 SizedBox(height: 15.h),
                 _buildFeaturesGrid(),
                 SizedBox(height: 25.h),
-                
                 // Today's Meal Plan
                 _buildTodaysMealPlan(),
                 SizedBox(height: 25.h),
-                
                 // AI Recipe Suggestions
                 _buildAISuggestions(),
                 SizedBox(height: 25.h),
-                
                 // Recent Recipes
                 _buildRecentRecipes(),
                 SizedBox(height: 100.h),
               ],
             ),
           ),
+        ),
         ),
       ),
     );
@@ -120,7 +156,7 @@ class _HomeScreenState extends State<HomeScreen> {
           'Welcome back, $userName! 👋',
           style: TextStyle(
             fontSize: 16.sp,
-            color: Colors.grey[600],
+            color: Colors.white.withOpacity(0.9),
           ),
         ),
         SizedBox(height: 5.h),
@@ -129,56 +165,136 @@ class _HomeScreenState extends State<HomeScreen> {
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 24.sp,
-            color: Colors.black87,
+            color: Colors.white,
           ),
         ),
-        SizedBox(height: 15.h),
-        
-        // Quick Stats Row
-        Row(
-          children: [
-            _buildStatItem('Recipes', '12', Icons.restaurant_menu),
-            SizedBox(width: 15.w),
-            _buildStatItem('Meals Planned', '7', Icons.calendar_today),
-            SizedBox(width: 15.w),
-            _buildStatItem('Ingredients', '24', Icons.kitchen),
-          ],
+      ],
+    );
+  }
+
+  Widget _buildRotatableStatsRow() {
+    // Rotate the stats list so the selected index is in the middle
+    final List<Map<String, dynamic>> orderedStats = [
+      stats[(_statsIndex + 2) % stats.length],
+      stats[_statsIndex],
+      stats[(_statsIndex + 1) % stats.length],
+    ];
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        IconButton(
+          icon: Icon(Icons.chevron_left, size: 28.r),
+          onPressed: () => _rotateStats(-1),
+        ),
+        // Left stat card (small)
+        Expanded(
+          flex: 1,
+          child: Transform.scale(
+            scale: 0.75,
+            child: Opacity(
+              opacity: 0.6,
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 4.w),
+                child: _buildStatItem(orderedStats[0]['label'], orderedStats[0]['value'], orderedStats[0]['icon']),
+              ),
+            ),
+          ),
+        ),
+        // Center stat card (large - featured)
+        Expanded(
+          flex: 1,
+          child: Transform.scale(
+            scale: 1.1,
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 4.w),
+              child: _buildStatItem(orderedStats[1]['label'], orderedStats[1]['value'], orderedStats[1]['icon']),
+            ),
+          ),
+        ),
+        // Right stat card (small)
+        Expanded(
+          flex: 1,
+          child: Transform.scale(
+            scale: 0.75,
+            child: Opacity(
+              opacity: 0.6,
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 4.w),
+                child: _buildStatItem(orderedStats[2]['label'], orderedStats[2]['value'], orderedStats[2]['icon']),
+              ),
+            ),
+          ),
+        ),
+        IconButton(
+          icon: Icon(Icons.chevron_right, size: 28.r),
+          onPressed: () => _rotateStats(1),
         ),
       ],
     );
   }
 
   Widget _buildStatItem(String label, String value, IconData icon) {
-    return Expanded(
-      child: Container(
-        padding: EdgeInsets.all(12.w),
-        decoration: BoxDecoration(
-          color: Colors.grey[50],
-          borderRadius: BorderRadius.circular(12.r),
-          border: Border.all(color: Colors.grey[200]!),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, size: 20.r, color: Theme.of(context).colorScheme.primary),
-            SizedBox(height: 8.h),
-            Text(
-              value,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 18.sp,
-                color: Colors.black87,
-              ),
+    return Container(
+      padding: EdgeInsets.all(12.w),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 20.r, color: Theme.of(context).colorScheme.primary),
+          SizedBox(height: 8.h),
+          Text(
+            value,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 18.sp,
+              color: Colors.black87,
             ),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12.sp,
-                color: Colors.grey[600],
-              ),
+          ),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12.sp,
+              color: Colors.grey[600],
             ),
-          ],
-        ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTodaysMealPlan() {
+    return Container(
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Today's Meals",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 18.sp,
+              color: Colors.black87,
+            ),
+          ),
+          SizedBox(height: 12.h),
+          Text(
+            'No meals planned for today',
+            style: TextStyle(
+              fontSize: 14.sp,
+              color: Colors.grey[600],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -211,7 +327,7 @@ class _HomeScreenState extends State<HomeScreen> {
           _navigateToFeature(feature.name);
         },
         child: Container(
-          padding: EdgeInsets.all(16.w),
+          padding: EdgeInsets.all(12.w),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(15.r),
             gradient: LinearGradient(
@@ -226,6 +342,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Container(
                 padding: EdgeInsets.all(8.w),
@@ -233,79 +350,37 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: feature.color.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10.r),
                 ),
-                child: Icon(feature.icon, color: feature.color, size: 24.r),
+                child: Icon(feature.icon, color: feature.color, size: 22.r),
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    feature.name,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16.sp,
-                      color: Colors.black87,
+              SizedBox(height: 8.h),
+              Flexible(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      feature.name,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16.sp,
+                        color: Colors.black87,
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 4.h),
-                  Text(
-                    feature.description,
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      color: Colors.grey[600],
+                    SizedBox(height: 4.h),
+                    Text(
+                      feature.description,
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: Colors.grey[600],
+                      ),
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildTodaysMealPlan() {
-    // Temporary: Empty meals list until MealPlanProvider is implemented
-    final todayMeals = <Meal>[];
-    
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Text(
-              "Today's Meals",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 22.sp,
-                color: Colors.black87,
-              ),
-            ),
-            const Spacer(),
-            TextButton(
-              onPressed: () {
-                // Navigate to meal planner
-              },
-              child: Text(
-                'View Plan',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontSize: 14.sp,
-                ),
-              ),
-            ),
-          ],
-        ),
-        SizedBox(height: 15.h),
-        
-        if (todayMeals.isEmpty)
-          _buildEmptyMealPlanState()
-        else
-          Column(
-            children: todayMeals.map((meal) => _buildMealPlanItem(meal)).toList(),
-          ),
-      ],
     );
   }
 
@@ -433,28 +508,23 @@ class _HomeScreenState extends State<HomeScreen> {
         Row(
           children: [
             Text(
-              'AI Suggestions 🤖',
+              'Nutrition Track �',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 22.sp,
                 color: Colors.black87,
               ),
             ),
-            SizedBox(width: 8.w),
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF667eea), Color(0xFF764ba2)],
-                ),
-                borderRadius: BorderRadius.circular(6.r),
-              ),
+            const Spacer(),
+            TextButton(
+              onPressed: () {
+                _navigateToFeature('Nutrition');
+              },
               child: Text(
-                'NEW',
+                'View Details',
                 style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 10.sp,
-                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary,
+                  fontSize: 14.sp,
                 ),
               ),
             ),
@@ -462,7 +532,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         SizedBox(height: 12.h),
         Text(
-          'Personalized recipes based on your preferences and available ingredients',
+          'Track your daily calories and macros',
           style: TextStyle(
             fontSize: 14.sp,
             color: Colors.grey[600],
@@ -472,38 +542,92 @@ class _HomeScreenState extends State<HomeScreen> {
         Container(
           padding: EdgeInsets.all(16.w),
           decoration: BoxDecoration(
-            color: Colors.purple[50],
+            gradient: LinearGradient(
+              colors: [Colors.orange[50]!, Colors.orange[100]!],
+            ),
             borderRadius: BorderRadius.circular(15.r),
-            border: Border.all(color: Colors.purple[100]!),
+            border: Border.all(color: Colors.orange[200]!),
           ),
-          child: Row(
+          child: Column(
             children: [
-              Icon(Icons.auto_awesome, color: Colors.purple, size: 24.r),
-              SizedBox(width: 12.w),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Generate AI Recipe',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16.sp,
-                        color: Colors.black87,
-                      ),
+              // Daily Calorie Progress
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Daily Calories',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16.sp,
+                      color: Colors.black87,
                     ),
-                    Text(
-                      'Create a custom recipe with ingredients you have',
-                      style: TextStyle(
-                        fontSize: 12.sp,
-                        color: Colors.grey[600],
-                      ),
+                  ),
+                  Text(
+                    '1,450 / 2,000 kcal',
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: Colors.grey[700],
+                      fontWeight: FontWeight.w600,
                     ),
-                  ],
+                  ),
+                ],
+              ),
+              SizedBox(height: 12.h),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10.r),
+                child: LinearProgressIndicator(
+                  value: 0.725,
+                  minHeight: 10.h,
+                  backgroundColor: Colors.white.withOpacity(0.5),
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
                 ),
               ),
-              Icon(Icons.arrow_forward_ios, color: Colors.purple, size: 16.r),
+              SizedBox(height: 16.h),
+              // Macros Row
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildMacroItem('Protein', '65g', '120g', Colors.red),
+                  _buildMacroItem('Carbs', '180g', '250g', Colors.blue),
+                  _buildMacroItem('Fat', '45g', '67g', Colors.green),
+                ],
+              ),
             ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMacroItem(String label, String current, String target, Color color) {
+    return Column(
+      children: [
+        Container(
+          padding: EdgeInsets.all(8.w),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8.r),
+          ),
+          child: Icon(
+            Icons.circle,
+            color: color,
+            size: 16.r,
+          ),
+        ),
+        SizedBox(height: 6.h),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12.sp,
+            color: Colors.grey[700],
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        Text(
+          '$current / $target',
+          style: TextStyle(
+            fontSize: 11.sp,
+            color: Colors.grey[600],
           ),
         ),
       ],
