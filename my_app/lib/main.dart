@@ -283,7 +283,7 @@ class _MainScreenState extends State<MainScreen> {
                     index: 0,
                     isSelected: _selectedIndex == 0,
                   ),
-                  SizedBox(width: 32),
+                  const SizedBox(width: 16),
                   _buildNavItem(
                     icon: Icons.kitchen_outlined,
                     selectedIcon: Icons.kitchen,
@@ -302,7 +302,7 @@ class _MainScreenState extends State<MainScreen> {
                     index: 3,
                     isSelected: _selectedIndex == 3,
                   ),
-                  SizedBox(width: 32),
+                  const SizedBox(width: 16),
                   _buildNavItem(
                     icon: Icons.person_outline,
                     selectedIcon: Icons.person,
