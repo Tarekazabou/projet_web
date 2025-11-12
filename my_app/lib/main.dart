@@ -10,6 +10,8 @@ import 'screens/recipe_generator_screen.dart';
 import 'screens/meal_planner_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/login_screen.dart';
+import 'screens/nutrition_screen.dart';
+import 'screens/grocery_list_screen.dart';
 import 'services/api_service.dart';
 import 'providers/fridge_provider.dart';
 import 'providers/recipe_provider.dart';
@@ -238,6 +240,7 @@ class _MainScreenState extends State<MainScreen> {
     HomeScreen(),
     FridgeScreen(),
     RecipeGeneratorScreen(),
+    GroceryListScreen(),
     MealPlannerScreen(),
     ProfileScreen(),
   ];
@@ -296,19 +299,27 @@ class _MainScreenState extends State<MainScreen> {
               Row(
                 children: [
                   _buildNavItem(
+                    icon: Icons.shopping_cart_outlined,
+                    selectedIcon: Icons.shopping_cart,
+                    label: 'Grocery',
+                    index: 3,
+                    isSelected: _selectedIndex == 3,
+                  ),
+                  const SizedBox(width: 16),
+                  _buildNavItem(
                     icon: Icons.calendar_month_outlined,
                     selectedIcon: Icons.calendar_month,
                     label: 'Plan',
-                    index: 3,
-                    isSelected: _selectedIndex == 3,
+                    index: 4,
+                    isSelected: _selectedIndex == 4,
                   ),
                   const SizedBox(width: 16),
                   _buildNavItem(
                     icon: Icons.person_outline,
                     selectedIcon: Icons.person,
                     label: 'Profile',
-                    index: 4,
-                    isSelected: _selectedIndex == 4,
+                    index: 5,
+                    isSelected: _selectedIndex == 5,
                   ),
                 ],
               ),
