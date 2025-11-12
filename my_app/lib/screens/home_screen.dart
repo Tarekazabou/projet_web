@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
@@ -19,7 +18,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final List<Map<String, dynamic>> stats = [
     {
-      'label': 'Recipes',
+      'label': ' Delicious Recipes',
       'value': '12',
       'icon': Icons.restaurant_menu,
     },
@@ -318,185 +317,52 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildFeatureCard(HomeFeature feature) {
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.r)),
-      child: InkWell(
+      elevation: 2.0,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15.r),
-        onTap: () {
-          // Navigate to respective feature
-          _navigateToFeature(feature.name);
-        },
-        child: Container(
-          padding: EdgeInsets.all(12.w),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15.r),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                feature.color.withOpacity(0.1),
-                feature.color.withOpacity(0.05),
-              ],
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: EdgeInsets.all(8.w),
-                decoration: BoxDecoration(
-                  color: feature.color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10.r),
-                ),
-                child: Icon(feature.icon, color: feature.color, size: 22.r),
-              ),
-              SizedBox(height: 8.h),
-              Flexible(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      feature.name,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16.sp,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    SizedBox(height: 4.h),
-                    Text(
-                      feature.description,
-                      style: TextStyle(
-                        fontSize: 12.sp,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
-    );
-  }
-
-  Widget _buildEmptyMealPlanState() {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(20.w),
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(15.r),
-        border: Border.all(color: Colors.grey[200]!),
-      ),
-      child: Column(
-        children: [
-          Icon(Icons.calendar_today, size: 40.r, color: Colors.grey[400]),
-          SizedBox(height: 12.h),
-          Text(
-            'No meals planned for today',
-            style: TextStyle(
-              fontSize: 16.sp,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[700],
-            ),
-          ),
-          SizedBox(height: 8.h),
-          Text(
-            'Plan your meals to get started with grocery lists and nutrition tracking',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 14.sp,
-              color: Colors.grey[600],
-            ),
-          ),
-          SizedBox(height: 16.h),
-          ElevatedButton(
-            onPressed: () {
-              // Navigate to meal planner
-            },
-            child: const Text('Plan Meals'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMealPlanItem(Meal meal) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 12.h),
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: Colors.grey[200]!),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 40.w,
-            height: 40.h,
-            decoration: BoxDecoration(
-              color: _getMealTypeColor(meal.type).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10.r),
-            ),
-            child: Icon(
-              _getMealTypeIcon(meal.type),
-              color: _getMealTypeColor(meal.type),
-              size: 20.r,
-            ),
-          ),
-          SizedBox(width: 12.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  meal.type,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16.sp,
-                    color: Colors.black87,
-                  ),
-                ),
-                Text(
-                  meal.recipe?.title ?? 'Not planned yet',
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    color: Colors.grey[600],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (meal.recipe != null)
+      child: Padding(
+        padding: EdgeInsets.all(12.w),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+              padding: EdgeInsets.all(8.w),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8.r),
+                color: feature.color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10.r),
               ),
-              child: Text(
-                '${meal.recipe!.totalTime}min',
-                style: TextStyle(
-                  fontSize: 12.sp,
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.w600,
-                ),
+              child: Icon(feature.icon, color: feature.color, size: 22.r),
+            ),
+            SizedBox(height: 8.h),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    feature.name,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16.sp,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  SizedBox(height: 4.h),
+                  Text(
+                    feature.description,
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      color: Colors.grey[600],
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 3,
+                  ),
+                ],
               ),
             ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -508,11 +374,11 @@ class _HomeScreenState extends State<HomeScreen> {
         Row(
           children: [
             Text(
-              'Nutrition Track �',
+              'Nutrition Track 🥗',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 22.sp,
-                color: Colors.black87,
+                color: Colors.white,
               ),
             ),
             const Spacer(),
@@ -523,7 +389,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Text(
                 'View Details',
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.primary,
+                  color: Colors.white.withOpacity(0.8),
                   fontSize: 14.sp,
                 ),
               ),
@@ -535,7 +401,7 @@ class _HomeScreenState extends State<HomeScreen> {
           'Track your daily calories and macros',
           style: TextStyle(
             fontSize: 14.sp,
-            color: Colors.grey[600],
+            color: Colors.white.withOpacity(0.9),
           ),
         ),
         SizedBox(height: 15.h),
@@ -543,10 +409,15 @@ class _HomeScreenState extends State<HomeScreen> {
           padding: EdgeInsets.all(16.w),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.orange[50]!, Colors.orange[100]!],
+              colors: [
+                Colors.white.withOpacity(0.1),
+                Colors.white.withOpacity(0.05)
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(15.r),
-            border: Border.all(color: Colors.orange[200]!),
+            border: Border.all(color: Colors.white.withOpacity(0.2)),
           ),
           child: Column(
             children: [
@@ -559,14 +430,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16.sp,
-                      color: Colors.black87,
+                      color: Colors.white,
                     ),
                   ),
                   Text(
                     '1,450 / 2,000 kcal',
                     style: TextStyle(
                       fontSize: 14.sp,
-                      color: Colors.grey[700],
+                      color: Colors.white.withOpacity(0.8),
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -578,7 +449,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: LinearProgressIndicator(
                   value: 0.725,
                   minHeight: 10.h,
-                  backgroundColor: Colors.white.withOpacity(0.5),
+                  backgroundColor: Colors.white.withOpacity(0.2),
                   valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
                 ),
               ),
@@ -587,9 +458,9 @@ class _HomeScreenState extends State<HomeScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _buildMacroItem('Protein', '65g', '120g', Colors.red),
-                  _buildMacroItem('Carbs', '180g', '250g', Colors.blue),
-                  _buildMacroItem('Fat', '45g', '67g', Colors.green),
+                  Expanded(child: _buildMacroItem('Protein', '65g', '120g', Colors.red)),
+                  Expanded(child: _buildMacroItem('Carbs', '180g', '250g', Colors.blue)),
+                  Expanded(child: _buildMacroItem('Fat', '45g', '67g', Colors.green)),
                 ],
               ),
             ],
@@ -600,37 +471,41 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildMacroItem(String label, String current, String target, Color color) {
-    return Column(
-      children: [
-        Container(
-          padding: EdgeInsets.all(8.w),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8.r),
+    return Expanded(
+      child: Column(
+        children: [
+          Container(
+            padding: EdgeInsets.all(8.w),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(8.r),
+            ),
+            child: Icon(
+              Icons.circle,
+              color: color,
+              size: 16.r,
+            ),
           ),
-          child: Icon(
-            Icons.circle,
-            color: color,
-            size: 16.r,
+          SizedBox(height: 6.h),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12.sp,
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+            ),
+            textAlign: TextAlign.center,
           ),
-        ),
-        SizedBox(height: 6.h),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12.sp,
-            color: Colors.grey[700],
-            fontWeight: FontWeight.w600,
+          Text(
+            '$current / $target',
+            style: TextStyle(
+              fontSize: 11.sp,
+              color: Colors.white.withOpacity(0.7),
+            ),
+            textAlign: TextAlign.center,
           ),
-        ),
-        Text(
-          '$current / $target',
-          style: TextStyle(
-            fontSize: 11.sp,
-            color: Colors.grey[600],
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -655,7 +530,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 22.sp,
-                    color: Colors.black87,
+                    color: Colors.white,
                   ),
                 ),
                 const Spacer(),
@@ -664,7 +539,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Text(
                     'See All',
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.primary,
+                      color: Colors.white.withOpacity(0.8),
                       fontSize: 14.sp,
                     ),
                   ),
@@ -688,27 +563,28 @@ class _HomeScreenState extends State<HomeScreen> {
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 22.sp,
-            color: Colors.black87,
+            color: Colors.white,
           ),
         ),
         SizedBox(height: 15.h),
         Container(
           padding: EdgeInsets.all(20.w),
           decoration: BoxDecoration(
-            color: Colors.grey[50],
+            color: Colors.white.withOpacity(0.1),
             borderRadius: BorderRadius.circular(15.r),
-            border: Border.all(color: Colors.grey[200]!),
+            border: Border.all(color: Colors.white.withOpacity(0.2)),
           ),
           child: Column(
             children: [
-              Icon(Icons.restaurant_menu, size: 40.r, color: Colors.grey[400]),
+              Icon(Icons.restaurant_menu,
+                  size: 40.r, color: Colors.white.withOpacity(0.5)),
               SizedBox(height: 12.h),
               Text(
                 'No recipes yet',
                 style: TextStyle(
                   fontSize: 16.sp,
                   fontWeight: FontWeight.w600,
-                  color: Colors.grey[700],
+                  color: Colors.white,
                 ),
               ),
               SizedBox(height: 8.h),
@@ -717,7 +593,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 14.sp,
-                  color: Colors.grey[600],
+                  color: Colors.white.withOpacity(0.8),
                 ),
               ),
               SizedBox(height: 16.h),
@@ -741,13 +617,13 @@ class _HomeScreenState extends State<HomeScreen> {
     final int totalTime = recipe.cookTimeMinutes ?? recipe.totalTime ?? 30;
     final String difficulty = recipe.difficulty ?? 'Medium';
     final bool isAI = recipe.generatedByAI ?? false;
-    
+
     return Container(
       margin: EdgeInsets.only(bottom: 12.h),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.white.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: Colors.grey[200]!),
+        border: Border.all(color: Colors.white.withOpacity(0.2)),
       ),
       child: ListTile(
         contentPadding: EdgeInsets.all(12.w),
@@ -756,20 +632,23 @@ class _HomeScreenState extends State<HomeScreen> {
           height: 50.h,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10.r),
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+            color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
           ),
-          child: Icon(Icons.restaurant, color: Theme.of(context).colorScheme.primary),
+          child: Icon(Icons.restaurant,
+              color: Theme.of(context).colorScheme.primary),
         ),
         title: Text(
           title,
           style: TextStyle(
             fontWeight: FontWeight.w600,
             fontSize: 16.sp,
+            color: Colors.white,
           ),
         ),
         subtitle: Text(
           '$totalTime min • $difficulty',
-          style: TextStyle(fontSize: 12.sp, color: Colors.grey[600]),
+          style: TextStyle(
+              fontSize: 12.sp, color: Colors.white.withOpacity(0.7)),
         ),
         trailing: isAI
             ? Container(
@@ -789,7 +668,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               )
-            : Icon(Icons.arrow_forward_ios, size: 16.r, color: Colors.grey[400]),
+            : Icon(Icons.arrow_forward_ios,
+                size: 16.r, color: Colors.white.withOpacity(0.5)),
         onTap: () {
           showModalBottomSheet(
             context: context,
@@ -807,25 +687,7 @@ class _HomeScreenState extends State<HomeScreen> {
     print('Navigating to: $featureName');
   }
 
-  Color _getMealTypeColor(String type) {
-    switch (type.toLowerCase()) {
-      case 'breakfast': return Colors.orange;
-      case 'lunch': return Colors.green;
-      case 'dinner': return Colors.blue;
-      case 'snack': return Colors.purple;
-      default: return Colors.grey;
-    }
-  }
 
-  IconData _getMealTypeIcon(String type) {
-    switch (type.toLowerCase()) {
-      case 'breakfast': return Icons.breakfast_dining;
-      case 'lunch': return Icons.lunch_dining;
-      case 'dinner': return Icons.dinner_dining;
-      case 'snack': return Icons.cookie;
-      default: return Icons.restaurant;
-    }
-  }
 }
 
 class HomeFeature {
