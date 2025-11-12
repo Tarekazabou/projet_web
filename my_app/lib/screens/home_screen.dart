@@ -342,21 +342,23 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   Text(
                     feature.name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 16.sp,
+                      fontSize: 15.sp,
                       color: Colors.black87,
                     ),
                   ),
                   SizedBox(height: 4.h),
                   Text(
                     feature.description,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 12.sp,
                       color: Colors.grey[600],
                     ),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 3,
                   ),
                 ],
               ),
