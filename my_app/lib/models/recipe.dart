@@ -12,6 +12,8 @@ class Recipe {
   final List<String> dietaryPreferences;
   final Map<String, dynamic>? nutrition;
   final bool generatedByAI;
+  final bool? basedOnFridge;
+  final List<String>? fridgeIngredients;
 
   Recipe({
     this.id,
@@ -27,6 +29,8 @@ class Recipe {
     this.dietaryPreferences = const [],
     this.nutrition,
     this.generatedByAI = false,
+    this.basedOnFridge,
+    this.fridgeIngredients,
   });
 
   factory Recipe.fromJson(Map<String, dynamic> json) {
@@ -44,10 +48,13 @@ class Recipe {
       dietaryPreferences: (json['dietaryPreferences'] as List?)?.map((e) => e.toString()).toList() ?? [],
       nutrition: json['nutrition'],
       generatedByAI: json['generatedByAI'] ?? false,
+      basedOnFridge: json['basedOnFridge'],
+      fridgeIngredients: (json['fridgeIngredients'] as List?)?.map((e) => e.toString()).toList(),
     );
   }
 
   int get totalTime => (prepTimeMinutes ?? 0) + (cookTimeMinutes ?? 0);
+
 
   String formatIngredient(dynamic ingredient) {
     if (ingredient is String) return ingredient;

@@ -74,8 +74,14 @@ class RecipeProvider with ChangeNotifier {
 
     try {
       final data = await _apiService.suggestRecipesFromFridge();
-      _generatedRecipe = Recipe.fromJson(data['recipe']);
-      await loadRecipes();
+      if (data['data'] != null && data['data']['recipe'] != null) {
+        _generatedRecipe = Recipe.fromJson(data['data']['recipe']);
+        if (_generatedRecipe != null) {
+          _recipes.insert(0, _generatedRecipe!);
+        }
+      } else {
+        throw Exception('No recipe was generated.');
+      }
     } catch (e) {
       _error = e.toString();
       rethrow;
