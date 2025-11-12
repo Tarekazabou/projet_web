@@ -25,8 +25,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
       appBar: AppBar(
         title: const Text('Profile'),
         centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: IconThemeData(color: Colors.white),
+        titleTextStyle: TextStyle(
+          color: Colors.white,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
       ),
-      body: ListView(
+      extendBodyBehindAppBar: true,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF4CAF50), // Green
+              Color(0xFF81C784), // Light Green
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           Center(
@@ -44,11 +65,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(height: 16),
                 Text(
                   user?.name ?? _userName,
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
                 ),
                 Text(
                   user?.email ?? _userEmail,
-                  style: TextStyle(color: Colors.grey[600]),
+                  style: TextStyle(color: Colors.white.withOpacity(0.9)),
                 ),
               ],
             ),
@@ -197,6 +218,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
         ],
+          ),
+        ),
       ),
     );
   }

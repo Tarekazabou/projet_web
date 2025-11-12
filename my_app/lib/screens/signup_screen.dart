@@ -72,8 +72,28 @@ class _SignupScreenState extends State<SignupScreen> {
       appBar: AppBar(
         title: const Text('Create Account'),
         centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: IconThemeData(color: Colors.white),
+        titleTextStyle: TextStyle(
+          color: Colors.white,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
       ),
-      body: SafeArea(
+      extendBodyBehindAppBar: true,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF4CAF50), // Green
+              Color(0xFF81C784), // Light Green
+            ],
+          ),
+        ),
+        child: SafeArea(
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
@@ -311,6 +331,7 @@ class _SignupScreenState extends State<SignupScreen> {
               },
             ),
           ),
+        ),
         ),
       ),
     );
