@@ -23,8 +23,29 @@ class _MealPlannerScreenState extends State<MealPlannerScreen> {
       appBar: AppBar(
         title: const Text('Meal Planner'),
         centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: IconThemeData(color: Colors.white),
+        titleTextStyle: TextStyle(
+          color: Colors.white,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
       ),
-      body: Column(
+      extendBodyBehindAppBar: true,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF4CAF50), // Green
+              Color(0xFF81C784), // Light Green
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
         children: [
           Card(
             margin: const EdgeInsets.all(16),
@@ -72,6 +93,8 @@ class _MealPlannerScreenState extends State<MealPlannerScreen> {
             ),
           ),
         ],
+          ),
+        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showAddMealDialog,

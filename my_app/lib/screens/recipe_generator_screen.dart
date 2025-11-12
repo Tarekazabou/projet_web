@@ -80,8 +80,29 @@ class _RecipeGeneratorScreenState extends State<RecipeGeneratorScreen> {
       appBar: AppBar(
         title: const Text('Recipe Generator'),
         centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: IconThemeData(color: Colors.white),
+        titleTextStyle: TextStyle(
+          color: Colors.white,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
       ),
-      body: Consumer<RecipeProvider>(
+      extendBodyBehindAppBar: true,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF4CAF50), // Green
+              Color(0xFF81C784), // Light Green
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Consumer<RecipeProvider>(
         builder: (context, provider, child) {
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
@@ -262,6 +283,8 @@ class _RecipeGeneratorScreenState extends State<RecipeGeneratorScreen> {
             ),
           );
         },
+          ),
+        ),
       ),
     );
   }

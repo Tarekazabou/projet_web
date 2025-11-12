@@ -26,16 +26,37 @@ class _FridgeScreenState extends State<FridgeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Your Fridge'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: IconThemeData(color: Colors.white),
+        titleTextStyle: TextStyle(
+          color: Colors.white,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh, color: Colors.white),
             onPressed: () {
               Provider.of<FridgeProvider>(context, listen: false).loadFridgeItems();
             },
           ),
         ],
       ),
-      body: Consumer<FridgeProvider>(
+      extendBodyBehindAppBar: true,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF4CAF50), // Green
+              Color(0xFF81C784), // Light Green
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Consumer<FridgeProvider>(
         builder: (context, fridgeProvider, child) {
           if (fridgeProvider.isLoading && fridgeProvider.items.isEmpty) {
             return const Center(child: CircularProgressIndicator());
@@ -91,6 +112,8 @@ class _FridgeScreenState extends State<FridgeScreen> {
             ],
           );
         },
+          ),
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddItemDialog(context),
