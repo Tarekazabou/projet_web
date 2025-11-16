@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Fridge</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+
+        :root {
+            --primary: #4a6fa5;
+            --primary-light: #e8f0fe;
+            --surface: #ffffff;
+            --background: #f8f9fa;
+            --on-surface: #212121;
+            --on-background: #424242;
+            --error: #d32f2f;
+            --success: #388e3c;
+            --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--on-background);
+            line-height: 1.6;
+        }
+
+        .app-bar {
+            background-color: var(--primary);
+            color: white;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .app-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .refresh-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.25rem;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 50%;
+            transition: background-color 0.2s;
+        }
+
+        .refresh-btn:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 16px;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 70vh;
+            text-align: center;
+            color: #757575;
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
+            color: #bdbdbd;
+        }
+
+        .empty-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .empty-subtitle {
+            font-size: 1rem;
+            color: #9e9e9e;
+        }
+
+        .suggest-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 16px;
+            width: 100%;
+            font-size: 1rem;
+            font-weight: 500;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin: 16px 0;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            box-shadow: var(--shadow);
+        }
+
+        .suggest-btn:hover {
+            background-color: #3a5a8c;
+        }
+
+        .item-list {
+            list-style: none;
+            margin-bottom: 80px;
+        }
+
+        .item-card {
+            background-color: var(--surface);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            box-shadow: var(--shadow);
+        }
+
+        .item-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background-color: var(--primary-light);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 16px;
+            color: var(--primary);
+        }
+
+        .item-details {
+            flex: 1;
+        }
+
+        .item-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .item-quantity {
+            color: #757575;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #757575;
+            font-size: 1.25rem;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            transition: background-color 0.2s;
+        }
+
+        .delete-btn:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+            color: var(--error);
+        }
+
+        .fab {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+            z-index: 100;
+        }
+
+        .fab:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+        }
+
+        .dialog-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 16px;
+        }
+
+        .dialog {
+            background-color: var(--surface);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .dialog-header {
+            padding: 20px 24px 0;
+        }
+
+        .dialog-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .dialog-content {
+            padding: 0 24px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .dialog-actions {
+            padding: 16px 24px 20px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn-outlined {
+            background-color: transparent;
+            border: 1px solid #ddd;
+            color: var(--on-surface);
+        }
+
+        .btn-outlined:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-contained {
+            background-color: var(--primary);
+            border: none;
+            color: white;
+        }
+
+        .btn-contained:hover {
+            background-color: #3a5a8c;
+        }
+
+        .snackbar {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #323232;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 4px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .bottom-sheet {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: var(--surface);
+            border-radius: 16px 16px 0 0;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+            max-height: 90vh;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .sheet-header {
+            padding: 20px 24px 16px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sheet-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #757575;
+        }
+
+        .sheet-content {
+            padding: 16px 24px;
+        }
+
+        .recipe-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .recipe-section {
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--primary);
+        }
+
+        .ingredient-list, .instruction-list {
+            list-style: none;
+        }
+
+        .ingredient-item, .instruction-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .instruction-item {
+            display: flex;
+            gap: 12px;
+        }
+
+        .step-number {
+            font-weight: 600;
+            color: var(--primary);
+            min-width: 24px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 600px) {
+            .app-bar {
+                padding: 12px 16px;
+            }
+            
+            .container {
+                padding: 0 12px;
+            }
+            
+            .item-card {
+                padding: 12px;
+            }
+            
+            .dialog {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- App Bar -->
+    <header class="app-bar">
+        <h1 class="app-title">Your Fridge</h1>
+        <button class="refresh-btn" id="refreshBtn">
+            <i class="fas fa-sync-alt"></i>
+        </button>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+        <!-- Empty State (shown when no items) -->
+        <div class="empty-state" id="emptyState">
+            <i class="fas fa-blender empty-icon"></i>
+            <h2 class="empty-title">Your fridge is empty</h2>
+            <p class="empty-subtitle">Add ingredients to get started</p>
+        </div>
+
+        <!-- Content when items exist -->
+        <div id="contentWithItems" class="hidden">
+            <button class="suggest-btn" id="suggestBtn">
+                <i class="fas fa-magic"></i>
+                Suggest Recipes
+            </button>
+
+            <ul class="item-list" id="itemList">
+                <!-- Items will be dynamically added here -->
+            </ul>
+        </div>
+    </main>
+
+    <!-- Floating Action Button -->
+    <button class="fab" id="fab">
+        <i class="fas fa-plus"></i>
+    </button>
+
+    <!-- Add Item Dialog -->
+    <div class="dialog-overlay hidden" id="addItemDialog">
+        <div class="dialog">
+            <div class="dialog-header">
+                <h2 class="dialog-title">Add Ingredient</h2>
+            </div>
+            <div class="dialog-content">
+                <div class="form-group">
+                    <label class="form-label" for="ingredientName">Ingredient Name</label>
+                    <input type="text" class="form-input" id="ingredientName" placeholder="e.g., Carrots">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="quantity">Quantity</label>
+                    <input type="number" class="form-input" id="quantity" value="1" min="0" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="unit">Unit</label>
+                    <select class="form-input" id="unit">
+                        <option value="pieces">pieces</option>
+                        <option value="kg">kg</option>
+                        <option value="g">g</option>
+                        <option value="l">l</option>
+                        <option value="ml">ml</option>
+                        <option value="cups">cups</option>
+                    </select>
+                </div>
+            </div>
+            <div class="dialog-actions">
+                <button class="btn btn-outlined" id="cancelBtn">Cancel</button>
+                <button class="btn btn-contained" id="addBtn">Add</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay hidden" id="loadingOverlay">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Recipe Bottom Sheet -->
+    <div class="bottom-sheet hidden" id="recipeSheet">
+        <div class="sheet-header">
+            <h2 class="sheet-title">Suggested Recipe</h2>
+            <button class="close-btn" id="closeSheetBtn">&times;</button>
+        </div>
+        <div class="sheet-content">
+            <h3 class="recipe-title" id="recipeTitle">Vegetable Stir Fry</h3>
+            
+            <div class="recipe-section">
+                <h4 class="section-title">Ingredients</h4>
+                <ul class="ingredient-list" id="ingredientList">
+                    <!-- Ingredients will be dynamically added -->
+                </ul>
+            </div>
+            
+            <div class="recipe-section">
+                <h4 class="section-title">Instructions</h4>
+                <ol class="instruction-list" id="instructionList">
+                    <!-- Instructions will be dynamically added -->
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <!-- Snackbar -->
+    <div class="snackbar hidden" id="snackbar">
+        <i class="fas fa-check-circle"></i>
+        <span id="snackbarText">Item added successfully</span>
+    </div>
+
+    <script>
+        // Sample data
+        let fridgeItems = [
+            { id: 1, name: "Carrots", quantity: 3, unit: "pieces" },
+            { id: 2, name: "Milk", quantity: 1, unit: "l" },
+            { id: 3, name: "Eggs", quantity: 6, unit: "pieces" },
+            { id: 4, name: "Flour", quantity: 500, unit: "g" }
+        ];
+
+        // DOM Elements
+        const emptyState = document.getElementById('emptyState');
+        const contentWithItems = document.getElementById('contentWithItems');
+        const itemList = document.getElementById('itemList');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const suggestBtn = document.getElementById('suggestBtn');
+        const fab = document.getElementById('fab');
+        const addItemDialog = document.getElementById('addItemDialog');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const addBtn = document.getElementById('addBtn');
+        const ingredientName = document.getElementById('ingredientName');
+        const quantity = document.getElementById('quantity');
+        const unit = document.getElementById('unit');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const recipeSheet = document.getElementById('recipeSheet');
+        const closeSheetBtn = document.getElementById('closeSheetBtn');
+        const recipeTitle = document.getElementById('recipeTitle');
+        const ingredientList = document.getElementById('ingredientList');
+        const instructionList = document.getElementById('instructionList');
+        const snackbar = document.getElementById('snackbar');
+        const snackbarText = document.getElementById('snackbarText');
+
+        // Initialize the app
+        function initApp() {
+            updateUI();
+            
+            // Event Listeners
+            refreshBtn.addEventListener('click', refreshItems);
+            suggestBtn.addEventListener('click', suggestRecipes);
+            fab.addEventListener('click', showAddItemDialog);
+            cancelBtn.addEventListener('click', hideAddItemDialog);
+            addBtn.addEventListener('click', addItem);
+            closeSheetBtn.addEventListener('click', hideRecipeSheet);
+        }
+
+        // Update UI based on fridge items
+        function updateUI() {
+            if (fridgeItems.length === 0) {
+                emptyState.classList.remove('hidden');
+                contentWithItems.classList.add('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+                contentWithItems.classList.remove('hidden');
+                renderItems();
+            }
+        }
+
+        // Render fridge items
+        function renderItems() {
+            itemList.innerHTML = '';
+            
+            fridgeItems.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'item-card';
+                li.innerHTML = `
+                    <div class="item-icon">
+                        <i class="fas fa-carrot"></i>
+                    </div>
+                    <div class="item-details">
+                        <div class="item-name">${item.name}</div>
+                        <div class="item-quantity">${item.quantity} ${item.unit}</div>
+                    </div>
+                    <button class="delete-btn" data-id="${item.id}">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                `;
+                itemList.appendChild(li);
+                
+                // Add event listener to delete button
+                const deleteBtn = li.querySelector('.delete-btn');
+                deleteBtn.addEventListener('click', () => deleteItem(item.id));
+            });
+        }
+
+        // Refresh items
+        function refreshItems() {
+            showLoading();
+            // Simulate API call
+            setTimeout(() => {
+                hideLoading();
+                showSnackbar('Items refreshed');
+            }, 1000);
+        }
+
+        // Show add item dialog
+        function showAddItemDialog() {
+            addItemDialog.classList.remove('hidden');
+            ingredientName.value = '';
+            quantity.value = '1';
+            unit.value = 'pieces';
+            ingredientName.focus();
+        }
+
+        // Hide add item dialog
+        function hideAddItemDialog() {
+            addItemDialog.classList.add('hidden');
+        }
+
+        // Add new item
+        function addItem() {
+            const name = ingredientName.value.trim();
+            const qty = parseFloat(quantity.value);
+            
+            if (!name || isNaN(qty) || qty <= 0) {
+                alert('Please enter valid values');
+                return;
+            }
+            
+            const newItem = {
+                id: Date.now(), // Simple ID generation
+                name: name,
+                quantity: qty,
+                unit: unit.value
+            };
+            
+            fridgeItems.push(newItem);
+            updateUI();
+            hideAddItemDialog();
+            showSnackbar('Item added successfully');
+        }
+
+        // Delete item
+        function deleteItem(id) {
+            fridgeItems = fridgeItems.filter(item => item.id !== id);
+            updateUI();
+            showSnackbar('Item removed');
+        }
+
+        // Suggest recipes
+        function suggestRecipes() {
+            showLoading();
+            
+            // Simulate API call
+            setTimeout(() => {
+                hideLoading();
+                showRecipeSheet();
+            }, 1500);
+        }
+
+        // Show recipe sheet
+        function showRecipeSheet() {
+            // Sample recipe data
+            const recipe = {
+                title: "Vegetable Stir Fry",
+                ingredients: [
+                    "2 carrots, sliced",
+                    "1 bell pepper, chopped",
+                    "1 onion, sliced",
+                    "2 cloves garlic, minced",
+                    "2 tbsp soy sauce",
+                    "1 tbsp olive oil"
+                ],
+                instructions: [
+                    "Heat oil in a large pan over medium heat.",
+                    "Add onions and garlic, sauté until fragrant.",
+                    "Add carrots and bell pepper, stir fry for 5 minutes.",
+                    "Add soy sauce and continue cooking for 2 more minutes.",
+                    "Serve hot with rice or noodles."
+                ]
+            };
+            
+            // Update recipe sheet content
+            recipeTitle.textContent = recipe.title;
+            
+            ingredientList.innerHTML = '';
+            recipe.ingredients.forEach(ingredient => {
+                const li = document.createElement('li');
+                li.className = 'ingredient-item';
+                li.textContent = ingredient;
+                ingredientList.appendChild(li);
+            });
+            
+            instructionList.innerHTML = '';
+            recipe.instructions.forEach((instruction, index) => {
+                const li = document.createElement('li');
+                li.className = 'instruction-item';
+                li.innerHTML = `
+                    <div class="step-number">${index + 1}</div>
+                    <div class="step-text">${instruction}</div>
+                `;
+                instructionList.appendChild(li);
+            });
+            
+            recipeSheet.classList.remove('hidden');
+        }
+
+        // Hide recipe sheet
+        function hideRecipeSheet() {
+            recipeSheet.classList.add('hidden');
+        }
+
+        // Show loading overlay
+        function showLoading() {
+            loadingOverlay.classList.remove('hidden');
+        }
+
+        // Hide loading overlay
+        function hideLoading() {
+            loadingOverlay.classList.add('hidden');
+        }
+
+        // Show snackbar
+        function showSnackbar(message) {
+            snackbarText.textContent = message;
+            snackbar.classList.remove('hidden');
+            
+            setTimeout(() => {
+                snackbar.classList.add('hidden');
+            }, 3000);
+        }
+
+        // Initialize the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
