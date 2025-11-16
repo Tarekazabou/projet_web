@@ -35,15 +35,13 @@ app = Flask(
 )
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key')
 
-# CORS configuration
-allowed_origins = os.getenv('CORS_ORIGINS', 'http://localhost:3000,http://localhost:5000').split(',')
-
+# CORS configuration - Allow all localhost origins for development
 CORS(app, resources={
     r"/api/*": {
-        "origins": allowed_origins,
+        "origins": "*",  # Allow all origins in development
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         "allow_headers": ["Content-Type", "Authorization"],
-        "supports_credentials": True
+        "supports_credentials": False  # Must be False when origins is *
     }
 })
 
