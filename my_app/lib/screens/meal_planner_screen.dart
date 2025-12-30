@@ -9,7 +9,7 @@ class MealPlannerScreen extends StatefulWidget {
 
 class _MealPlannerScreenState extends State<MealPlannerScreen> {
   DateTime _selectedDate = DateTime.now();
-  
+
   final Map<String, List<Map<String, String>>> _mealPlans = {
     'breakfast': [],
     'lunch': [],
@@ -46,53 +46,64 @@ class _MealPlannerScreenState extends State<MealPlannerScreen> {
         ),
         child: SafeArea(
           child: Column(
-        children: [
-          Card(
-            margin: const EdgeInsets.all(16),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.chevron_left),
-                    onPressed: () {
-                      setState(() {
-                        _selectedDate = _selectedDate.subtract(const Duration(days: 1));
-                      });
-                    },
+            children: [
+              Card(
+                margin: const EdgeInsets.all(16),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.chevron_left),
+                        onPressed: () {
+                          setState(() {
+                            _selectedDate = _selectedDate.subtract(
+                              const Duration(days: 1),
+                            );
+                          });
+                        },
+                      ),
+                      Text(
+                        '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.chevron_right),
+                        onPressed: () {
+                          setState(() {
+                            _selectedDate = _selectedDate.add(
+                              const Duration(days: 1),
+                            );
+                          });
+                        },
+                      ),
+                    ],
                   ),
-                  Text(
-                    '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.chevron_right),
-                    onPressed: () {
-                      setState(() {
-                        _selectedDate = _selectedDate.add(const Duration(days: 1));
-                      });
-                    },
-                  ),
-                ],
+                ),
               ),
-            ),
-          ),
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                _buildMealSection('Breakfast', 'breakfast', Icons.free_breakfast),
-                const SizedBox(height: 16),
-                _buildMealSection('Lunch', 'lunch', Icons.lunch_dining),
-                const SizedBox(height: 16),
-                _buildMealSection('Dinner', 'dinner', Icons.dinner_dining),
-                const SizedBox(height: 16),
-                _buildMealSection('Snacks', 'snacks', Icons.cookie),
-              ],
-            ),
-          ),
-        ],
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    _buildMealSection(
+                      'Breakfast',
+                      'breakfast',
+                      Icons.free_breakfast,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildMealSection('Lunch', 'lunch', Icons.lunch_dining),
+                    const SizedBox(height: 16),
+                    _buildMealSection('Dinner', 'dinner', Icons.dinner_dining),
+                    const SizedBox(height: 16),
+                    _buildMealSection('Snacks', 'snacks', Icons.cookie),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -106,7 +117,7 @@ class _MealPlannerScreenState extends State<MealPlannerScreen> {
 
   Widget _buildMealSection(String title, String mealType, IconData icon) {
     final meals = _mealPlans[mealType] ?? [];
-    
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -119,7 +130,10 @@ class _MealPlannerScreenState extends State<MealPlannerScreen> {
                 const SizedBox(width: 8),
                 Text(
                   title,
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
@@ -133,21 +147,23 @@ class _MealPlannerScreenState extends State<MealPlannerScreen> {
                 ),
               )
             else
-              ...meals.map((meal) => ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(meal['name'] ?? ''),
-                    subtitle: meal['calories'] != null
-                        ? Text('${meal['calories']} calories')
-                        : null,
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () {
-                        setState(() {
-                          meals.remove(meal);
-                        });
-                      },
-                    ),
-                  )),
+              ...meals.map(
+                (meal) => ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(meal['name'] ?? ''),
+                  subtitle: meal['calories'] != null
+                      ? Text('${meal['calories']} calories')
+                      : null,
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: () {
+                      setState(() {
+                        meals.remove(meal);
+                      });
+                    },
+                  ),
+                ),
+              ),
           ],
         ),
       ),
@@ -167,13 +183,16 @@ class _MealPlannerScreenState extends State<MealPlannerScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             DropdownButtonFormField<String>(
-              value: selectedMealType,
+              initialValue: selectedMealType,
               decoration: const InputDecoration(
                 labelText: 'Meal Type',
                 border: OutlineInputBorder(),
               ),
               items: [
-                const DropdownMenuItem(value: 'breakfast', child: Text('Breakfast')),
+                const DropdownMenuItem(
+                  value: 'breakfast',
+                  child: Text('Breakfast'),
+                ),
                 const DropdownMenuItem(value: 'lunch', child: Text('Lunch')),
                 const DropdownMenuItem(value: 'dinner', child: Text('Dinner')),
                 const DropdownMenuItem(value: 'snacks', child: Text('Snacks')),
@@ -207,7 +226,7 @@ class _MealPlannerScreenState extends State<MealPlannerScreen> {
           FilledButton(
             onPressed: () {
               if (nameController.text.isEmpty) return;
-              
+
               setState(() {
                 _mealPlans[selectedMealType]!.add({
                   'name': nameController.text,
