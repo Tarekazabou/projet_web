@@ -22,6 +22,7 @@ from routes.users import users_bp
 from routes.fridge import fridge_bp
 from routes.ai_recipes import ai_recipes_bp
 from routes.settings import settings_bp
+from routes.dashboard import dashboard_bp
 from utils.auth import attach_current_user
 
 # Load environment variables
@@ -61,6 +62,7 @@ app.register_blueprint(feedback_bp, url_prefix='/api/feedback')
 app.register_blueprint(users_bp, url_prefix='/api/users')
 app.register_blueprint(fridge_bp, url_prefix='/api/fridge')
 app.register_blueprint(settings_bp, url_prefix='/api/settings')
+app.register_blueprint(dashboard_bp, url_prefix='/api/dashboard')
 
 @app.before_request
 def load_authenticated_user():

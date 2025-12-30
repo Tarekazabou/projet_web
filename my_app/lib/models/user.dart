@@ -24,8 +24,8 @@ class User {
       dietaryRestrictions: json['dietaryRestrictions'] != null
           ? List<String>.from(json['dietaryRestrictions'])
           : (json['dietary_restrictions'] != null
-              ? List<String>.from(json['dietary_restrictions'])
-              : []),
+                ? List<String>.from(json['dietary_restrictions'])
+                : []),
       allergens: json['allergens'] != null
           ? List<String>.from(json['allergens'])
           : [],

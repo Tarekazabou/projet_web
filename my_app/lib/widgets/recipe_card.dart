@@ -31,7 +31,10 @@ class RecipeCard extends StatelessWidget {
                   ),
                   if (recipe.generatedByAI)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
                           colors: [Color(0xFF667eea), Color(0xFF764ba2)],
@@ -41,7 +44,11 @@ class RecipeCard extends StatelessWidget {
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.auto_awesome, size: 14, color: Colors.white),
+                          Icon(
+                            Icons.auto_awesome,
+                            size: 14,
+                            color: Colors.white,
+                          ),
                           SizedBox(width: 4),
                           Text(
                             'AI',
@@ -68,10 +75,14 @@ class RecipeCard extends StatelessWidget {
               const SizedBox(height: 12),
               Wrap(
                 spacing: 16,
+                runSpacing: 8,
                 children: [
                   if (recipe.totalTime > 0)
-                    _buildMetaChip(Icons.access_time, '${recipe.totalTime} min'),
-                  _buildMetaChip(Icons.people, '${recipe.servingSize} servings'),
+                    _buildMetaChip(
+                      Icons.access_time,
+                      '${recipe.totalTime} min',
+                    ),
+                  _buildMetaChip(Icons.people, '${recipe.servingSize} pers'),
                   _buildMetaChip(Icons.signal_cellular_alt, recipe.difficulty),
                   if (recipe.cuisine != null)
                     _buildMetaChip(Icons.public, recipe.cuisine!),
@@ -84,7 +95,10 @@ class RecipeCard extends StatelessWidget {
                   runSpacing: 8,
                   children: recipe.dietaryPreferences.take(3).map((tag) {
                     return Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: Theme.of(context).colorScheme.primaryContainer,
                         borderRadius: BorderRadius.circular(16),
@@ -93,7 +107,9 @@ class RecipeCard extends StatelessWidget {
                         tag,
                         style: TextStyle(
                           fontSize: 12,
-                          color: Theme.of(context).colorScheme.onPrimaryContainer,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onPrimaryContainer,
                         ),
                       ),
                     );
@@ -108,16 +124,22 @@ class RecipeCard extends StatelessWidget {
   }
 
   Widget _buildMetaChip(IconData icon, String label) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 16, color: Colors.grey[600]),
-        const SizedBox(width: 4),
-        Text(
-          label,
-          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-        ),
-      ],
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 150),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: Colors.grey[600]),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              label,
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -174,10 +196,19 @@ class RecipeDetailSheet extends StatelessWidget {
                 runSpacing: 12,
                 children: [
                   if (recipe.prepTimeMinutes != null)
-                    _buildInfoChip(Icons.schedule, 'Prep: ${recipe.prepTimeMinutes} min'),
+                    _buildInfoChip(
+                      Icons.schedule,
+                      'Préparation: ${recipe.prepTimeMinutes} min',
+                    ),
                   if (recipe.cookTimeMinutes != null)
-                    _buildInfoChip(Icons.local_fire_department, 'Cook: ${recipe.cookTimeMinutes} min'),
-                  _buildInfoChip(Icons.people, '${recipe.servingSize} servings'),
+                    _buildInfoChip(
+                      Icons.local_fire_department,
+                      'Cuisson: ${recipe.cookTimeMinutes} min',
+                    ),
+                  _buildInfoChip(
+                    Icons.people,
+                    '${recipe.servingSize} portions',
+                  ),
                   _buildInfoChip(Icons.signal_cellular_alt, recipe.difficulty),
                 ],
               ),
@@ -192,49 +223,50 @@ class RecipeDetailSheet extends StatelessWidget {
               ],
               const SizedBox(height: 24),
               const Text(
-                'Ingredients',
+                'Ingrédients',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
-              ...recipe.ingredients.map((ing) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Icon(Icons.check_circle, size: 20, color: Colors.green),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(recipe.formatIngredient(ing)),
-                    ),
-                  ],
+              ...recipe.ingredients.map(
+                (ing) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(
+                        Icons.check_circle,
+                        size: 20,
+                        color: Colors.green,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(child: Text(recipe.formatIngredient(ing))),
+                    ],
+                  ),
                 ),
-              )),
+              ),
               const SizedBox(height: 24),
               const Text(
                 'Instructions',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
-              ...recipe.instructions.asMap().entries.map((entry) => Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CircleAvatar(
-                      radius: 16,
-                      child: Text('${entry.key + 1}'),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(entry.value),
-                    ),
-                  ],
+              ...recipe.instructions.asMap().entries.map(
+                (entry) => Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CircleAvatar(radius: 16, child: Text('${entry.key + 1}')),
+                      const SizedBox(width: 12),
+                      Expanded(child: Text(entry.value)),
+                    ],
+                  ),
                 ),
-              )),
+              ),
               if (recipe.nutrition != null) ...[
                 const SizedBox(height: 24),
                 const Text(
-                  'Nutrition (per serving)',
+                  'Nutrition (par portion)',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 12),
@@ -246,13 +278,25 @@ class RecipeDetailSheet extends StatelessWidget {
                       runSpacing: 16,
                       children: [
                         if (recipe.nutrition!['calories'] != null)
-                          _buildNutritionItem('Calories', recipe.nutrition!['calories'].toString()),
+                          _buildNutritionItem(
+                            'Calories',
+                            recipe.nutrition!['calories'].toString(),
+                          ),
                         if (recipe.nutrition!['protein'] != null)
-                          _buildNutritionItem('Protein', '${recipe.nutrition!['protein']}g'),
+                          _buildNutritionItem(
+                            'Protéines',
+                            '${recipe.nutrition!['protein']}g',
+                          ),
                         if (recipe.nutrition!['carbs'] != null)
-                          _buildNutritionItem('Carbs', '${recipe.nutrition!['carbs']}g'),
+                          _buildNutritionItem(
+                            'Glucides',
+                            '${recipe.nutrition!['carbs']}g',
+                          ),
                         if (recipe.nutrition!['fat'] != null)
-                          _buildNutritionItem('Fat', '${recipe.nutrition!['fat']}g'),
+                          _buildNutritionItem(
+                            'Lipides',
+                            '${recipe.nutrition!['fat']}g',
+                          ),
                       ],
                     ),
                   ),
@@ -266,10 +310,7 @@ class RecipeDetailSheet extends StatelessWidget {
   }
 
   Widget _buildInfoChip(IconData icon, String label) {
-    return Chip(
-      avatar: Icon(icon, size: 18),
-      label: Text(label),
-    );
+    return Chip(avatar: Icon(icon, size: 18), label: Text(label));
   }
 
   Widget _buildNutritionItem(String label, String value) {
