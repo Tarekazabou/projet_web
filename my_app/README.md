@@ -7,8 +7,27 @@ A mobile application for AI-powered meal planning and recipe generation.
 - 🏠 **Home**: Browse AI-generated recipes
 - 🧊 **Fridge**: Manage your ingredients and get recipe suggestions
 - ✨ **Generate**: Create custom recipes with AI based on your preferences
-- 📅 **Plan**: Organize your meals for the week
+- �️ **Quick Actions Navigation**: Launch any primary screen via tappable cards (no bottom nav bar)
+- �📅 **Plan**: Organize your meals for the week
 - 👤 **Profile**: Manage dietary restrictions and preferences
+
+## Navigation Model
+
+The app now uses a modal, stack-based navigation pattern instead of a persistent bottom navigation bar:
+
+1. **Entry Point** – `HomeScreen` is always visible as the base layer.
+2. **Quick Actions** – Tapping any quick action card or the floating action button invokes `Navigator.push(...)` with a null-safe builder check before pushing.
+3. **Modal Flow** – Each destination screen (Fridge, Nutrition, Recipes, Meal Planner, Profile, etc.) sits on top of the stack, producing an iOS-style modal feel.
+4. **Back Navigation** – Users exit a screen via the system back button or the AppBar back arrow, automatically returning to Home when the stack pops.
+
+### Adding/Removing Quick Actions
+
+Edit the `_NavigationAction` lists inside `lib/main.dart`:
+
+- ` _primaryActions` → High-traffic destinations (Fridge, Nutrition, Groceries)
+- ` _secondaryActions` → Supporting pages (Meal Planner, Profile, etc.)
+
+Each entry accepts an icon, label, and a widget builder. Leaving a builder `null` will safely no-op thanks to the navigation null-check.
 
 ## Prerequisites
 

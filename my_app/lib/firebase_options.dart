@@ -85,5 +85,4 @@ class DefaultFirebaseOptions {
     storageBucket: 'mealy-41bf0.firebasestorage.app',
     measurementId: 'G-DQGYTC6MQ9',
   );
-
 }

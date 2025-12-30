@@ -310,3 +310,53 @@ def log_water_intake():
     except Exception as e:
         logger.error(f"Error logging water intake: {e}")
         return jsonify({'error': 'Failed to log water intake'}), 500
+
+
+@nutrition_bp.route('/weekly-trend', methods=['GET'])
+def get_weekly_trend():
+    """Get weekly nutrition trend data"""
+    try:
+        user_id = require_current_user()
+        db = get_db()
+        today = datetime.now()
+        
+        # Get data for the last 7 days
+        trend_data = []
+        for i in range(6, -1, -1):  # Start from 6 days ago to today
+            date = today - timedelta(days=i)
+            date_str = date.strftime('%Y-%m-%d')
+            
+            # Try to get nutrition data for this day
+            daily_ref = db.collection('users').document(user_id).collection('nutrition').document(date_str)
+            daily_data = daily_ref.get()
+            
+            if daily_data.exists:
+                data = daily_data.to_dict()
+                totals = data.get('totals', data.get('total_nutrition', {}))
+                trend_data.append({
+                    'date': date_str,
+                    'day': date.strftime('%a'),
+                    'calories': totals.get('calories', 0),
+                    'protein': totals.get('protein', 0),
+                    'carbs': totals.get('carbs', 0),
+                    'fat': totals.get('fat', 0)
+                })
+            else:
+                # No data for this day
+                trend_data.append({
+                    'date': date_str,
+                    'day': date.strftime('%a'),
+                    'calories': 0,
+                    'protein': 0,
+                    'carbs': 0,
+                    'fat': 0
+                })
+        
+        return jsonify({
+            'trend': trend_data,
+            'period': 'weekly'
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Error getting weekly trend: {e}")
+        return jsonify({'error': 'Failed to get weekly trend'}), 500
