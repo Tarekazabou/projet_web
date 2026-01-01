@@ -1,14 +1,30 @@
 # Mealy Flutter Mobile App
 
-A mobile application for AI-powered meal planning and recipe generation.
+A mobile application for AI-powered meal planning, smart grocery lists, and recipe generation.
+
+## What's New in Version 3.0
+
+### 📅 Meal Planning System
+- **Weekly Calendar View**: Visual meal planning with drag-and-drop support
+- **AI Meal Suggestions**: Get personalized meal plans based on your preferences and fridge contents
+- **Meal Type Organization**: Plan breakfast, lunch, dinner, and snacks separately
+- **One-Click Scheduling**: Add recipes directly to your meal plan
+
+### 🛒 Smart Grocery Lists
+- **Auto-Generation**: Generate grocery lists from your meal plan automatically
+- **Smart Categorization**: Items organized by store section (Produce, Dairy, Proteins, etc.)
+- **Purchase Tracking**: Check off items as you shop
+- **Fridge Integration**: Add purchased items to your fridge with one tap
 
 ## Features
 
-- 🏠 **Home**: Browse AI-generated recipes
+- 🏠 **Home**: Browse AI-generated recipes with quick action cards
 - 🧊 **Fridge**: Manage your ingredients and get recipe suggestions
 - ✨ **Generate**: Create custom recipes with AI based on your preferences
-- �️ **Quick Actions Navigation**: Launch any primary screen via tappable cards (no bottom nav bar)
-- �📅 **Plan**: Organize your meals for the week
+- 🎯 **Quick Actions Navigation**: Launch any primary screen via tappable cards
+- 📅 **Meal Planner**: Plan your weekly meals with AI assistance
+- 🛒 **Grocery Lists**: Smart shopping lists generated from meal plans
+- 📊 **Nutrition**: Track your daily nutritional intake
 - 👤 **Profile**: Manage dietary restrictions and preferences
 
 ## Navigation Model
@@ -70,31 +86,59 @@ lib/
 ├── main.dart                 # App entry point and navigation
 ├── models/                   # Data models
 │   ├── fridge_item.dart
-│   └── recipe.dart
+│   ├── recipe.dart
+│   ├── meal_plan.dart        # Weekly meal planning model
+│   └── grocery_item.dart     # Grocery list item model
 ├── providers/                # State management
 │   ├── fridge_provider.dart
-│   └── recipe_provider.dart
+│   ├── recipe_provider.dart
+│   ├── meal_plan_provider.dart   # Meal planning state
+│   └── grocery_provider.dart     # Grocery list state
 ├── screens/                  # UI screens
 │   ├── home_screen.dart
 │   ├── fridge_screen.dart
 │   ├── recipe_generator_screen.dart
-│   ├── meal_planner_screen.dart
+│   ├── meal_planner_screen.dart  # Weekly meal planning UI
+│   ├── grocery_screen.dart       # Smart grocery lists
+│   ├── nutrition_screen.dart
 │   └── profile_screen.dart
 ├── services/                 # API communication
 │   └── api_service.dart
 └── widgets/                  # Reusable components
     ├── recipe_card.dart
-    └── recipe_detail_sheet.dart
+    ├── recipe_detail_sheet.dart
+    ├── meal_slot_card.dart       # Meal planning slot
+    └── grocery_item_tile.dart    # Grocery list item
 ```
 
 ## Backend API Endpoints Used
 
+### Fridge Management
 - `GET /api/fridge/items` - Get fridge items
 - `POST /api/fridge/items` - Add fridge item
 - `DELETE /api/fridge/items/{id}` - Delete fridge item
+
+### Recipe Generation
 - `GET /api/recipes/list` - Get AI-generated recipes
 - `POST /api/ai-recipes/generate` - Generate new recipe
 - `POST /api/ai-recipes/suggest-from-fridge` - Get recipe suggestions from fridge
+
+### Meal Planning
+- `GET /api/meal-plans/week` - Get weekly meal plan
+- `POST /api/meal-plans` - Add meal to plan
+- `DELETE /api/meal-plans/{id}` - Remove meal from plan
+- `POST /api/meal-plans/ai-suggest` - Get AI meal suggestions
+
+### Grocery Lists
+- `GET /api/grocery/items` - Get grocery list
+- `POST /api/grocery/items` - Add grocery item
+- `PATCH /api/grocery/items/{id}/toggle` - Toggle purchased status
+- `DELETE /api/grocery/items/{id}` - Remove grocery item
+- `POST /api/grocery/from-meal-plan` - Generate list from meal plan
+
+### Nutrition Tracking
+- `GET /api/nutrition/summary` - Get daily nutrition summary
+- `POST /api/nutrition/log` - Log food item
 
 ## Testing on Different Platforms
 
@@ -139,14 +183,24 @@ Press `r` in terminal or click hot reload in IDE
 - **firebase_core**: Firebase integration
 - **cloud_firestore**: Firestore database
 - **intl**: Date formatting
+- **flutter_screenutil**: Responsive design
+- **table_calendar**: Calendar widget for meal planning
 
-## Next Steps
+## Completed Features
 
-- [ ] Implement Firebase authentication
+- [x] Firebase authentication
+- [x] AI-powered meal planning
+- [x] Smart grocery list generation
+- [x] Weekly meal calendar view
+- [x] Nutrition tracking dashboard
+
+## Roadmap
+
 - [ ] Add image upload for recipes
 - [ ] Enable offline mode with local caching
 - [ ] Add push notifications for meal reminders
 - [ ] Implement recipe rating and reviews
+- [ ] Social sharing features
 
 ## License
 
