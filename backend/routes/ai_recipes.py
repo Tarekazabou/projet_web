@@ -102,7 +102,7 @@ def generate_recipe_with_ai():
         "use_fridge": false,  // If true, fetch ingredients from user's fridge
         "use_preferences": false,  // If true, fetch user preferences from DB
         "save_to_db": true,
-        "userId": "optional_user_id"  // Optional, defaults to demo_user_01
+        "userId": "optional_user_id"  // Optional user ID override
     }
     
     Returns:
