@@ -5,6 +5,7 @@ from flask import Blueprint, request, jsonify
 from datetime import datetime, timedelta
 from utils.firebase_connector import get_db
 from utils.response_handler import success_response, error_response
+from utils.auth import require_current_user
 
 dashboard_bp = Blueprint('dashboard', __name__)
 
@@ -13,8 +14,8 @@ dashboard_bp = Blueprint('dashboard', __name__)
 def get_dashboard_stats():
     """Get dashboard statistics for the current user"""
     try:
-        # Get user_id from request headers or default
-        user_id = request.headers.get('X-User-ID', 'demo_user')
+        # Get authenticated user ID
+        user_id = require_current_user()
         db = get_db()
         
         # Count total recipes
@@ -122,7 +123,7 @@ def get_quick_actions():
 def get_nutrition_tips():
     """Get nutrition tips for the dashboard"""
     try:
-        user_id = request.headers.get('X-User-ID', 'demo_user')
+        user_id = require_current_user()
         db = get_db()
         
         # Get today's nutrition data
@@ -215,7 +216,7 @@ def get_nutrition_tips():
 def get_recent_activity():
     """Get recent user activity"""
     try:
-        user_id = request.headers.get('X-User-ID', 'demo_user')
+        user_id = require_current_user()
         db = get_db()
         
         activities = []

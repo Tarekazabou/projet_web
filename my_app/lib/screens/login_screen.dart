@@ -139,55 +139,98 @@ class _LoginScreenState extends State<LoginScreen>
             offset: Offset(0, 30 * (1 - logoAnimation!.value)),
             child: Column(
               children: [
+                // Enhanced logo with pulsing animation
                 Container(
-                  width: 100,
-                  height: 100,
+                  width: 120,
+                  height: 120,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
                         MealyTheme.nearlyOrange,
-                        MealyTheme.nearlyOrange.withOpacity(0.8),
+                        MealyTheme.nearlyRed,
                       ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
-                    borderRadius: const BorderRadius.only(
-                      bottomRight: Radius.circular(8.0),
-                      bottomLeft: Radius.circular(8.0),
-                      topLeft: Radius.circular(8.0),
-                      topRight: Radius.circular(40.0),
-                    ),
+                    shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: MealyTheme.nearlyOrange.withOpacity(0.4),
-                        offset: const Offset(2, 4),
+                        color: MealyTheme.nearlyOrange.withOpacity(0.5),
+                        offset: const Offset(0, 8),
+                        blurRadius: 20,
+                        spreadRadius: 2,
+                      ),
+                      BoxShadow(
+                        color: MealyTheme.nearlyRed.withOpacity(0.3),
+                        offset: const Offset(0, 4),
                         blurRadius: 12,
                       ),
                     ],
                   ),
-                  child: const Icon(
-                    Icons.restaurant_menu,
-                    size: 50,
-                    color: MealyTheme.white,
+                  child: Container(
+                    margin: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: MealyTheme.white.withOpacity(0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.restaurant,
+                      size: 60,
+                      color: MealyTheme.white,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Welcome to Mealy',
-                  style: TextStyle(
-                    fontFamily: MealyTheme.fontName,
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: MealyTheme.darkerText,
+                const SizedBox(height: 32),
+                // Enhanced welcome text with gradient
+                ShaderMask(
+                  shaderCallback: (bounds) => LinearGradient(
+                    colors: [
+                      MealyTheme.nearlyOrange,
+                      MealyTheme.nearlyRed,
+                    ],
+                  ).createShader(bounds),
+                  child: const Text(
+                    'Welcome to Mealy',
+                    style: TextStyle(
+                      fontFamily: MealyTheme.fontName,
+                      fontSize: 34,
+                      fontWeight: FontWeight.w900,
+                      color: MealyTheme.white,
+                      letterSpacing: -0.5,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  'AI-Powered Meal Planning',
-                  style: TextStyle(
-                    fontFamily: MealyTheme.fontName,
-                    fontSize: 16,
-                    color: MealyTheme.grey,
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        MealyTheme.nearlyGreen.withOpacity(0.2),
+                        MealyTheme.nearlyYellow.withOpacity(0.2),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.auto_awesome,
+                        size: 18,
+                        color: MealyTheme.nearlyGreen,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'AI-Powered Meal Planning',
+                        style: TextStyle(
+                          fontFamily: MealyTheme.fontName,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: MealyTheme.darkerText,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -207,19 +250,20 @@ class _LoginScreenState extends State<LoginScreen>
           child: Transform.translate(
             offset: Offset(0, 50 * (1 - formAnimation!.value)),
             child: Container(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(28),
               decoration: BoxDecoration(
                 color: MealyTheme.white,
-                borderRadius: const BorderRadius.only(
-                  bottomRight: Radius.circular(8.0),
-                  bottomLeft: Radius.circular(8.0),
-                  topLeft: Radius.circular(8.0),
-                  topRight: Radius.circular(68.0),
-                ),
+                borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: MealyTheme.grey.withOpacity(0.2),
-                    offset: const Offset(1.1, 4.0),
+                    color: MealyTheme.nearlyOrange.withOpacity(0.1),
+                    offset: const Offset(0, 10),
+                    blurRadius: 30.0,
+                    spreadRadius: 0,
+                  ),
+                  BoxShadow(
+                    color: MealyTheme.grey.withOpacity(0.05),
+                    offset: const Offset(0, 4.0),
                     blurRadius: 12.0,
                   ),
                 ],
@@ -377,18 +421,25 @@ class _LoginScreenState extends State<LoginScreen>
         return ScaleTransition(
           scale: buttonAnimation!,
           child: Container(
-            height: 56,
+            height: 58,
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
                   MealyTheme.nearlyOrange,
-                  MealyTheme.nearlyOrange.withOpacity(0.8),
+                  MealyTheme.nearlyRed,
                 ],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
               ),
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: MealyTheme.nearlyOrange.withOpacity(0.4),
+                  color: MealyTheme.nearlyOrange.withOpacity(0.5),
+                  offset: const Offset(0, 8),
+                  blurRadius: 20,
+                ),
+                BoxShadow(
+                  color: MealyTheme.nearlyRed.withOpacity(0.3),
                   offset: const Offset(0, 4),
                   blurRadius: 12,
                 ),
@@ -405,18 +456,30 @@ class _LoginScreenState extends State<LoginScreen>
                           height: 24,
                           width: 24,
                           child: CircularProgressIndicator(
-                            strokeWidth: 2,
+                            strokeWidth: 3,
                             color: MealyTheme.white,
                           ),
                         )
-                      : const Text(
-                          'Sign In',
-                          style: TextStyle(
-                            fontFamily: MealyTheme.fontName,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: MealyTheme.white,
-                          ),
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text(
+                              'Sign In',
+                              style: TextStyle(
+                                fontFamily: MealyTheme.fontName,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                color: MealyTheme.white,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            const Icon(
+                              Icons.arrow_forward_rounded,
+                              color: MealyTheme.white,
+                              size: 22,
+                            ),
+                          ],
                         ),
                 ),
               ),
@@ -438,12 +501,15 @@ class _LoginScreenState extends State<LoginScreen>
             decoration: BoxDecoration(
               color: MealyTheme.white,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: MealyTheme.nearlyOrange, width: 2),
+              border: Border.all(
+                color: MealyTheme.nearlyGreen, 
+                width: 2.5,
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: MealyTheme.grey.withOpacity(0.1),
-                  offset: const Offset(0, 2),
-                  blurRadius: 8,
+                  color: MealyTheme.nearlyGreen.withOpacity(0.15),
+                  offset: const Offset(0, 4),
+                  blurRadius: 12,
                 ),
               ],
             ),
@@ -461,15 +527,20 @@ class _LoginScreenState extends State<LoginScreen>
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.play_arrow, color: MealyTheme.nearlyOrange),
-                    const SizedBox(width: 8),
+                    Icon(
+                      Icons.explore_outlined, 
+                      color: MealyTheme.nearlyGreen,
+                      size: 24,
+                    ),
+                    const SizedBox(width: 12),
                     Text(
-                      'Continue as Demo User',
+                      'Try Demo Mode',
                       style: TextStyle(
                         fontFamily: MealyTheme.fontName,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: MealyTheme.nearlyOrange,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                        color: MealyTheme.nearlyGreen,
+                        letterSpacing: 0.3,
                       ),
                     ),
                   ],
@@ -488,33 +559,61 @@ class _LoginScreenState extends State<LoginScreen>
       builder: (context, child) {
         return FadeTransition(
           opacity: buttonAnimation!,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                "Don't have an account? ",
-                style: TextStyle(
-                  fontFamily: MealyTheme.fontName,
-                  color: MealyTheme.grey,
-                ),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+            decoration: BoxDecoration(
+              color: MealyTheme.nearlyYellow.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: MealyTheme.nearlyYellow.withOpacity(0.3),
+                width: 1.5,
               ),
-              TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const SignupScreen()),
-                  );
-                },
-                child: const Text(
-                  'Sign Up',
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.person_add_outlined,
+                  color: MealyTheme.darkerText,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  "Don't have an account? ",
                   style: TextStyle(
                     fontFamily: MealyTheme.fontName,
-                    fontWeight: FontWeight.bold,
-                    color: MealyTheme.nearlyOrange,
+                    color: MealyTheme.darkerText,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
-              ),
-            ],
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const SignupScreen()),
+                    );
+                  },
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: Text(
+                    'Sign Up',
+                    style: TextStyle(
+                      fontFamily: MealyTheme.fontName,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 15,
+                      color: MealyTheme.nearlyOrange,
+                      decoration: TextDecoration.underline,
+                      decorationColor: MealyTheme.nearlyOrange,
+                      decorationThickness: 2,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },

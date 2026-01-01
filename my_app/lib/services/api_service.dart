@@ -29,13 +29,28 @@ class ApiService {
   static const String baseUrl = AppConstants.apiBaseUrl;
 
   final http.Client _client;
+  String? _userId;
 
   ApiService({http.Client? client}) : _client = client ?? http.Client();
 
-  Map<String, String> get _headers => {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-  };
+  /// Set the current user ID for API requests
+  void setUserId(String? userId) {
+    _userId = userId;
+  }
+
+  Map<String, String> get _headers {
+    final headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+    
+    // Add user ID to headers if available
+    if (_userId != null && _userId!.isNotEmpty) {
+      headers['X-User-Id'] = _userId!;
+    }
+    
+    return headers;
+  }
 
   Future<Map<String, dynamic>> get(String endpoint) async {
     try {

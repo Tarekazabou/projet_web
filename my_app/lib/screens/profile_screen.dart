@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../utils/mealy_theme.dart';
+import 'notification_settings_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key, this.animationController});
@@ -24,7 +25,6 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   List<String> _dietaryRestrictions = ['Vegetarian'];
   List<String> _allergens = ['Nuts'];
-  bool _notificationsEnabled = true;
 
   @override
   void initState() {
@@ -534,13 +534,14 @@ class _ProfileScreenState extends State<ProfileScreen>
                     _buildSettingsItem(
                       'Notifications',
                       Icons.notifications_outlined,
-                      trailing: Switch(
-                        value: _notificationsEnabled,
-                        onChanged: (value) {
-                          setState(() => _notificationsEnabled = value);
-                        },
-                        activeColor: MealyTheme.nearlyOrange,
-                      ),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const NotificationSettingsScreen(),
+                          ),
+                        );
+                      },
                     ),
                     const Divider(height: 1, indent: 16, endIndent: 16),
                     _buildSettingsItem(
