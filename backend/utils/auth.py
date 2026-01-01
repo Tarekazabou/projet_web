@@ -130,7 +130,7 @@ def _load_user_from_firebase_token(id_token: str) -> Optional[dict]:
 
 
 def attach_current_user() -> dict:
-    """Populate flask.g with the authenticated (or demo) user."""
+    """Populate flask.g with the authenticated user."""
 
     bearer_token = request.headers.get('Authorization')
     id_token = None
@@ -142,11 +142,11 @@ def attach_current_user() -> dict:
         header_token = request.headers.get('X-User-Id')
         user = _load_user_document(header_token)
 
-    if not user:
-        user = _ensure_demo_user()
-
-    g.current_user = user
-    g.current_user_id = user['id']
+    # Only set user if authenticated, no demo fallback
+    if user:
+        g.current_user = user
+        g.current_user_id = user['id']
+    
     return user
 
 

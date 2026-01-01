@@ -49,13 +49,8 @@ class _SignupScreenState extends State<SignupScreen> {
     );
 
     if (mounted && success) {
-      Navigator.pop(context); // Return to login or main screen
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Account created successfully!'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      // Navigate to onboarding screen for new users
+      Navigator.of(context).pushReplacementNamed('/onboarding');
     } else if (mounted && authProvider.error != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

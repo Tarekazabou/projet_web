@@ -35,6 +35,10 @@ class AuthProvider with ChangeNotifier {
           name: userName ?? 'User',
         );
         _isAuthenticated = true;
+        
+        // Set user ID in API service for subsequent requests
+        _apiService.setUserId(userId);
+        
         AppLogger.info(
           'User session restored: ${_currentUser!.email}',
           tag: 'Auth',
@@ -80,6 +84,9 @@ class AuthProvider with ChangeNotifier {
         await prefs.setString(AppConstants.userIdKey, _currentUser!.id);
         await prefs.setString(AppConstants.userEmailKey, _currentUser!.email);
         await prefs.setString(AppConstants.userNameKey, _currentUser!.name);
+
+        // Set user ID in API service for subsequent requests
+        _apiService.setUserId(_currentUser!.id);
 
         _isAuthenticated = true;
         _isLoading = false;
@@ -149,6 +156,9 @@ class AuthProvider with ChangeNotifier {
       await prefs.remove(AppConstants.userIdKey);
       await prefs.remove(AppConstants.userEmailKey);
       await prefs.remove(AppConstants.userNameKey);
+
+      // Clear user ID from API service
+      _apiService.setUserId(null);
 
       _currentUser = null;
       _isAuthenticated = false;

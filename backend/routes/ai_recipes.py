@@ -29,10 +29,11 @@ def initialize_services():
             logger.error(f"❌ Failed to initialize AI generator: {e}")
 
 def get_user_id():
-    """Get user ID from request context or use demo user"""
+    """Get user ID from request context"""
     user_id = get_current_user_id()
     if not user_id:
-        user_id = 'demo_user_01'  # Fallback to demo user
+        # Return None if no user is authenticated
+        return None
     return user_id
 
 def _build_direct_prompt(user_query, user_requirements):
