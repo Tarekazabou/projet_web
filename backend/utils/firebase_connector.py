@@ -21,9 +21,18 @@ def initialize_firebase():
                 cred_file = base_dir / 'mealy-41bf0-firebase-adminsdk-fbsvc-7d493e86ea.json'
 
             if cred_file.exists():
-                cred = credentials.Certificate(str(cred_file))
-                firebase_admin.initialize_app(cred)
-                print("Firebase initialized successfully with service account key.")
+                try:
+                    cred = credentials.Certificate(str(cred_file))
+                    firebase_admin.initialize_app(cred)
+                    print("Firebase initialized successfully with service account key.")
+                except Exception as e:
+                    print(f"Failed to load service account key: {e}")
+                    print("Falling back to Application Default Credentials...")
+                    cred = credentials.ApplicationDefault()
+                    firebase_admin.initialize_app(cred, {
+                        'projectId': os.environ.get('FIREBASE_PROJECT_ID', 'mealy-41bf0'),
+                    })
+                    print("Firebase initialized successfully with Application Default Credentials.")
             else:
                 # Fallback to Application Default Credentials (for production/cloud environments)
                 cred = credentials.ApplicationDefault()

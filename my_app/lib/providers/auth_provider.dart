@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user.dart';
 import '../services/api_service.dart';
+import '../utils/constants.dart';
+import '../utils/logger.dart';
 
 class AuthProvider with ChangeNotifier {
   final ApiService _apiService = ApiService();
@@ -22,9 +24,9 @@ class AuthProvider with ChangeNotifier {
 
     try {
       final prefs = await SharedPreferences.getInstance();
-      final userId = prefs.getString('user_id');
-      final userEmail = prefs.getString('user_email');
-      final userName = prefs.getString('user_name');
+      final userId = prefs.getString(AppConstants.userIdKey);
+      final userEmail = prefs.getString(AppConstants.userEmailKey);
+      final userName = prefs.getString(AppConstants.userNameKey);
 
       if (userId != null && userEmail != null) {
         _currentUser = User(
@@ -33,9 +35,14 @@ class AuthProvider with ChangeNotifier {
           name: userName ?? 'User',
         );
         _isAuthenticated = true;
+        AppLogger.info(
+          'User session restored: ${_currentUser!.email}',
+          tag: 'Auth',
+        );
       }
     } catch (e) {
       _error = e.toString();
+      AppLogger.error('Failed to initialize auth', tag: 'Auth', error: e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -49,13 +56,11 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      print('🔐 Attempting login for: $email');
+      AppLogger.info('Attempting login for: $email', tag: 'Auth');
       final response = await _apiService.post('/users/login', {
         'email': email,
         'password': password,
       });
-
-      print('📥 Login response: $response');
 
       if (response['success'] == true && response['data'] != null) {
         final userData = response['data'];
@@ -65,13 +70,16 @@ class AuthProvider with ChangeNotifier {
           name: userData['username'] ?? userData['name'] ?? 'User',
         );
 
-        print('✅ Login successful for user: ${_currentUser!.name}');
+        AppLogger.success(
+          'Login successful for user: ${_currentUser!.name}',
+          tag: 'Auth',
+        );
 
         // Save to local storage
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('user_id', _currentUser!.id);
-        await prefs.setString('user_email', _currentUser!.email);
-        await prefs.setString('user_name', _currentUser!.name);
+        await prefs.setString(AppConstants.userIdKey, _currentUser!.id);
+        await prefs.setString(AppConstants.userEmailKey, _currentUser!.email);
+        await prefs.setString(AppConstants.userNameKey, _currentUser!.name);
 
         _isAuthenticated = true;
         _isLoading = false;
@@ -79,14 +87,14 @@ class AuthProvider with ChangeNotifier {
         return true;
       } else {
         _error = response['message'] ?? 'Login failed';
-        print('❌ Login failed: $_error');
+        AppLogger.warning('Login failed: $_error', tag: 'Auth');
         _isLoading = false;
         notifyListeners();
         return false;
       }
     } catch (e) {
       _error = e.toString().replaceAll('Exception: ', '');
-      print('❌ Login error: $_error');
+      AppLogger.error('Login error', tag: 'Auth', error: e);
       _isLoading = false;
       notifyListeners();
       return false;
@@ -100,6 +108,7 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
 
     try {
+      AppLogger.info('Attempting signup for: $email', tag: 'Auth');
       final response = await _apiService.post('/users/register', {
         'email': email,
         'password': password,
@@ -107,17 +116,23 @@ class AuthProvider with ChangeNotifier {
       });
 
       if (response['success'] == true) {
+        AppLogger.success(
+          'Signup successful, proceeding to login',
+          tag: 'Auth',
+        );
         // After successful signup, automatically login
         final loginSuccess = await login(email, password);
         return loginSuccess;
       } else {
         _error = response['message'] ?? 'Signup failed';
+        AppLogger.warning('Signup failed: $_error', tag: 'Auth');
         _isLoading = false;
         notifyListeners();
         return false;
       }
     } catch (e) {
       _error = e.toString().replaceAll('Exception: ', '');
+      AppLogger.error('Signup error', tag: 'Auth', error: e);
       _isLoading = false;
       notifyListeners();
       return false;
@@ -131,15 +146,17 @@ class AuthProvider with ChangeNotifier {
 
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('user_id');
-      await prefs.remove('user_email');
-      await prefs.remove('user_name');
+      await prefs.remove(AppConstants.userIdKey);
+      await prefs.remove(AppConstants.userEmailKey);
+      await prefs.remove(AppConstants.userNameKey);
 
       _currentUser = null;
       _isAuthenticated = false;
       _error = null;
+      AppLogger.info('User logged out', tag: 'Auth');
     } catch (e) {
       _error = e.toString();
+      AppLogger.error('Logout error', tag: 'Auth', error: e);
     } finally {
       _isLoading = false;
       notifyListeners();

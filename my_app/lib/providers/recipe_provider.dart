@@ -5,11 +5,13 @@ import '../services/api_service.dart';
 class RecipeProvider with ChangeNotifier {
   final ApiService _apiService = ApiService();
   List<Recipe> _recipes = [];
+  List<Recipe> _suggestedRecipes = [];
   Recipe? _generatedRecipe;
   bool _isLoading = false;
   String? _error;
 
   List<Recipe> get recipes => _recipes;
+  List<Recipe> get suggestedRecipes => _suggestedRecipes;
   Recipe? get generatedRecipe => _generatedRecipe;
   bool get isLoading => _isLoading;
   String? get error => _error;
@@ -53,9 +55,16 @@ class RecipeProvider with ChangeNotifier {
         if (dietaryPreferences != null && dietaryPreferences.isNotEmpty)
           'dietaryPreferences': dietaryPreferences,
       };
-      
+
       final data = await _apiService.generateRecipe(params);
-      _generatedRecipe = Recipe.fromJson(data['recipe']);
+      // Check if data has nested structure with 'data' and 'recipe'
+      if (data['data'] != null && data['data']['recipe'] != null) {
+        _generatedRecipe = Recipe.fromJson(data['data']['recipe']);
+      } else if (data['recipe'] != null) {
+        _generatedRecipe = Recipe.fromJson(data['recipe']);
+      } else {
+        throw Exception('No recipe data found in response');
+      }
       await loadRecipes(); // Refresh the list
     } catch (e) {
       _error = e.toString();
@@ -89,5 +98,39 @@ class RecipeProvider with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  /// Suggest recipes based on given ingredients
+  Future<void> suggestRecipes(List<String> ingredients) async {
+    _isLoading = true;
+    _error = null;
+    _suggestedRecipes = [];
+    notifyListeners();
+
+    try {
+      final data = await _apiService.post('/ai/suggest-recipes', {
+        'ingredients': ingredients,
+      });
+
+      final recipesData = data['recipes'] as List? ?? data['data']?['recipes'] as List? ?? [];
+      _suggestedRecipes = recipesData.map((item) => Recipe.fromJson(item)).toList();
+      
+      // If only one recipe returned, also set as generated recipe
+      if (_suggestedRecipes.length == 1) {
+        _generatedRecipe = _suggestedRecipes.first;
+      }
+    } catch (e) {
+      _error = e.toString();
+      // Don't rethrow - allow UI to handle empty suggestions gracefully
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Clear suggested recipes
+  void clearSuggestedRecipes() {
+    _suggestedRecipes = [];
+    notifyListeners();
   }
 }

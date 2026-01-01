@@ -28,8 +28,21 @@ class FridgeProvider with ChangeNotifier {
     }
   }
 
-  Future<void> addItem(FridgeItem item) async {
+  Future<void> addItem({
+    required String name,
+    required String category,
+    int quantity = 1,
+    String unit = 'pieces',
+    DateTime? expiryDate,
+  }) async {
     try {
+      final item = FridgeItem(
+        ingredientName: name,
+        category: category,
+        quantity: quantity.toDouble(),
+        unit: unit,
+        expiryDate: expiryDate,
+      );
       await _apiService.addFridgeItem(item.toJson());
       await loadFridgeItems();
     } catch (e) {
@@ -39,7 +52,8 @@ class FridgeProvider with ChangeNotifier {
     }
   }
 
-  Future<void> deleteItem(String id) async {
+  Future<void> removeItem(String? id) async {
+    if (id == null) return;
     try {
       await _apiService.deleteFridgeItem(id);
       _items.removeWhere((item) => item.id == id);
@@ -50,4 +64,29 @@ class FridgeProvider with ChangeNotifier {
       rethrow;
     }
   }
+
+  Future<void> updateItem(
+    String? id, {
+    String? name,
+    int? quantity,
+    String? category,
+  }) async {
+    if (id == null) return;
+    try {
+      final existingItem = _items.firstWhere((i) => i.id == id);
+      final updatedItem = existingItem.copyWith(
+        ingredientName: name,
+        quantity: quantity?.toDouble(),
+        category: category,
+      );
+      await _apiService.updateFridgeItem(id, updatedItem.toJson());
+      await loadFridgeItems();
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  Future<void> deleteItem(String id) async => removeItem(id);
 }

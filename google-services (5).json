@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "821075488273",
+    "project_id": "mealy-41bf0",
+    "storage_bucket": "mealy-41bf0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:821075488273:android:95ca15c0f554612171cbb0",
+        "android_client_info": {
+          "package_name": "com.example.my_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDozTqLrnCnU-gL4MRXnidfWUPgMUpw9X8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

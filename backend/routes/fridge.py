@@ -98,6 +98,8 @@ def add_fridge_item():
         ingredient_name = None
         if 'name' in data:
             ingredient_name = data['name']
+        elif 'ingredientName' in data:
+            ingredient_name = data['ingredientName']
         elif 'ingredient' in data:
             if isinstance(data['ingredient'], str):
                 ingredient_name = data['ingredient']

@@ -27,17 +27,17 @@ instance/
 .webassets-cache
 
 # Environment variables
-.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
+# .env
+# .venv
+# env/
+# venv/
+# ENV/
+# env.bak/
+# venv.bak/
 
-# Firebase credentials - IMPORTANT: Never commit these files!
-*firebase-adminsdk*.json
-serviceAccountKey.json
+# # Firebase credentials - IMPORTANT: Never commit these files!
+# *firebase-adminsdk*.json
+# serviceAccountKey.json
 
 # IDEs
 .vscode/
