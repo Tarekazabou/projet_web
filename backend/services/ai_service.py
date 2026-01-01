@@ -21,9 +21,9 @@ class AIRecipeGenerator:
             raise ValueError("GEMINI_API_KEY not found in environment variables")
         
         genai.configure(api_key=self.api_key)
-        # Try gemini-1.5-flash as fallback (may have separate quota)
-        self.model = genai.GenerativeModel('gemini-1.5-flash')
-        logger.info("Gemini AI initialized successfully with gemini-1.5-flash")
+        # Using Gemini 2.5 Flash model
+        self.model = genai.GenerativeModel('gemini-2.5-flash')
+        logger.info("Gemini AI initialized successfully with gemini-2.5-flash")
     
     def generate_recipe(
         self,
