@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/constants.dart';
 import '../utils/logger.dart';
 
@@ -32,18 +33,25 @@ class ApiService {
 
   ApiService({http.Client? client}) : _client = client ?? http.Client();
 
-  Map<String, String> get _headers => {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-  };
+  Future<Map<String, String>> get _headers async {
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getString(AppConstants.userIdKey);
+
+    return {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      if (userId != null) 'X-User-Id': userId,
+    };
+  }
 
   Future<Map<String, dynamic>> get(String endpoint) async {
     try {
       final url = '$baseUrl$endpoint';
       AppLogger.apiRequest('GET', url);
 
+      final headers = await _headers;
       final response = await _client
-          .get(Uri.parse(url), headers: _headers)
+          .get(Uri.parse(url), headers: headers)
           .timeout(AppConstants.connectionTimeout);
 
       AppLogger.apiResponse(response.statusCode, url);
@@ -68,8 +76,9 @@ class ApiService {
       final url = '$baseUrl$endpoint';
       AppLogger.apiRequest('POST', url, body: body);
 
+      final headers = await _headers;
       final response = await _client
-          .post(Uri.parse(url), headers: _headers, body: json.encode(body))
+          .post(Uri.parse(url), headers: headers, body: json.encode(body))
           .timeout(AppConstants.connectionTimeout);
 
       AppLogger.apiResponse(response.statusCode, url, body: response.body);
@@ -99,8 +108,9 @@ class ApiService {
       final url = '$baseUrl$endpoint';
       AppLogger.apiRequest('PUT', url, body: body);
 
+      final headers = await _headers;
       final response = await _client
-          .put(Uri.parse(url), headers: _headers, body: json.encode(body))
+          .put(Uri.parse(url), headers: headers, body: json.encode(body))
           .timeout(AppConstants.connectionTimeout);
 
       AppLogger.apiResponse(response.statusCode, url);
@@ -122,8 +132,9 @@ class ApiService {
       final url = '$baseUrl$endpoint';
       AppLogger.apiRequest('DELETE', url);
 
+      final headers = await _headers;
       final response = await _client
-          .delete(Uri.parse(url), headers: _headers)
+          .delete(Uri.parse(url), headers: headers)
           .timeout(AppConstants.connectionTimeout);
 
       AppLogger.apiResponse(response.statusCode, url);
@@ -200,7 +211,10 @@ class ApiService {
     return await post('/fridge/items', item);
   }
 
-  Future<Map<String, dynamic>> updateFridgeItem(String id, Map<String, dynamic> item) async {
+  Future<Map<String, dynamic>> updateFridgeItem(
+    String id,
+    Map<String, dynamic> item,
+  ) async {
     return await put('/fridge/items/$id', item);
   }
 
@@ -289,6 +303,108 @@ class ApiService {
 
   Future<Map<String, dynamic>> getRecentActivity() async {
     return await get('/dashboard/recent-activity');
+  }
+
+  // ==================== Meal Plan Endpoints ====================
+
+  Future<List<dynamic>> getMealPlans({
+    String? startDate,
+    String? endDate,
+  }) async {
+    String endpoint = '/meal-plans/';
+    List<String> params = [];
+    if (startDate != null) params.add('start_date=$startDate');
+    if (endDate != null) params.add('end_date=$endDate');
+    if (params.isNotEmpty) endpoint += '?${params.join('&')}';
+
+    final data = await get(endpoint);
+    return data['meal_plans'] ?? [];
+  }
+
+  Future<Map<String, dynamic>> getWeekMealPlans({String? startDate}) async {
+    String endpoint = '/meal-plans/week';
+    if (startDate != null) endpoint += '?start_date=$startDate';
+    return await get(endpoint);
+  }
+
+  Future<Map<String, dynamic>> createMealPlan(
+    Map<String, dynamic> planData,
+  ) async {
+    return await post('/meal-plans/', planData);
+  }
+
+  Future<Map<String, dynamic>> updateMealPlan(
+    String planId,
+    Map<String, dynamic> planData,
+  ) async {
+    return await put('/meal-plans/$planId', planData);
+  }
+
+  Future<void> deleteMealPlan(String planId) async {
+    await delete('/meal-plans/$planId');
+  }
+
+  Future<Map<String, dynamic>> getAIMealSuggestions({
+    String? mealType,
+    List<String>? preferences,
+  }) async {
+    return await post('/meal-plans/ai-suggest', {
+      if (mealType != null) 'mealType': mealType,
+      if (preferences != null) 'preferences': preferences,
+    });
+  }
+
+  Future<Map<String, dynamic>> generateGroceryFromPlans(
+    String startDate,
+    String endDate,
+  ) async {
+    return await post('/meal-plans/generate-grocery', {
+      'start_date': startDate,
+      'end_date': endDate,
+    });
+  }
+
+  // ==================== Grocery Endpoints ====================
+
+  Future<Map<String, dynamic>> getGroceryItems() async {
+    return await get('/grocery/items');
+  }
+
+  Future<Map<String, dynamic>> addGroceryItem(Map<String, dynamic> item) async {
+    return await post('/grocery/items', item);
+  }
+
+  Future<Map<String, dynamic>> updateGroceryItem(
+    int index,
+    Map<String, dynamic> item,
+  ) async {
+    return await put('/grocery/items/$index', item);
+  }
+
+  Future<void> deleteGroceryItem(int index) async {
+    await delete('/grocery/items/$index');
+  }
+
+  Future<Map<String, dynamic>> toggleGroceryItemPurchased(int index) async {
+    return await post('/grocery/toggle-purchased/$index', {});
+  }
+
+  Future<Map<String, dynamic>> clearPurchasedItems() async {
+    return await post('/grocery/clear-purchased', {});
+  }
+
+  Future<Map<String, dynamic>> createGroceryFromMealPlan(
+    String startDate,
+    String endDate,
+  ) async {
+    return await post('/grocery/from-meal-plan', {
+      'start_date': startDate,
+      'end_date': endDate,
+    });
+  }
+
+  Future<Map<String, dynamic>> getGroceryStats() async {
+    return await get('/grocery/stats');
   }
 
   // ==================== User Endpoints ====================
