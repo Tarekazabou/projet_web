@@ -14,12 +14,14 @@ import 'screens/nutrition_screen.dart';
 import 'screens/grocery_list_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'services/api_service.dart';
+import 'services/notification_service.dart';
 import 'providers/fridge_provider.dart';
 import 'providers/recipe_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/nutrition_provider.dart';
 import 'providers/dashboard_provider.dart';
 import 'providers/onboarding_provider.dart';
+import 'providers/shopping_list_provider.dart';
 import 'utils/app_theme.dart';
 import 'utils/mealy_theme.dart';
 import 'widgets/bottom_bar_view.dart';
@@ -37,6 +39,12 @@ void main() async {
   ));
   
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  
+  // Initialize notification service
+  final notificationService = NotificationService();
+  await notificationService.initialize();
+  await notificationService.requestPermissions();
+  
   runApp(const MealyApp());
 }
 
@@ -58,6 +66,7 @@ class MealyApp extends StatelessWidget {
             ChangeNotifierProvider(create: (_) => NutritionProvider()),
             ChangeNotifierProvider(create: (_) => DashboardProvider()),
             ChangeNotifierProvider(create: (_) => OnboardingProvider()),
+            ChangeNotifierProvider(create: (_) => ShoppingListProvider()),
             Provider(create: (_) => ApiService()),
           ],
           child: MaterialApp(
