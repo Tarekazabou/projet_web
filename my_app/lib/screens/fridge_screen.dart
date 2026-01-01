@@ -492,112 +492,170 @@ class _FridgeScreenState extends State<FridgeScreen>
       child: Container(
         decoration: BoxDecoration(
           color: MealyTheme.white,
-          borderRadius: const BorderRadius.only(
-            bottomRight: Radius.circular(8.0),
-            bottomLeft: Radius.circular(8.0),
-            topLeft: Radius.circular(8.0),
-            topRight: Radius.circular(54.0),
-          ),
+          borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: MealyTheme.grey.withOpacity(0.2),
-              offset: const Offset(1.1, 1.1),
-              blurRadius: 10.0,
+              color: categoryColor.withOpacity(0.15),
+              offset: const Offset(0, 8),
+              blurRadius: 20.0,
+              spreadRadius: 0,
+            ),
+            BoxShadow(
+              color: MealyTheme.grey.withOpacity(0.08),
+              offset: const Offset(0, 2),
+              blurRadius: 8.0,
             ),
           ],
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header with gradient
-            Container(
-              height: 60,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    categoryColor,
-                    categoryColor.withOpacity(0.7),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(8.0),
-                  topRight: Radius.circular(54.0),
-                ),
-              ),
-              child: Stack(
-                children: [
-                  Positioned(
-                    right: 12,
-                    top: 12,
-                    child: Icon(
-                      _getCategoryIcon(item.category),
-                      size: 32,
-                      color: MealyTheme.white.withOpacity(0.6),
-                    ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Enhanced header with gradient
+              Container(
+                height: 70,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      categoryColor,
+                      categoryColor.withOpacity(0.7),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                  if (item.isExpired || item.isExpiringSoon)
+                ),
+                child: Stack(
+                  children: [
+                    // Decorative circle
                     Positioned(
-                      left: 8,
-                      top: 8,
+                      right: -20,
+                      top: -20,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
+                        width: 90,
+                        height: 90,
                         decoration: BoxDecoration(
-                          color: item.isExpired
-                              ? Colors.red.shade600
-                              : Colors.amber.shade600,
-                          borderRadius: BorderRadius.circular(12),
+                          shape: BoxShape.circle,
+                          color: MealyTheme.white.withOpacity(0.1),
                         ),
-                        child: Text(
-                          item.isExpired ? 'Expired' : 'Soon',
-                          style: const TextStyle(
-                            fontFamily: MealyTheme.fontName,
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    // Category icon
+                    Positioned(
+                      right: 16,
+                      top: 0,
+                      bottom: 0,
+                      child: Center(
+                        child: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: MealyTheme.white.withOpacity(0.25),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Icon(
+                            _getCategoryIcon(item.category),
+                            size: 32,
+                            color: MealyTheme.white,
                           ),
                         ),
                       ),
                     ),
-                ],
+                    // Expiry badge
+                    if (item.isExpired || item.isExpiringSoon)
+                      Positioned(
+                        left: 12,
+                        top: 12,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: item.isExpired
+                                ? Colors.red.shade600
+                                : Colors.amber.shade600,
+                            borderRadius: BorderRadius.circular(14),
+                            boxShadow: [
+                              BoxShadow(
+                                color: (item.isExpired 
+                                    ? Colors.red 
+                                    : Colors.amber).withOpacity(0.4),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                item.isExpired 
+                                    ? Icons.warning_rounded 
+                                    : Icons.access_time_rounded,
+                                size: 14,
+                                color: Colors.white,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                item.isExpired ? 'Expired' : 'Soon',
+                                style: const TextStyle(
+                                  fontFamily: MealyTheme.fontName,
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
-            ),
-            // Content
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          item.name,
-                          style: const TextStyle(
-                            fontFamily: MealyTheme.fontName,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 16,
-                            color: MealyTheme.darkerText,
+              // Enhanced content
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.name,
+                            style: const TextStyle(
+                              fontFamily: MealyTheme.fontName,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 17,
+                              color: MealyTheme.darkerText,
+                              letterSpacing: -0.3,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          item.formattedQuantity,
-                          style: TextStyle(
-                            fontFamily: MealyTheme.fontName,
-                            fontSize: 12,
-                            color: MealyTheme.grey,
+                          const SizedBox(height: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: categoryColor.withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              item.formattedQuantity,
+                              style: TextStyle(
+                                fontFamily: MealyTheme.fontName,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: categoryColor,
+                              ),
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
                     ),
                     Row(
                       children: [
