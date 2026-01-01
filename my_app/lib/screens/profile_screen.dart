@@ -29,7 +29,8 @@ class _ProfileScreenState extends State<ProfileScreen>
   @override
   void initState() {
     super.initState();
-    animationController = widget.animationController ??
+    animationController =
+        widget.animationController ??
         AnimationController(
           duration: const Duration(milliseconds: 600),
           vsync: this,
@@ -47,7 +48,8 @@ class _ProfileScreenState extends State<ProfileScreen>
         if (topBarOpacity != 1.0) {
           setState(() => topBarOpacity = 1.0);
         }
-      } else if (scrollController.offset <= 24 && scrollController.offset >= 0) {
+      } else if (scrollController.offset <= 24 &&
+          scrollController.offset >= 0) {
         if (topBarOpacity != scrollController.offset / 24) {
           setState(() => topBarOpacity = scrollController.offset / 24);
         }
@@ -79,12 +81,7 @@ class _ProfileScreenState extends State<ProfileScreen>
       color: MealyTheme.background,
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        body: Stack(
-          children: [
-            _buildMainContent(user),
-            _buildTopBar(),
-          ],
-        ),
+        body: Stack(children: [_buildMainContent(user), _buildTopBar()]),
       ),
     );
   }
@@ -230,10 +227,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                         decoration: BoxDecoration(
                           color: MealyTheme.white.withOpacity(0.2),
                           shape: BoxShape.circle,
-                          border: Border.all(
-                            color: MealyTheme.white,
-                            width: 3,
-                          ),
+                          border: Border.all(color: MealyTheme.white, width: 3),
                         ),
                         child: const Icon(
                           Icons.person,
@@ -316,11 +310,29 @@ class _ProfileScreenState extends State<ProfileScreen>
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 children: [
-                  Expanded(child: _buildStatCard('12', 'Recipes\nSaved', Icons.bookmark)),
+                  Expanded(
+                    child: _buildStatCard(
+                      '12',
+                      'Recipes\nSaved',
+                      Icons.bookmark,
+                    ),
+                  ),
                   const SizedBox(width: 12),
-                  Expanded(child: _buildStatCard('28', 'Meals\nPlanned', Icons.calendar_month)),
+                  Expanded(
+                    child: _buildStatCard(
+                      '28',
+                      'Meals\nPlanned',
+                      Icons.calendar_month,
+                    ),
+                  ),
                   const SizedBox(width: 12),
-                  Expanded(child: _buildStatCard('45', 'Items\nTracked', Icons.kitchen)),
+                  Expanded(
+                    child: _buildStatCard(
+                      '45',
+                      'Items\nTracked',
+                      Icons.kitchen,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -460,7 +472,12 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  Widget _buildPreferenceItem(String title, String subtitle, IconData icon, VoidCallback onTap) {
+  Widget _buildPreferenceItem(
+    String title,
+    String subtitle,
+    IconData icon,
+    VoidCallback onTap,
+  ) {
     return InkWell(
       onTap: onTap,
       child: Padding(
@@ -570,7 +587,12 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  Widget _buildSettingsItem(String title, IconData icon, {Widget? trailing, VoidCallback? onTap}) {
+  Widget _buildSettingsItem(
+    String title,
+    IconData icon, {
+    Widget? trailing,
+    VoidCallback? onTap,
+  }) {
     return InkWell(
       onTap: onTap,
       child: Padding(
@@ -756,11 +778,13 @@ class _ProfileScreenState extends State<ProfileScreen>
           ),
           borderRadius: BorderRadius.circular(12),
         ),
-        child: const Icon(Icons.restaurant_menu, size: 40, color: MealyTheme.white),
+        child: const Icon(
+          Icons.restaurant_menu,
+          size: 40,
+          color: MealyTheme.white,
+        ),
       ),
-      children: [
-        const Text('Your AI-powered meal planning assistant'),
-      ],
+      children: [const Text('Your AI-powered meal planning assistant')],
     );
   }
 
@@ -780,7 +804,9 @@ class _ProfileScreenState extends State<ProfileScreen>
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
             child: const Text('Logout', style: TextStyle(color: Colors.white)),
           ),
@@ -794,7 +820,15 @@ class _ProfileScreenState extends State<ProfileScreen>
   }
 
   void _showDietaryRestrictionsDialog() {
-    final options = ['Vegetarian', 'Vegan', 'Pescatarian', 'Gluten-Free', 'Dairy-Free', 'Keto', 'Paleo'];
+    final options = [
+      'Vegetarian',
+      'Vegan',
+      'Pescatarian',
+      'Gluten-Free',
+      'Dairy-Free',
+      'Keto',
+      'Paleo',
+    ];
     final selected = List<String>.from(_dietaryRestrictions);
 
     showDialog(
@@ -839,7 +873,9 @@ class _ProfileScreenState extends State<ProfileScreen>
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: MealyTheme.nearlyOrange,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
             child: const Text('Save', style: TextStyle(color: Colors.white)),
           ),
@@ -849,7 +885,16 @@ class _ProfileScreenState extends State<ProfileScreen>
   }
 
   void _showAllergensDialog() {
-    final options = ['Nuts', 'Dairy', 'Eggs', 'Soy', 'Shellfish', 'Fish', 'Wheat', 'Gluten'];
+    final options = [
+      'Nuts',
+      'Dairy',
+      'Eggs',
+      'Soy',
+      'Shellfish',
+      'Fish',
+      'Wheat',
+      'Gluten',
+    ];
     final selected = List<String>.from(_allergens);
 
     showDialog(
@@ -894,7 +939,9 @@ class _ProfileScreenState extends State<ProfileScreen>
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: MealyTheme.nearlyOrange,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
             child: const Text('Save', style: TextStyle(color: Colors.white)),
           ),

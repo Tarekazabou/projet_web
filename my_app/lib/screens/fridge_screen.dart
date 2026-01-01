@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/fridge_item.dart';
 import '../providers/fridge_provider.dart';
 import '../utils/mealy_theme.dart';
+import 'receipt_scanner_screen.dart';
 
 class FridgeScreen extends StatefulWidget {
   const FridgeScreen({super.key, this.animationController});
@@ -34,7 +35,8 @@ class _FridgeScreenState extends State<FridgeScreen>
   @override
   void initState() {
     super.initState();
-    animationController = widget.animationController ??
+    animationController =
+        widget.animationController ??
         AnimationController(
           duration: const Duration(milliseconds: 600),
           vsync: this,
@@ -89,8 +91,10 @@ class _FridgeScreenState extends State<FridgeScreen>
   List<FridgeItem> _getFilteredItems(List<FridgeItem> items) {
     if (selectedCategory == 'All') return items;
     return items
-        .where((item) =>
-            item.category.toLowerCase() == selectedCategory.toLowerCase())
+        .where(
+          (item) =>
+              item.category.toLowerCase() == selectedCategory.toLowerCase(),
+        )
         .toList();
   }
 
@@ -100,12 +104,7 @@ class _FridgeScreenState extends State<FridgeScreen>
       color: MealyTheme.background,
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        body: Stack(
-          children: [
-            _buildMainContent(),
-            _buildTopBar(),
-          ],
-        ),
+        body: Stack(children: [_buildMainContent(), _buildTopBar()]),
         floatingActionButton: _buildFab(),
       ),
     );
@@ -137,9 +136,7 @@ class _FridgeScreenState extends State<FridgeScreen>
                   ),
                   child: Column(
                     children: [
-                      SizedBox(
-                        height: MediaQuery.of(context).padding.top,
-                      ),
+                      SizedBox(height: MediaQuery.of(context).padding.top),
                       Padding(
                         padding: EdgeInsets.only(
                           left: 16,
@@ -185,9 +182,7 @@ class _FridgeScreenState extends State<FridgeScreen>
       builder: (context, fridgeProvider, child) {
         if (fridgeProvider.isLoading) {
           return const Center(
-            child: CircularProgressIndicator(
-              color: MealyTheme.nearlyOrange,
-            ),
+            child: CircularProgressIndicator(color: MealyTheme.nearlyOrange),
           );
         }
 
@@ -253,8 +248,9 @@ class _FridgeScreenState extends State<FridgeScreen>
                           color: isSelected
                               ? MealyTheme.nearlyOrange
                               : MealyTheme.grey,
-                          fontWeight:
-                              isSelected ? FontWeight.w600 : FontWeight.normal,
+                          fontWeight: isSelected
+                              ? FontWeight.w600
+                              : FontWeight.normal,
                         ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
@@ -514,10 +510,7 @@ class _FridgeScreenState extends State<FridgeScreen>
               height: 60,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [
-                    categoryColor,
-                    categoryColor.withOpacity(0.7),
-                  ],
+                  colors: [categoryColor, categoryColor.withOpacity(0.7)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -607,8 +600,8 @@ class _FridgeScreenState extends State<FridgeScreen>
                           color: item.isExpired
                               ? Colors.red
                               : item.isExpiringSoon
-                                  ? Colors.amber
-                                  : MealyTheme.grey,
+                              ? Colors.amber
+                              : MealyTheme.grey,
                         ),
                         const SizedBox(width: 4),
                         Expanded(
@@ -620,8 +613,8 @@ class _FridgeScreenState extends State<FridgeScreen>
                               color: item.isExpired
                                   ? Colors.red
                                   : item.isExpiringSoon
-                                      ? Colors.amber.shade800
-                                      : MealyTheme.grey,
+                                  ? Colors.amber.shade800
+                                  : MealyTheme.grey,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -686,12 +679,147 @@ class _FridgeScreenState extends State<FridgeScreen>
         return ScaleTransition(
           scale: animation,
           child: FloatingActionButton(
-            onPressed: _showAddItemDialog,
+            onPressed: _showAddOptions,
             backgroundColor: MealyTheme.nearlyOrange,
             child: const Icon(Icons.add, color: MealyTheme.white),
           ),
         );
       },
+    );
+  }
+
+  void _showAddOptions() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: MealyTheme.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Handle
+              Container(
+                margin: const EdgeInsets.only(top: 12),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: MealyTheme.grey.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Title
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24),
+                child: Text(
+                  'Add Items to Fridge',
+                  style: TextStyle(
+                    fontFamily: MealyTheme.fontName,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 20,
+                    color: MealyTheme.darkerText,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Add manually option
+              _buildAddOptionItem(
+                icon: Icons.edit,
+                title: 'Add Item Manually',
+                subtitle: 'Enter item details yourself',
+                color: MealyTheme.nearlyOrange,
+                onTap: () {
+                  Navigator.pop(context);
+                  _showAddItemDialog();
+                },
+              ),
+              const Divider(height: 1, indent: 72),
+              // Scan receipt option
+              _buildAddOptionItem(
+                icon: Icons.receipt_long,
+                title: 'Add Items with Shopping Receipt',
+                subtitle: 'Scan a receipt to auto-add items',
+                color: MealyTheme.nearlyGreen,
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ReceiptScannerScreen(),
+                    ),
+                  ).then((_) {
+                    // Refresh fridge items when returning from receipt scanner
+                    context.read<FridgeProvider>().loadFridgeItems();
+                  });
+                },
+              ),
+              SizedBox(height: MediaQuery.of(context).padding.bottom + 24),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildAddOptionItem({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: color, size: 24),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontFamily: MealyTheme.fontName,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                      color: MealyTheme.darkerText,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontFamily: MealyTheme.fontName,
+                      fontSize: 12,
+                      color: MealyTheme.grey,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right, color: MealyTheme.grey.withOpacity(0.5)),
+          ],
+        ),
+      ),
     );
   }
 
@@ -790,10 +918,16 @@ class _FridgeScreenState extends State<FridgeScreen>
                 child: Column(
                   children: [
                     _buildDetailRow(
-                        Icons.inventory_2, 'Quantity', item.formattedQuantity),
+                      Icons.inventory_2,
+                      'Quantity',
+                      item.formattedQuantity,
+                    ),
                     const SizedBox(height: 16),
                     _buildDetailRow(
-                        Icons.access_time, 'Expiry', item.expiryStatusText),
+                      Icons.access_time,
+                      'Expiry',
+                      item.expiryStatusText,
+                    ),
                     if (item.expiryDate != null) ...[
                       const SizedBox(height: 16),
                       _buildDetailRow(
@@ -903,8 +1037,9 @@ class _FridgeScreenState extends State<FridgeScreen>
                           ),
                         ),
                         items: ['pieces', 'kg', 'g', 'L', 'ml', 'cups']
-                            .map((u) =>
-                                DropdownMenuItem(value: u, child: Text(u)))
+                            .map(
+                              (u) => DropdownMenuItem(value: u, child: Text(u)),
+                            )
                             .toList(),
                         onChanged: (v) =>
                             setDialogState(() => selectedUnit = v!),
@@ -1000,9 +1135,7 @@ class _FridgeScreenState extends State<FridgeScreen>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: const Text('Delete Item'),
         content: Text('Are you sure you want to delete "${item.name}"?'),
         actions: [

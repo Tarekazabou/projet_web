@@ -425,6 +425,18 @@ class ApiService {
     });
   }
 
+  // ==================== Receipt Scanner Endpoints ====================
+
+  /// Scan a receipt image and extract food items
+  Future<Map<String, dynamic>> scanReceipt(String base64Image) async {
+    return await post('/receipt/scan', {'image': base64Image});
+  }
+
+  /// Test if Ollama connection is available
+  Future<Map<String, dynamic>> testReceiptScannerConnection() async {
+    return await get('/receipt/test-connection');
+  }
+
   /// Dispose the client when done
   void dispose() {
     _client.close();
