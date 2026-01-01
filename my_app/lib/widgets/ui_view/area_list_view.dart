@@ -31,15 +31,17 @@ class RunningView extends StatelessWidget {
               0.0,
             ),
             child: Padding(
-              padding: const EdgeInsets.only(left: 24, right: 24, top: 16, bottom: 18),
+              padding: const EdgeInsets.only(
+                left: 24,
+                right: 24,
+                top: 16,
+                bottom: 18,
+              ),
               child: Container(
                 decoration: BoxDecoration(
                   color: MealyTheme.nearlyGreen,
                   gradient: const LinearGradient(
-                    colors: [
-                      Color(0xFF2EC4B6),
-                      Color(0xFF40D9C9),
-                    ],
+                    colors: [Color(0xFF2EC4B6), Color(0xFF40D9C9)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -99,7 +101,9 @@ class RunningView extends StatelessWidget {
                                   fontWeight: FontWeight.w500,
                                   fontSize: 10,
                                   letterSpacing: 0.0,
-                                  color: MealyTheme.white.withValues(alpha: 0.8),
+                                  color: MealyTheme.white.withValues(
+                                    alpha: 0.8,
+                                  ),
                                 ),
                               ),
                             ),
@@ -177,32 +181,35 @@ class _AreaListViewState extends State<AreaListView>
               child: Padding(
                 padding: const EdgeInsets.only(left: 8.0, right: 8),
                 child: GridView(
-                  padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 16),
+                  padding: const EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    top: 16,
+                    bottom: 16,
+                  ),
                   physics: const BouncingScrollPhysics(),
                   scrollDirection: Axis.vertical,
-                  children: List<Widget>.generate(
-                    areaData.length,
-                    (int index) {
-                      final int count = areaData.length;
-                      final Animation<double> animation = Tween<double>(begin: 0.0, end: 1.0).animate(
-                        CurvedAnimation(
-                          parent: animationController!,
-                          curve: Interval(
-                            (1 / count) * index,
-                            1.0,
-                            curve: Curves.fastOutSlowIn,
+                  children: List<Widget>.generate(areaData.length, (int index) {
+                    final int count = areaData.length;
+                    final Animation<double> animation =
+                        Tween<double>(begin: 0.0, end: 1.0).animate(
+                          CurvedAnimation(
+                            parent: animationController!,
+                            curve: Interval(
+                              (1 / count) * index,
+                              1.0,
+                              curve: Curves.fastOutSlowIn,
+                            ),
                           ),
-                        ),
-                      );
-                      animationController?.forward();
-                      return AreaCard(
-                        areaData: areaData[index],
-                        animation: animation,
-                        animationController: animationController,
-                        onTap: () => widget.onItemTap?.call(areaData[index]),
-                      );
-                    },
-                  ),
+                        );
+                    animationController?.forward();
+                    return AreaCard(
+                      areaData: areaData[index],
+                      animation: animation,
+                      animationController: animationController,
+                      onTap: () => widget.onItemTap?.call(areaData[index]),
+                    );
+                  }),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     mainAxisSpacing: 24.0,
@@ -249,118 +256,107 @@ class AreaCard extends StatelessWidget {
             ),
             child: InkWell(
               onTap: onTap,
+              borderRadius: BorderRadius.circular(16),
               child: Container(
                 decoration: BoxDecoration(
                   color: MealyTheme.white,
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(8.0),
-                    bottomLeft: Radius.circular(8.0),
-                    bottomRight: Radius.circular(8.0),
-                    topRight: Radius.circular(48.0),
-                  ),
-                  boxShadow: <BoxShadow>[
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
                     BoxShadow(
-                      color: HexColor(areaData!.startColor).withValues(alpha: 0.2),
-                      offset: const Offset(1.1, 4.0),
-                      blurRadius: 8.0,
+                      color: Colors.black.withValues(alpha: 0.04),
+                      offset: const Offset(0, 2),
+                      blurRadius: 8,
                     ),
                   ],
                 ),
-                child: Column(
-                  children: <Widget>[
-                    Padding(
-                      padding: const EdgeInsets.only(top: 16, left: 16, right: 16),
-                      child: Row(
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
+                        children: [
+                          // Icon container
                           Container(
-                            width: 42,
-                            height: 42,
+                            width: 46,
+                            height: 46,
                             decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  HexColor(areaData!.startColor),
-                                  HexColor(areaData!.endColor),
-                                ],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
+                              color: HexColor(
+                                areaData!.startColor,
+                              ).withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Icon(
                               areaData!.icon,
-                              color: MealyTheme.white,
+                              color: HexColor(areaData!.startColor),
                               size: 24,
                             ),
                           ),
-                          // Progress indicator
-                          SizedBox(
-                            width: 32,
-                            height: 32,
-                            child: Stack(
-                              children: <Widget>[
-                                CircularProgressIndicator(
-                                  value: areaData!.progress * animation!.value,
-                                  strokeWidth: 3,
-                                  backgroundColor: MealyTheme.background,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    HexColor(areaData!.startColor),
-                                  ),
-                                ),
-                                Center(
-                                  child: Text(
-                                    '${(areaData!.progress * 100).toInt()}%',
-                                    style: const TextStyle(
-                                      fontFamily: MealyTheme.fontName,
-                                      fontSize: 8,
-                                      fontWeight: FontWeight.w600,
-                                      color: MealyTheme.darkText,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                          // Progress
+                          _buildProgressIndicator(),
                         ],
                       ),
-                    ),
-                    const Spacer(),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Text(
-                            areaData!.title,
-                            style: const TextStyle(
-                              fontFamily: MealyTheme.fontName,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                              letterSpacing: 0.2,
-                              color: MealyTheme.darkText,
-                            ),
-                          ),
-                          Text(
-                            areaData!.subtitle,
-                            style: TextStyle(
-                              fontFamily: MealyTheme.fontName,
-                              fontWeight: FontWeight.w500,
-                              fontSize: 10,
-                              letterSpacing: 0.2,
-                              color: MealyTheme.grey.withValues(alpha: 0.5),
-                            ),
-                          ),
-                        ],
+                      const Spacer(),
+                      Text(
+                        areaData!.title,
+                        style: const TextStyle(
+                          fontFamily: MealyTheme.fontName,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                          color: MealyTheme.darkerText,
+                        ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 2),
+                      Text(
+                        areaData!.subtitle,
+                        style: TextStyle(
+                          fontFamily: MealyTheme.fontName,
+                          fontWeight: FontWeight.w400,
+                          fontSize: 12,
+                          color: MealyTheme.grey.withValues(alpha: 0.7),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
         );
       },
+    );
+  }
+
+  Widget _buildProgressIndicator() {
+    final progress = areaData!.progress;
+    final color = HexColor(areaData!.startColor);
+
+    return SizedBox(
+      width: 38,
+      height: 38,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          CircularProgressIndicator(
+            value: progress * animation!.value,
+            strokeWidth: 3,
+            strokeCap: StrokeCap.round,
+            backgroundColor: color.withValues(alpha: 0.15),
+            valueColor: AlwaysStoppedAnimation<Color>(color),
+          ),
+          Text(
+            '${(progress * 100).toInt()}%',
+            style: TextStyle(
+              fontFamily: MealyTheme.fontName,
+              fontSize: 9,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -161,9 +161,14 @@ def get_daily_nutrition(date_str):
     try:
         user_id = require_current_user()
         db = get_db()
+        user_ref = db.collection('User').document(user_id)
         
         # Query meals for the specific date
-        query = db.collection('NutritionLog').where(filter=FieldFilter('user', '==', db.collection('User').document(user_id))).where(filter=FieldFilter('date', '==', date_str))
+        query = db.collection('NutritionLog').where(
+            filter=FieldFilter('user', '==', user_ref)
+        ).where(
+            filter=FieldFilter('date', '==', date_str)
+        )
         
         docs = query.stream()
         
@@ -179,6 +184,11 @@ def get_daily_nutrition(date_str):
         for doc in docs:
             meal = doc.to_dict()
             meal['id'] = doc.id
+            # Convert user reference to id string
+            if 'user' in meal and hasattr(meal['user'], 'id'):
+                meal['user'] = meal['user'].id
+            if 'recipe' in meal and meal['recipe'] and hasattr(meal['recipe'], 'id'):
+                meal['recipe'] = meal['recipe'].id
             meals.append(meal)
             
             # Aggregate nutrition
@@ -186,10 +196,36 @@ def get_daily_nutrition(date_str):
             for key in total_nutrition:
                 total_nutrition[key] += nutrition.get(key, 0)
         
+        # Get water intake for the date
+        water_query = db.collection('WaterIntake').where(
+            filter=FieldFilter('user', '==', user_ref)
+        ).where(
+            filter=FieldFilter('date', '==', date_str)
+        ).limit(1)
+        
+        water_docs = list(water_query.stream())
+        water_intake = water_docs[0].to_dict().get('amount', 0) if water_docs else 0
+        
+        # Get user goals
+        user_doc = user_ref.get()
+        goals = {}
+        if user_doc.exists:
+            user_data = user_doc.to_dict()
+            goals = user_data.get('nutritionGoals', {
+                'calories': 2000,
+                'protein': 50,
+                'carbs': 250,
+                'fat': 70,
+                'fiber': 25,
+                'water': 8
+            })
+        
         return jsonify({
             'date': date_str,
             'meals': meals,
-            'total_nutrition': total_nutrition
+            'total_nutrition': total_nutrition,
+            'water_intake': water_intake,
+            'goals': goals
         }), 200
         
     except Exception as e:
@@ -209,24 +245,35 @@ def log_meal():
             if field not in data:
                 return jsonify({'error': f'Missing required field: {field}'}), 400
         
+        user_ref = db.collection('User').document(user_id)
+        
         meal_data = {
-            'user': db.collection('User').document(user_id),
+            'user': user_ref,
             'mealName': data['mealName'],
             'date': data['date'],
             'mealType': data.get('mealType', 'other'),
             'nutrition': data['nutrition'],
-            'recipe': db.collection('Recipe').document(data['recipe']) if 'recipe' in data else None,
             'createdAt': datetime.utcnow()
         }
         
+        # Only add recipe reference if provided
+        if 'recipe' in data and data['recipe']:
+            meal_data['recipe'] = db.collection('Recipe').document(data['recipe'])
+        
         _, new_log_ref = db.collection('NutritionLog').add(meal_data)
         
-        created_log = new_log_ref.get().to_dict()
-        created_log['id'] = new_log_ref.id
+        # Return cleaned response
+        response_meal = {
+            'id': new_log_ref.id,
+            'mealName': data['mealName'],
+            'date': data['date'],
+            'mealType': data.get('mealType', 'other'),
+            'nutrition': data['nutrition'],
+        }
         
         return jsonify({
             'message': 'Meal logged successfully',
-            'meal': created_log
+            'meal': response_meal
         }), 201
         
     except Exception as e:
@@ -260,7 +307,7 @@ def delete_meal_log(meal_id):
 
 @nutrition_bp.route('/water-intake', methods=['POST'])
 def log_water_intake():
-    """Log water intake"""
+    """Log water intake - sets the total glasses for the day"""
     try:
         user_id = require_current_user()
         db = get_db()
@@ -269,42 +316,52 @@ def log_water_intake():
         if not data or 'amount' not in data or 'date' not in data:
             return jsonify({'error': 'amount and date are required'}), 400
         
-        # Find or create water log for the date
+        user_ref = db.collection('User').document(user_id)
         date_str = data['date']
-        query = db.collection('WaterIntake').where(filter=FieldFilter('user', '==', db.collection('User').document(user_id))).where(filter=FieldFilter('date', '==', date_str)).limit(1)
+        amount = data['amount']
+        
+        # Find or create water log for the date
+        query = db.collection('WaterIntake').where(
+            filter=FieldFilter('user', '==', user_ref)
+        ).where(
+            filter=FieldFilter('date', '==', date_str)
+        ).limit(1)
         docs = list(query.stream())
         
         if docs:
-            # Update existing
+            # Update existing - set the exact amount
             water_ref = docs[0].reference
-            current_data = docs[0].to_dict()
-            new_amount = current_data.get('amount', 0) + data['amount']
-            water_ref.update({'amount': new_amount})
-            
-            updated_data = water_ref.get().to_dict()
-            updated_data['id'] = water_ref.id
+            water_ref.update({
+                'amount': amount,
+                'updatedAt': datetime.utcnow()
+            })
             
             return jsonify({
                 'message': 'Water intake updated',
-                'water_intake': updated_data
+                'water_intake': {
+                    'id': water_ref.id,
+                    'date': date_str,
+                    'amount': amount
+                }
             }), 200
         else:
             # Create new
             water_data = {
-                'user': db.collection('User').document(user_id),
+                'user': user_ref,
                 'date': date_str,
-                'amount': data['amount'],
+                'amount': amount,
                 'createdAt': datetime.utcnow()
             }
             
             _, new_ref = db.collection('WaterIntake').add(water_data)
             
-            created_data = new_ref.get().to_dict()
-            created_data['id'] = new_ref.id
-            
             return jsonify({
                 'message': 'Water intake logged',
-                'water_intake': created_data
+                'water_intake': {
+                    'id': new_ref.id,
+                    'date': date_str,
+                    'amount': amount
+                }
             }), 201
         
     except Exception as e:
