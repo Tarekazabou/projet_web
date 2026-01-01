@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
-import '../../utils/mealy_theme.dart';
 
-/// Meals list view - horizontal scrolling meal cards
-/// Inspired by fitness app meals_list_view.dart
+// ============================================================================
+// MEALS LIST VIEW - Horizontal scrolling meal cards
+// ============================================================================
+
 class MealsListView extends StatefulWidget {
   const MealsListView({
-    Key? key,
+    super.key,
     this.mainScreenAnimation,
     this.mainScreenAnimationController,
     this.meals,
     this.onMealTap,
-  }) : super(key: key);
+  });
 
   final Animation<double>? mainScreenAnimation;
   final AnimationController? mainScreenAnimationController;
@@ -23,63 +24,47 @@ class MealsListView extends StatefulWidget {
 
 class _MealsListViewState extends State<MealsListView>
     with TickerProviderStateMixin {
-  AnimationController? animationController;
+  late AnimationController _animationController;
+
+  List<MealData> get _meals => widget.meals ?? MealData.defaultMeals;
 
   @override
   void initState() {
-    animationController = AnimationController(
-      duration: const Duration(milliseconds: 2000),
-      vsync: this,
-    );
-    animationController?.forward();
     super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    )..forward();
   }
 
   @override
   void dispose() {
-    animationController?.dispose();
+    _animationController.dispose();
     super.dispose();
   }
-
-  List<MealData> get mealsData => widget.meals ?? MealData.defaultMeals;
 
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: widget.mainScreenAnimationController!,
-      builder: (BuildContext context, Widget? child) {
+      builder: (context, _) {
         return FadeTransition(
           opacity: widget.mainScreenAnimation!,
-          child: Transform(
-            transform: Matrix4.translationValues(
-              0.0,
-              30 * (1.0 - widget.mainScreenAnimation!.value),
-              0.0,
-            ),
+          child: Transform.translate(
+            offset: Offset(0, 30 * (1.0 - widget.mainScreenAnimation!.value)),
             child: SizedBox(
-              height: 220,
-              child: ListView.builder(
-                padding: const EdgeInsets.only(top: 0, bottom: 0, right: 16, left: 16),
-                itemCount: mealsData.length,
+              height: 200,
+              child: ListView.separated(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
                 scrollDirection: Axis.horizontal,
-                itemBuilder: (BuildContext context, int index) {
-                  final int count = mealsData.length > 10 ? 10 : mealsData.length;
-                  final Animation<double> animation = Tween<double>(begin: 0.0, end: 1.0).animate(
-                    CurvedAnimation(
-                      parent: animationController!,
-                      curve: Interval(
-                        (1 / count) * index,
-                        1.0,
-                        curve: Curves.fastOutSlowIn,
-                      ),
-                    ),
-                  );
-                  animationController?.forward();
+                itemCount: _meals.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 12),
+                itemBuilder: (context, index) {
+                  final animation = _createStaggeredAnimation(index);
                   return MealCard(
-                    mealData: mealsData[index],
+                    meal: _meals[index],
                     animation: animation,
-                    animationController: animationController,
-                    onTap: () => widget.onMealTap?.call(mealsData[index]),
+                    onTap: () => widget.onMealTap?.call(_meals[index]),
                   );
                 },
               ),
@@ -89,224 +74,243 @@ class _MealsListViewState extends State<MealsListView>
       },
     );
   }
+
+  Animation<double> _createStaggeredAnimation(int index) {
+    final count = _meals.length.clamp(1, 10);
+    return Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Interval(
+          (1 / count) * index * 0.5,
+          0.5 + (1 / count) * index * 0.5,
+          curve: Curves.easeOutCubic,
+        ),
+      ),
+    );
+  }
 }
 
-/// Individual meal card
+// ============================================================================
+// MEAL CARD - Individual meal display card
+// ============================================================================
+
 class MealCard extends StatelessWidget {
   const MealCard({
-    Key? key,
-    this.mealData,
-    this.animationController,
-    this.animation,
+    super.key,
+    required this.meal,
+    required this.animation,
     this.onTap,
-  }) : super(key: key);
+  });
 
-  final MealData? mealData;
-  final AnimationController? animationController;
-  final Animation<double>? animation;
+  final MealData meal;
+  final Animation<double> animation;
   final VoidCallback? onTap;
+
+  static const double _cardWidth = 140;
+  static const double _iconSize = 80;
 
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: animationController!,
-      builder: (BuildContext context, Widget? child) {
+      animation: animation,
+      builder: (context, _) {
         return FadeTransition(
-          opacity: animation!,
-          child: Transform(
-            transform: Matrix4.translationValues(
-              100 * (1.0 - animation!.value),
-              0.0,
-              0.0,
-            ),
-            child: InkWell(
-              splashColor: Colors.transparent,
-              onTap: onTap,
-              child: SizedBox(
-                width: 130,
-                child: Stack(
-                  children: <Widget>[
-                    // Card background with gradient
-                    Padding(
-                      padding: const EdgeInsets.only(top: 32, left: 8, right: 8, bottom: 16),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          boxShadow: <BoxShadow>[
-                            BoxShadow(
-                              color: HexColor(mealData!.endColor).withValues(alpha: 0.6),
-                              offset: const Offset(1.1, 4.0),
-                              blurRadius: 8.0,
-                            ),
-                          ],
-                          gradient: LinearGradient(
-                            colors: <Color>[
-                              HexColor(mealData!.startColor),
-                              HexColor(mealData!.endColor),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: const BorderRadius.only(
-                            bottomRight: Radius.circular(8.0),
-                            bottomLeft: Radius.circular(8.0),
-                            topLeft: Radius.circular(8.0),
-                            topRight: Radius.circular(54.0),
-                          ),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 54, left: 16, right: 16, bottom: 8),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Text(
-                                mealData!.title,
-                                style: const TextStyle(
-                                  fontFamily: MealyTheme.fontName,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                  letterSpacing: 0.2,
-                                  color: MealyTheme.white,
-                                ),
-                              ),
-                              Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.only(top: 8, bottom: 8),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: <Widget>[
-                                      Expanded(
-                                        child: Text(
-                                          mealData!.meals?.take(2).join('\n') ?? '',
-                                          style: TextStyle(
-                                            fontFamily: MealyTheme.fontName,
-                                            fontWeight: FontWeight.w500,
-                                            fontSize: 10,
-                                            letterSpacing: 0.2,
-                                            color: MealyTheme.white.withValues(alpha: 0.8),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: <Widget>[
-                                  Text(
-                                    '${mealData!.kcal}',
-                                    style: const TextStyle(
-                                      fontFamily: MealyTheme.fontName,
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 24,
-                                      letterSpacing: 0.2,
-                                      color: MealyTheme.white,
-                                    ),
-                                  ),
-                                  const Padding(
-                                    padding: EdgeInsets.only(left: 4, bottom: 3),
-                                    child: Text(
-                                      'kcal',
-                                      style: TextStyle(
-                                        fontFamily: MealyTheme.fontName,
-                                        fontWeight: FontWeight.w500,
-                                        fontSize: 10,
-                                        letterSpacing: 0.2,
-                                        color: MealyTheme.white,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    // Top icon
-                    Positioned(
-                      top: 0,
-                      left: 0,
-                      child: Container(
-                        width: 84,
-                        height: 84,
-                        decoration: BoxDecoration(
-                          color: MealyTheme.nearlyWhite.withValues(alpha: 0.2),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: Icon(
-                            mealData!.icon,
-                            size: 40,
-                            color: MealyTheme.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+          opacity: animation,
+          child: Transform.translate(
+            offset: Offset(50 * (1 - animation.value), 0),
+            child: _buildCard(),
           ),
         );
       },
     );
   }
+
+  Widget _buildCard() {
+    return GestureDetector(
+      onTap: onTap,
+      child: SizedBox(
+        width: _cardWidth,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [_buildCardBody(), _buildIconBubble()],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCardBody() {
+    return Positioned.fill(
+      top: _iconSize / 2,
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [meal.startColor, meal.endColor],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(16),
+            topRight: Radius.circular(48),
+            bottomLeft: Radius.circular(16),
+            bottomRight: Radius.circular(16),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: meal.endColor.withValues(alpha: 0.4),
+              blurRadius: 12,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.fromLTRB(14, 48, 14, 14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildTitle(),
+            const SizedBox(height: 6),
+            Expanded(child: _buildMealsList()),
+            _buildCalories(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIconBubble() {
+    return Positioned(
+      top: 0,
+      left: 8,
+      child: Container(
+        width: _iconSize,
+        height: _iconSize,
+        decoration: BoxDecoration(
+          color: meal.endColor,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: meal.endColor.withValues(alpha: 0.5),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Icon(meal.icon, size: 36, color: Colors.white),
+      ),
+    );
+  }
+
+  Widget _buildTitle() {
+    return Text(
+      meal.title,
+      style: const TextStyle(
+        fontWeight: FontWeight.bold,
+        fontSize: 17,
+        color: Colors.white,
+        letterSpacing: 0.3,
+      ),
+    );
+  }
+
+  Widget _buildMealsList() {
+    final displayMeals = meal.meals?.take(2).toList() ?? [];
+    return Text(
+      displayMeals.join('\n'),
+      style: TextStyle(
+        fontSize: 11,
+        color: Colors.white.withValues(alpha: 0.85),
+        height: 1.4,
+      ),
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
+    );
+  }
+
+  Widget _buildCalories() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      textBaseline: TextBaseline.alphabetic,
+      children: [
+        Text(
+          '${meal.kcal}',
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 26,
+            color: Colors.white,
+          ),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          'kcal',
+          style: TextStyle(
+            fontSize: 11,
+            color: Colors.white.withValues(alpha: 0.8),
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
 }
 
-/// Meal data model
+// ============================================================================
+// MEAL DATA MODEL
+// ============================================================================
+
 class MealData {
-  MealData({
-    this.icon = Icons.restaurant,
-    this.title = '',
-    this.startColor = '#FA7D82',
-    this.endColor = '#FFB295',
+  const MealData({
+    required this.icon,
+    required this.title,
+    required this.startColor,
+    required this.endColor,
     this.meals,
     this.kcal = 0,
   });
 
   final IconData icon;
   final String title;
-  final String startColor;
-  final String endColor;
+  final Color startColor;
+  final Color endColor;
   final List<String>? meals;
   final int kcal;
 
-  static List<MealData> defaultMeals = <MealData>[
+  // Predefined meal types with their colors
+  static const _breakfastColors = (Color(0xFFFA7D82), Color(0xFFFFB295));
+  static const _lunchColors = (Color(0xFF738AE6), Color(0xFF5C5EDD));
+  static const _dinnerColors = (Color(0xFF6F72CA), Color(0xFF1E1466));
+  static const _snackColors = (Color(0xFFFE95B6), Color(0xFFFF5287));
+
+  static List<MealData> defaultMeals = [
     MealData(
       icon: Icons.free_breakfast_rounded,
       title: 'Breakfast',
       kcal: 525,
-      meals: <String>['Bread', 'Peanut butter', 'Apple'],
-      startColor: '#FA7D82',
-      endColor: '#FFB295',
+      meals: ['Bread', 'Peanut butter'],
+      startColor: _breakfastColors.$1,
+      endColor: _breakfastColors.$2,
     ),
     MealData(
       icon: Icons.lunch_dining_rounded,
       title: 'Lunch',
       kcal: 602,
-      meals: <String>['Salmon', 'Rice', 'Vegetables'],
-      startColor: '#738AE6',
-      endColor: '#5C5EDD',
+      meals: ['Salmon', 'Rice'],
+      startColor: _lunchColors.$1,
+      endColor: _lunchColors.$2,
     ),
     MealData(
       icon: Icons.dinner_dining_rounded,
       title: 'Dinner',
       kcal: 745,
-      meals: <String>['Chicken', 'Pasta', 'Salad'],
-      startColor: '#6F72CA',
-      endColor: '#1E1466',
+      meals: ['Chicken', 'Pasta'],
+      startColor: _dinnerColors.$1,
+      endColor: _dinnerColors.$2,
     ),
     MealData(
       icon: Icons.icecream_rounded,
       title: 'Snack',
       kcal: 125,
-      meals: <String>['Nuts', 'Yogurt'],
-      startColor: '#FE95B6',
-      endColor: '#FF5287',
+      meals: ['Nuts', 'Yogurt'],
+      startColor: _snackColors.$1,
+      endColor: _snackColors.$2,
     ),
   ];
 }

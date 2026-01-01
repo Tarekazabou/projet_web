@@ -2,7 +2,7 @@ import sys
 from pathlib import Path
 
 # Add the backend directory to the Python path
-backend_dir = Path(__file__).resolve().parent
+backend_dir = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(backend_dir))
 
 from flask import Flask, request, jsonify, send_from_directory, g
@@ -31,7 +31,7 @@ load_dotenv()
 # Initialize Flask app
 app = Flask(
     __name__,
-    static_folder='../frontend-react/dist',
+    static_folder='../../frontend-react/dist',
     static_url_path=''
 )
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key')
@@ -42,7 +42,6 @@ CORS(app, resources={
         "origins": "*",  # Allow all origins in development
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         "allow_headers": ["Content-Type", "Authorization", "X-User-Id"],
-        "expose_headers": ["X-User-Id"],
         "supports_credentials": False  # Must be False when origins is *
     }
 })

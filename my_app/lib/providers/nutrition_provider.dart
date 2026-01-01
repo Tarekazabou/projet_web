@@ -300,6 +300,11 @@ class NutritionProvider with ChangeNotifier {
     await updateGoalsObject(newGoals);
   }
 
+  /// Set water goal (number of glasses)
+  Future<void> setWaterGoal(int glasses) async {
+    await updateGoals(water: glasses);
+  }
+
   /// Log a meal
   Future<void> logMeal({
     required String mealName,

@@ -9,7 +9,6 @@ from functools import wraps
 
 from flask import g, request
 from firebase_admin import auth as firebase_auth
-from google.cloud import exceptions
 import jwt
 
 from utils.firebase_connector import get_db
@@ -121,7 +120,7 @@ def _load_user_from_firebase_token(id_token: str) -> Optional[dict]:
         }
         try:
             user_data = _create_user_document(user_id, defaults)
-        except exceptions.GoogleCloudError as exc:
+        except Exception as exc:
             logger.error('Failed to create user document for %s: %s', user_id, exc)
             return None
 
