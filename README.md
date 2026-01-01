@@ -1,31 +1,43 @@
 # Mealy: AI-Powered Recipe & Meal Planning Platform
 
-> **Version 2.1** - React Frontend Migration with Enhanced UX and Modern Architecture
+> **Version 3.0** - Flutter Mobile App + Full Meal Planning & Smart Grocery Integration
 
 [![CI/CD Pipeline](https://github.com/Tarekazabou/projet_web/workflows/CI%2FCD%20Pipeline/badge.svg)](https://github.com/Tarekazabou/projet_web/actions)
 [![codecov](https://codecov.io/gh/Tarekazabou/projet_web/branch/main/graph/badge.svg)](https://codecov.io/gh/Tarekazabou/projet_web)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Mealy is an intelligent web application that revolutionizes meal planning and recipe discovery using AI. From generating personalized recipes to tracking nutrition and managing grocery lists, Mealy is your comprehensive kitchen assistant.
+Mealy is an intelligent application that revolutionizes meal planning and recipe discovery using AI. From generating personalized recipes to tracking nutrition and managing grocery lists, Mealy is your comprehensive kitchen assistant.
 
-## 🚀 What's New in Version 2.1
+## 🚀 What's New in Version 3.0
 
-### Frontend Migration to React
-- ✅ **Modern React Architecture**: Migrated from vanilla JavaScript to React 18 with Vite
-- ✅ **Component-Based Design**: Modular, reusable components for better maintainability
-- ✅ **React Router**: Client-side routing for smoother navigation
-- ✅ **Context API**: Centralized state management with React Context
-- ✅ **Hot Module Replacement**: Lightning-fast development with Vite HMR
-- ✅ **Optimized Builds**: Production-ready builds with code splitting and minification
+### Flutter Mobile App
+- ✅ **Cross-Platform Mobile App**: Beautiful Flutter app for iOS, Android, and Web
+- ✅ **Modern UI Design**: Inspired by fitness app templates with warm food-focused colors
+- ✅ **Provider State Management**: Efficient state management with Provider pattern
+- ✅ **Firebase Integration**: Firebase Auth and Firestore for real-time data
+- ✅ **Responsive Design**: ScreenUtil for consistent scaling across devices
+
+### Meal Planning System
+- ✅ **Weekly Meal Planner**: Visual calendar with 7-day horizontal scroll
+- ✅ **Meal Type Organization**: Breakfast, Lunch, Dinner, and Snack sections
+- ✅ **AI Meal Suggestions**: Smart recommendations based on fridge contents
+- ✅ **Fridge Match Percentage**: See which ingredients you already have
+- ✅ **Quick Add Meals**: Easy form to add custom meals
+
+### Smart Grocery Lists
+- ✅ **Auto-Generate from Meal Plans**: Create shopping lists from weekly plans
+- ✅ **Fridge-Aware**: Automatically subtracts items you already have
+- ✅ **Category Organization**: Items grouped by Dairy, Produce, Meat, etc.
+- ✅ **Progress Tracking**: Visual percentage of items purchased
+- ✅ **Swipe to Delete**: Easy item removal with swipe gestures
+- ✅ **Toggle Purchased**: Mark items as bought with animated checkmarks
 
 ### Backend Improvements
 - ✅ **Enhanced Architecture**: Modular, maintainable code structure with separation of concerns
 - ✅ **Robust Authentication**: JWT tokens, Firebase Auth integration, role-based access control
-- ✅ **Advanced Validation**: Comprehensive input validation and sanitization
+- ✅ **New API Endpoints**: Meal plans weekly view, AI suggestions, grocery management
+- ✅ **Firestore Optimizations**: Efficient queries without composite index requirements
 - ✅ **Structured Logging**: JSON logging with request tracing and monitoring
-- ✅ **Security Headers**: CORS, CSP, XSS protection, and rate limiting
-- ✅ **Error Handling**: Standardized API responses with detailed error codes
-- ✅ **Production Ready**: Docker support, environment configuration, health checks
 
 ### Testing & Quality
 - ✅ **Comprehensive Tests**: Unit, integration, and E2E tests with >80% coverage
@@ -81,10 +93,19 @@ Mealy is an intelligent web application that revolutionizes meal planning and re
 - **Server**: Gunicorn (production)
 - **Testing**: Pytest, Coverage
 
-### Frontend
+### Flutter Mobile App
+- **Framework**: Flutter 3.9+ / Dart
+- **State Management**: Provider
+- **UI**: flutter_screenutil, Custom Theme (MealyTheme)
+- **Authentication**: Firebase Auth
+- **Database**: Firebase Firestore
+- **HTTP**: http package with custom ApiService
+- **Animations**: Lottie, Built-in Flutter animations
+
+### React Web Frontend
 - **Framework**: React 18 with Vite
 - **Routing**: React Router v6
-- **Styling**: CSS3, Custom Components (migrated from vanilla JS)
+- **Styling**: CSS3, Custom Components
 - **Authentication**: Firebase SDK with React Context
 - **Build**: Vite (fast HMR and optimized production builds)
 - **State Management**: React Context API
@@ -99,25 +120,26 @@ Mealy is an intelligent web application that revolutionizes meal planning and re
 ## 🏗 Architecture
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                   Frontend (Browser)                 │
-│  ┌────────────┐  ┌────────────┐  ┌────────────┐   │
-│  │   Auth     │  │  Recipes   │  │ Meal Plans │   │
-│  └────────────┘  └────────────┘  └────────────┘   │
-└─────────────────────────────────────────────────────┘
-                      │
-                      │ HTTPS / REST API
-                      ▼
-┌─────────────────────────────────────────────────────┐
-│                Backend (Flask + Gunicorn)            │
-│  ┌────────────────────────────────────────────┐    │
-│  │  Middleware (Auth, Logging, CORS)          │    │
-│  └────────────────────────────────────────────┘    │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐         │
-│  │  Routes  │  │ Services │  │ Utilities│         │
-│  └──────────┘  └──────────┘  └──────────┘         │
-└─────────────────────────────────────────────────────┘
-        │                    │                   │
+┌─────────────────────────────────────────────────────────────────────┐
+│                         Clients                                      │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐     │
+│  │  Flutter App    │  │   React Web     │  │   API Clients   │     │
+│  │ (iOS/Android)   │  │   (Browser)     │  │                 │     │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘     │
+└─────────────────────────────────────────────────────────────────────┘
+                              │
+                              │ HTTPS / REST API
+                              ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                    Backend (Flask + Gunicorn)                        │
+│  ┌────────────────────────────────────────────────────────────┐    │
+│  │  Middleware (Auth, Logging, CORS, X-User-Id Header)        │    │
+│  └────────────────────────────────────────────────────────────┘    │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐           │
+│  │ Recipes  │  │MealPlans │  │ Grocery  │  │ Fridge   │           │
+│  │  Routes  │  │  Routes  │  │  Routes  │  │  Routes  │           │
+│  └──────────┘  └──────────┘  └──────────┘  └──────────┘           │
+└─────────────────────────────────────────────────────────────────────┘
         │                    │                   │
         ▼                    ▼                   ▼
 ┌──────────────┐   ┌──────────────┐   ┌──────────────┐
@@ -156,43 +178,58 @@ Mealy is an intelligent web application that revolutionizes meal planning and re
    pip install -r requirements.txt
    ```
 
-4. **Set up React frontend**
+4. **Run the backend server**
    ```bash
-   cd ../frontend-react
+   cd backend
+   python app.py
+   ```
+
+5. **Open your browser**
+   Navigate to `http://localhost:5000`
+
+### Flutter Mobile App Setup
+
+1. **Install Flutter dependencies**
+   ```bash
+   cd my_app
+   flutter pub get
+   ```
+
+2. **Configure API URL** in `lib/utils/constants.dart`:
+   - **iOS Simulator**: `http://localhost:5000/api`
+   - **Android Emulator**: `http://10.0.2.2:5000/api`
+   - **Real Device**: `http://YOUR_COMPUTER_IP:5000/api`
+
+3. **Run the Flutter app**
+   ```bash
+   flutter run
+   ```
+
+4. **Available platforms**
+   ```bash
+   flutter run -d chrome    # Web
+   flutter run -d windows   # Windows Desktop
+   flutter run -d android   # Android
+   flutter run -d ios       # iOS
+   ```
+
+### React Web Frontend Setup (Optional)
+
+1. **Set up React frontend**
+   ```bash
+   cd frontend-react
    npm install
    ```
 
-5. **Build the React frontend**
+2. **Development mode with Hot Reload**
    ```bash
-   npm run build
-   ```
-
-6. **Run the backend server** (serves both API and React app)
-   ```bash
-   cd ../backend
-   python run_server.py
-   ```
-
-7. **Open your browser**
-   Navigate to `http://localhost:5000`
-
-### Development with Hot Reload
-
-For frontend development with hot module replacement:
-
-1. **Start the backend API** (in one terminal)
-   ```bash
-   cd backend
-   python run_server.py
-   ```
-
-2. **Start the React dev server** (in another terminal)
-   ```bash
-   cd frontend-react
    npm run dev
    ```
 
-3. **Access the app** at `http://localhost:3000`
+3. **Production build**
+   ```bash
+   npm run build
+   ```
 
 ### Quick Start (Docker)
 
@@ -377,15 +414,12 @@ See detailed guides for:
 
 ### Base URL
 ```
-https://api.mealy.com/api
+http://localhost:5000/api
 ```
 
 ### Authentication
 ```bash
-# Include JWT token in header
-Authorization: Bearer <token>
-
-# Or use X-User-Id for demo mode
+# Include X-User-Id header for all requests
 X-User-Id: <user_id>
 ```
 
@@ -394,6 +428,13 @@ X-User-Id: <user_id>
 #### Health Check
 ```http
 GET /api/health
+```
+
+#### Fridge Management
+```http
+GET  /api/fridge/items          # Get all fridge items
+POST /api/fridge/items          # Add item to fridge
+DELETE /api/fridge/items/{id}   # Remove item from fridge
 ```
 
 #### AI Recipe Generation
@@ -409,20 +450,32 @@ Content-Type: application/json
 }
 ```
 
-#### Get Recipes
+#### Meal Plans
 ```http
-GET /api/recipes?page=1&limit=20
+GET  /api/meal-plans/                    # Get all meal plans
+GET  /api/meal-plans/week?start_date=    # Get weekly meal plans
+POST /api/meal-plans/                    # Create meal plan
+DELETE /api/meal-plans/{id}              # Delete meal plan
+POST /api/meal-plans/ai-suggest          # Get AI meal suggestions
+POST /api/meal-plans/generate-grocery    # Generate grocery from plans
 ```
 
-#### Create Meal Plan
+#### Grocery Lists
 ```http
-POST /api/meal-plans
-Content-Type: application/json
+GET  /api/grocery/items                  # Get grocery items
+POST /api/grocery/items                  # Add grocery item
+PUT  /api/grocery/items/{index}          # Update item
+DELETE /api/grocery/items/{index}        # Delete item
+POST /api/grocery/toggle-purchased/{idx} # Toggle purchased status
+POST /api/grocery/clear-purchased        # Clear all purchased items
+POST /api/grocery/from-meal-plan         # Create list from meal plan
+```
 
-{
-  "startDate": "2025-11-01",
-  "meals": [...]
-}
+#### Nutrition Tracking
+```http
+GET /api/nutrition/daily/{date}          # Get daily nutrition
+GET /api/nutrition/weekly                # Get weekly summary
+POST /api/nutrition/log-meal             # Log a meal
 ```
 
 See [API Documentation](docs/API.md) for complete reference.
