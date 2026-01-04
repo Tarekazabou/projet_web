@@ -3,6 +3,8 @@ node_modules/
 __pycache__/
 *.pyc
 .env
+backend/venv/
+
 
 # Build outputs
 dist/
@@ -14,7 +16,7 @@ build/
 .vscode/
 *.swp
 *.swo
-
+mealy-41bf0-firebase-adminsdk-fbsvc-7d493e86ea.json
 # Firebase credentials - NEVER commit these!
 mealy-41bf0-firebase-adminsdk*.json*
 *-firebase-adminsdk-*.json

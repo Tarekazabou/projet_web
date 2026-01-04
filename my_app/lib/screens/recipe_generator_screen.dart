@@ -59,7 +59,8 @@ class _RecipeGeneratorScreenState extends State<RecipeGeneratorScreen>
         if (topBarOpacity != 1.0) {
           setState(() => topBarOpacity = 1.0);
         }
-      } else if (scrollController.offset <= 24 && scrollController.offset >= 0) {
+      } else if (scrollController.offset <= 24 &&
+          scrollController.offset >= 0) {
         if (topBarOpacity != scrollController.offset / 24) {
           setState(() => topBarOpacity = scrollController.offset / 24);
         }
@@ -97,7 +98,9 @@ class _RecipeGeneratorScreenState extends State<RecipeGeneratorScreen>
           content: const Text('Veuillez entrer au moins un ingrédient'),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
       );
       return;
@@ -120,7 +123,9 @@ class _RecipeGeneratorScreenState extends State<RecipeGeneratorScreen>
             content: const Text('Recette générée avec succès !'),
             backgroundColor: MealyTheme.nearlyGreen,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
           ),
         );
       }
@@ -133,12 +138,7 @@ class _RecipeGeneratorScreenState extends State<RecipeGeneratorScreen>
       color: MealyTheme.background,
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        body: Stack(
-          children: [
-            _buildMainContent(),
-            _buildTopBar(),
-          ],
-        ),
+        body: Stack(children: [_buildMainContent(), _buildTopBar()]),
       ),
     );
   }
@@ -410,15 +410,22 @@ class _RecipeGeneratorScreenState extends State<RecipeGeneratorScreen>
                         helperText: 'Séparer par des virgules',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
-                          borderSide: BorderSide(color: MealyTheme.grey.withOpacity(0.3)),
+                          borderSide: BorderSide(
+                            color: MealyTheme.grey.withOpacity(0.3),
+                          ),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
-                          borderSide: BorderSide(color: MealyTheme.grey.withOpacity(0.3)),
+                          borderSide: BorderSide(
+                            color: MealyTheme.grey.withOpacity(0.3),
+                          ),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
-                          borderSide: const BorderSide(color: MealyTheme.nearlyOrange, width: 2),
+                          borderSide: const BorderSide(
+                            color: MealyTheme.nearlyOrange,
+                            width: 2,
+                          ),
                         ),
                         filled: true,
                         fillColor: MealyTheme.background,
@@ -508,11 +515,16 @@ class _RecipeGeneratorScreenState extends State<RecipeGeneratorScreen>
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
-                          borderSide: BorderSide(color: MealyTheme.grey.withOpacity(0.3)),
+                          borderSide: BorderSide(
+                            color: MealyTheme.grey.withOpacity(0.3),
+                          ),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
-                          borderSide: const BorderSide(color: MealyTheme.nearlyOrange, width: 2),
+                          borderSide: const BorderSide(
+                            color: MealyTheme.nearlyOrange,
+                            width: 2,
+                          ),
                         ),
                         filled: true,
                         fillColor: MealyTheme.background,
@@ -528,15 +540,20 @@ class _RecipeGeneratorScreenState extends State<RecipeGeneratorScreen>
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
-                          borderSide: BorderSide(color: MealyTheme.grey.withOpacity(0.3)),
+                          borderSide: BorderSide(
+                            color: MealyTheme.grey.withOpacity(0.3),
+                          ),
                         ),
                         filled: true,
                         fillColor: MealyTheme.background,
                       ),
                       items: ['Facile', 'Moyen', 'Difficile']
-                          .map((d) => DropdownMenuItem(value: d, child: Text(d)))
+                          .map(
+                            (d) => DropdownMenuItem(value: d, child: Text(d)),
+                          )
                           .toList(),
-                      onChanged: (value) => setState(() => _difficulty = value!),
+                      onChanged: (value) =>
+                          setState(() => _difficulty = value!),
                     ),
                     const SizedBox(height: 20),
                     _buildSliderSection(
@@ -705,12 +722,16 @@ class _RecipeGeneratorScreenState extends State<RecipeGeneratorScreen>
                             });
                           },
                           backgroundColor: MealyTheme.background,
-                          selectedColor: MealyTheme.nearlyGreen.withOpacity(0.2),
+                          selectedColor: MealyTheme.nearlyGreen.withOpacity(
+                            0.2,
+                          ),
                           checkmarkColor: MealyTheme.nearlyGreen,
                           labelStyle: TextStyle(
                             fontFamily: MealyTheme.fontName,
                             fontSize: 13,
-                            color: isSelected ? MealyTheme.nearlyGreen : MealyTheme.grey,
+                            color: isSelected
+                                ? MealyTheme.nearlyGreen
+                                : MealyTheme.grey,
                           ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20),
@@ -783,10 +804,16 @@ class _RecipeGeneratorScreenState extends State<RecipeGeneratorScreen>
                           ),
                         )
                       else
-                        const Icon(Icons.auto_awesome, color: MealyTheme.white, size: 24),
+                        const Icon(
+                          Icons.auto_awesome,
+                          color: MealyTheme.white,
+                          size: 24,
+                        ),
                       const SizedBox(width: 12),
                       Text(
-                        provider.isLoading ? 'Génération en cours...' : 'Générer une Recette',
+                        provider.isLoading
+                            ? 'Génération en cours...'
+                            : 'Générer une Recette',
                         style: const TextStyle(
                           fontFamily: MealyTheme.fontName,
                           fontSize: 18,
@@ -853,7 +880,11 @@ class _RecipeGeneratorScreenState extends State<RecipeGeneratorScreen>
                   ),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.restaurant, color: MealyTheme.white, size: 20),
+                child: const Icon(
+                  Icons.restaurant,
+                  color: MealyTheme.white,
+                  size: 20,
+                ),
               ),
               const SizedBox(width: 12),
               const Text(

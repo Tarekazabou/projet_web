@@ -10,6 +10,7 @@ import 'screens/recipe_generator_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/nutrition_screen.dart';
+import 'screens/grocery_list_screen.dart';
 import 'services/api_service.dart';
 import 'providers/fridge_provider.dart';
 import 'providers/recipe_provider.dart';
