@@ -17,11 +17,9 @@ import logging
 from routes.nutrition import nutrition_bp
 from routes.meal_plans import meal_plans_bp
 from routes.grocery import grocery_bp
-from routes.feedback import feedback_bp
 from routes.users import users_bp
 from routes.fridge import fridge_bp
 from routes.ai_recipes import ai_recipes_bp
-from routes.settings import settings_bp
 from routes.dashboard import dashboard_bp
 from routes.receipt_scanner import receipt_scanner_bp
 from routes.food_scanner import food_scanner_bp
@@ -61,10 +59,8 @@ app.register_blueprint(ai_recipes_bp, url_prefix='/api/recipes')
 app.register_blueprint(nutrition_bp, url_prefix='/api/nutrition')
 app.register_blueprint(meal_plans_bp, url_prefix='/api/meal-plans')
 app.register_blueprint(grocery_bp, url_prefix='/api/grocery')
-app.register_blueprint(feedback_bp, url_prefix='/api/feedback')
 app.register_blueprint(users_bp, url_prefix='/api/users')
 app.register_blueprint(fridge_bp, url_prefix='/api/fridge')
-app.register_blueprint(settings_bp, url_prefix='/api/settings')
 app.register_blueprint(dashboard_bp, url_prefix='/api/dashboard')
 app.register_blueprint(receipt_scanner_bp, url_prefix='/api/receipt')
 app.register_blueprint(food_scanner_bp, url_prefix='/api/food')
