@@ -26,7 +26,7 @@ class _MealsListViewState extends State<MealsListView>
     with TickerProviderStateMixin {
   late AnimationController _animationController;
 
-  List<MealData> get _meals => widget.meals ?? MealData.defaultMeals;
+  List<MealData> get _meals => widget.meals ?? [];
 
   @override
   void initState() {
@@ -54,20 +54,50 @@ class _MealsListViewState extends State<MealsListView>
             offset: Offset(0, 30 * (1.0 - widget.mainScreenAnimation!.value)),
             child: SizedBox(
               height: 350,
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                scrollDirection: Axis.horizontal,
-                itemCount: _meals.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 12),
-                itemBuilder: (context, index) {
-                  final animation = _createStaggeredAnimation(index);
-                  return MealCard(
-                    meal: _meals[index],
-                    animation: animation,
-                    onTap: () => widget.onMealTap?.call(_meals[index]),
-                  );
-                },
-              ),
+              child: _meals.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.restaurant_menu_rounded,
+                            size: 64,
+                            color: Colors.grey[400],
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No meals yet',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Add your first meal to get started',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[500],
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : ListView.separated(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      scrollDirection: Axis.horizontal,
+                      itemCount: _meals.length,
+                      separatorBuilder: (_, __) => const SizedBox(width: 12),
+                      itemBuilder: (context, index) {
+                        final animation = _createStaggeredAnimation(index);
+                        return MealCard(
+                          meal: _meals[index],
+                          animation: animation,
+                          onTap: () => widget.onMealTap?.call(_meals[index]),
+                        );
+                      },
+                    ),
             ),
           ),
         );
