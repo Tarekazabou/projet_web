@@ -5,6 +5,7 @@ import '../widgets/ui_view/title_view.dart';
 import '../widgets/ui_view/diet_view.dart';
 import '../widgets/ui_view/water_view.dart';
 import '../providers/nutrition_provider.dart';
+import 'food_scanner_screen.dart';
 
 /// Nutrition tracking screen - Training style
 /// Inspired by fitness app training_screen.dart
@@ -28,7 +29,8 @@ class _NutritionScreenState extends State<NutritionScreen>
 
   @override
   void initState() {
-    animationController = widget.animationController ??
+    animationController =
+        widget.animationController ??
         AnimationController(
           duration: const Duration(milliseconds: 600),
           vsync: this,
@@ -48,7 +50,8 @@ class _NutritionScreenState extends State<NutritionScreen>
             topBarOpacity = 1.0;
           });
         }
-      } else if (scrollController.offset <= 24 && scrollController.offset >= 0) {
+      } else if (scrollController.offset <= 24 &&
+          scrollController.offset >= 0) {
         if (topBarOpacity != scrollController.offset / 24) {
           setState(() {
             topBarOpacity = scrollController.offset / 24;
@@ -79,7 +82,19 @@ class _NutritionScreenState extends State<NutritionScreen>
 
   void addAllListData() {
     listViews.clear();
-    const int count = 7;
+    const int count = 8;
+
+    // Food Scanner Quick Action Card
+    listViews.add(
+      _buildFoodScannerCard(
+        animation: Tween<double>(begin: 0.0, end: 1.0).animate(
+          CurvedAnimation(
+            parent: animationController!,
+            curve: const Interval(0, 0.5, curve: Curves.fastOutSlowIn),
+          ),
+        ),
+      ),
+    );
 
     // Nutrition summary card
     listViews.add(
@@ -89,8 +104,11 @@ class _NutritionScreenState extends State<NutritionScreen>
             animation: Tween<double>(begin: 0.0, end: 1.0).animate(
               CurvedAnimation(
                 parent: animationController!,
-                curve: const Interval((1 / count) * 0, 1.0,
-                    curve: Curves.fastOutSlowIn),
+                curve: const Interval(
+                  (1 / count) * 1,
+                  1.0,
+                  curve: Curves.fastOutSlowIn,
+                ),
               ),
             ),
             caloriesRemaining:
@@ -109,8 +127,11 @@ class _NutritionScreenState extends State<NutritionScreen>
         animation: Tween<double>(begin: 0.0, end: 1.0).animate(
           CurvedAnimation(
             parent: animationController!,
-            curve: const Interval((1 / count) * 1, 1.0,
-                curve: Curves.fastOutSlowIn),
+            curve: const Interval(
+              (1 / count) * 1,
+              1.0,
+              curve: Curves.fastOutSlowIn,
+            ),
           ),
         ),
         animationController: animationController!,
@@ -125,8 +146,11 @@ class _NutritionScreenState extends State<NutritionScreen>
             animation: Tween<double>(begin: 0.0, end: 1.0).animate(
               CurvedAnimation(
                 parent: animationController!,
-                curve: const Interval((1 / count) * 2, 1.0,
-                    curve: Curves.fastOutSlowIn),
+                curve: const Interval(
+                  (1 / count) * 2,
+                  1.0,
+                  curve: Curves.fastOutSlowIn,
+                ),
               ),
             ),
             animationController: animationController!,
@@ -134,11 +158,16 @@ class _NutritionScreenState extends State<NutritionScreen>
             caloriesBurned: 102,
             caloriesGoal: nutrition.caloriesGoal,
             carbsPercent: nutrition.carbsGoal > 0
-                ? (nutrition.carbsConsumed / nutrition.carbsGoal).clamp(0.0, 1.0)
+                ? (nutrition.carbsConsumed / nutrition.carbsGoal).clamp(
+                    0.0,
+                    1.0,
+                  )
                 : 0.0,
             proteinPercent: nutrition.proteinGoal > 0
-                ? (nutrition.proteinConsumed / nutrition.proteinGoal)
-                    .clamp(0.0, 1.0)
+                ? (nutrition.proteinConsumed / nutrition.proteinGoal).clamp(
+                    0.0,
+                    1.0,
+                  )
                 : 0.0,
             fatPercent: nutrition.fatGoal > 0
                 ? (nutrition.fatConsumed / nutrition.fatGoal).clamp(0.0, 1.0)
@@ -156,8 +185,11 @@ class _NutritionScreenState extends State<NutritionScreen>
         animation: Tween<double>(begin: 0.0, end: 1.0).animate(
           CurvedAnimation(
             parent: animationController!,
-            curve: const Interval((1 / count) * 3, 1.0,
-                curve: Curves.fastOutSlowIn),
+            curve: const Interval(
+              (1 / count) * 3,
+              1.0,
+              curve: Curves.fastOutSlowIn,
+            ),
           ),
         ),
         animationController: animationController!,
@@ -172,8 +204,11 @@ class _NutritionScreenState extends State<NutritionScreen>
             animation: Tween<double>(begin: 0.0, end: 1.0).animate(
               CurvedAnimation(
                 parent: animationController!,
-                curve: const Interval((1 / count) * 4, 1.0,
-                    curve: Curves.fastOutSlowIn),
+                curve: const Interval(
+                  (1 / count) * 4,
+                  1.0,
+                  curve: Curves.fastOutSlowIn,
+                ),
               ),
             ),
             animationController: animationController!,
@@ -194,8 +229,11 @@ class _NutritionScreenState extends State<NutritionScreen>
         animation: Tween<double>(begin: 0.0, end: 1.0).animate(
           CurvedAnimation(
             parent: animationController!,
-            curve: const Interval((1 / count) * 5, 1.0,
-                curve: Curves.fastOutSlowIn),
+            curve: const Interval(
+              (1 / count) * 5,
+              1.0,
+              curve: Curves.fastOutSlowIn,
+            ),
           ),
         ),
         animationController: animationController!,
@@ -211,8 +249,11 @@ class _NutritionScreenState extends State<NutritionScreen>
             animation: Tween<double>(begin: 0.0, end: 1.0).animate(
               CurvedAnimation(
                 parent: animationController!,
-                curve: const Interval((1 / count) * 6, 1.0,
-                    curve: Curves.fastOutSlowIn),
+                curve: const Interval(
+                  (1 / count) * 6,
+                  1.0,
+                  curve: Curves.fastOutSlowIn,
+                ),
               ),
             ),
             carbsConsumed: nutrition.carbsConsumed,
@@ -227,6 +268,116 @@ class _NutritionScreenState extends State<NutritionScreen>
     );
 
     setState(() {});
+  }
+
+  Widget _buildFoodScannerCard({required Animation<double> animation}) {
+    return AnimatedBuilder(
+      animation: animationController!,
+      builder: (BuildContext context, Widget? child) {
+        return FadeTransition(
+          opacity: animation,
+          child: Transform(
+            transform: Matrix4.translationValues(
+              0.0,
+              30 * (1.0 - animation.value),
+              0.0,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.only(
+                left: 24,
+                right: 24,
+                top: 16,
+                bottom: 8,
+              ),
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const FoodScannerScreen(),
+                    ),
+                  );
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: <Color>[
+                        MealyTheme.nearlyGreen,
+                        Color(0xFF64B5A0),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: const BorderRadius.all(Radius.circular(16)),
+                    boxShadow: <BoxShadow>[
+                      BoxShadow(
+                        color: MealyTheme.nearlyGreen.withValues(alpha: 0.4),
+                        offset: const Offset(1.1, 4.0),
+                        blurRadius: 8.0,
+                      ),
+                    ],
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: <Widget>[
+                        Container(
+                          width: 50,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            color: MealyTheme.white.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.camera_alt,
+                            color: MealyTheme.white,
+                            size: 28,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              const Text(
+                                'Scan Your Meal',
+                                style: TextStyle(
+                                  fontFamily: MealyTheme.fontName,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: MealyTheme.white,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Take a photo to analyze nutrition facts',
+                                style: TextStyle(
+                                  fontFamily: MealyTheme.fontName,
+                                  fontWeight: FontWeight.w400,
+                                  fontSize: 12,
+                                  color: MealyTheme.white.withValues(
+                                    alpha: 0.9,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(
+                          Icons.arrow_forward_ios,
+                          color: MealyTheme.white,
+                          size: 20,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Widget _buildNutritionSummaryCard({
@@ -246,14 +397,16 @@ class _NutritionScreenState extends State<NutritionScreen>
               0.0,
             ),
             child: Padding(
-              padding: const EdgeInsets.only(left: 24, right: 24, top: 16, bottom: 18),
+              padding: const EdgeInsets.only(
+                left: 24,
+                right: 24,
+                top: 16,
+                bottom: 18,
+              ),
               child: Container(
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: <Color>[
-                      MealyTheme.nearlyOrange,
-                      Color(0xFFFA7D82),
-                    ],
+                    colors: <Color>[MealyTheme.nearlyOrange, Color(0xFFFA7D82)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -357,7 +510,12 @@ class _NutritionScreenState extends State<NutritionScreen>
               0.0,
             ),
             child: Padding(
-              padding: const EdgeInsets.only(left: 24, right: 24, top: 0, bottom: 24),
+              padding: const EdgeInsets.only(
+                left: 24,
+                right: 24,
+                top: 0,
+                bottom: 24,
+              ),
               child: Row(
                 children: <Widget>[
                   Expanded(
@@ -506,9 +664,7 @@ class _NutritionScreenState extends State<NutritionScreen>
           children: <Widget>[
             getMainListViewUI(),
             getAppBarUI(),
-            SizedBox(
-              height: MediaQuery.of(context).padding.bottom,
-            )
+            SizedBox(height: MediaQuery.of(context).padding.bottom),
           ],
         ),
       ),
@@ -519,7 +675,8 @@ class _NutritionScreenState extends State<NutritionScreen>
     return ListView.builder(
       controller: scrollController,
       padding: EdgeInsets.only(
-        top: AppBar().preferredSize.height +
+        top:
+            AppBar().preferredSize.height +
             MediaQuery.of(context).padding.top +
             24,
         bottom: 62 + MediaQuery.of(context).padding.bottom,
@@ -554,8 +711,9 @@ class _NutritionScreenState extends State<NutritionScreen>
                     ),
                     boxShadow: <BoxShadow>[
                       BoxShadow(
-                        color:
-                            MealyTheme.grey.withValues(alpha: 0.4 * topBarOpacity),
+                        color: MealyTheme.grey.withValues(
+                          alpha: 0.4 * topBarOpacity,
+                        ),
                         offset: const Offset(1.1, 1.1),
                         blurRadius: 10.0,
                       ),
@@ -563,9 +721,7 @@ class _NutritionScreenState extends State<NutritionScreen>
                   ),
                   child: Column(
                     children: <Widget>[
-                      SizedBox(
-                        height: MediaQuery.of(context).padding.top,
-                      ),
+                      SizedBox(height: MediaQuery.of(context).padding.top),
                       Padding(
                         padding: EdgeInsets.only(
                           left: 16,
@@ -597,8 +753,35 @@ class _NutritionScreenState extends State<NutritionScreen>
                               width: 38,
                               child: InkWell(
                                 highlightColor: Colors.transparent,
-                                borderRadius:
-                                    const BorderRadius.all(Radius.circular(32.0)),
+                                borderRadius: const BorderRadius.all(
+                                  Radius.circular(32.0),
+                                ),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const FoodScannerScreen(),
+                                    ),
+                                  );
+                                },
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.camera_alt,
+                                    color: MealyTheme.nearlyOrange,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            SizedBox(
+                              height: 38,
+                              width: 38,
+                              child: InkWell(
+                                highlightColor: Colors.transparent,
+                                borderRadius: const BorderRadius.all(
+                                  Radius.circular(32.0),
+                                ),
                                 onTap: () {},
                                 child: const Center(
                                   child: Icon(
@@ -610,14 +793,14 @@ class _NutritionScreenState extends State<NutritionScreen>
                             ),
                           ],
                         ),
-                      )
+                      ),
                     ],
                   ),
                 ),
               ),
             );
           },
-        )
+        ),
       ],
     );
   }

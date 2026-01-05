@@ -180,6 +180,10 @@ class _FridgeScreenState extends State<FridgeScreen>
   Widget _buildMainContent() {
     return Consumer<FridgeProvider>(
       builder: (context, fridgeProvider, child) {
+        debugPrint(
+          'FridgeScreen: Consumer rebuilding, items count: ${fridgeProvider.items.length}, isLoading: ${fridgeProvider.isLoading}',
+        );
+
         if (fridgeProvider.isLoading) {
           return const Center(
             child: CircularProgressIndicator(color: MealyTheme.nearlyOrange),
@@ -754,6 +758,8 @@ class _FridgeScreenState extends State<FridgeScreen>
                 subtitle: 'Scan a receipt to auto-add items',
                 color: MealyTheme.nearlyGreen,
                 onTap: () {
+                  // Get provider reference before closing bottom sheet
+                  final fridgeProvider = context.read<FridgeProvider>();
                   Navigator.pop(context);
                   Navigator.push(
                     context,
@@ -762,7 +768,7 @@ class _FridgeScreenState extends State<FridgeScreen>
                     ),
                   ).then((_) {
                     // Refresh fridge items when returning from receipt scanner
-                    context.read<FridgeProvider>().loadFridgeItems();
+                    fridgeProvider.loadFridgeItems();
                   });
                 },
               ),
