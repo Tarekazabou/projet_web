@@ -96,12 +96,19 @@ class _ReceiptScannerScreenState extends State<ReceiptScannerScreen>
       // Send to backend
       final result = await _apiService.scanReceipt(base64Image);
 
+      // Handle both wrapped API responses ({data: {...}}) and plain payloads
+      final payload = (result['data'] as Map<String, dynamic>?) ?? result;
+      final itemsAdded = (payload['items_added'] ?? 0) as num;
+      final itemsUpdated = (payload['items_updated'] ?? 0) as num;
+      final isReceipt = payload['is_receipt'] == true;
+
       setState(() {
         _isProcessing = false;
-        _isSuccess =
-            result['is_receipt'] == true && (result['items_added'] ?? 0) > 0;
-        _resultMessage = result['message'] ?? 'Processing complete';
-        _extractedItems = result['items'] ?? [];
+        _isSuccess = isReceipt && (itemsAdded + itemsUpdated) > 0;
+        _resultMessage =
+            (result['message'] ?? payload['message'] ?? 'Processing complete')
+                .toString();
+        _extractedItems = (payload['items'] as List<dynamic>?) ?? [];
       });
 
       if (_isSuccess) {
@@ -110,10 +117,12 @@ class _ReceiptScannerScreenState extends State<ReceiptScannerScreen>
           await context.read<FridgeProvider>().loadFridgeItems();
         }
         _showSuccessSnackBar(
-          '${result['items_added']} items added to your fridge!',
+          '${itemsAdded.toInt()} added • ${itemsUpdated.toInt()} updated',
         );
-      } else if (result['is_receipt'] == false) {
-        _showErrorSnackBar(result['message'] ?? 'This is not a valid receipt');
+      } else if (!isReceipt) {
+        _showErrorSnackBar(
+          payload['message']?.toString() ?? 'This is not a valid receipt',
+        );
       }
     } catch (e) {
       setState(() {
