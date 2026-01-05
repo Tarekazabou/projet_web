@@ -53,7 +53,8 @@ class _MealsListViewState extends State<MealsListView>
           child: Transform.translate(
             offset: Offset(0, 30 * (1.0 - widget.mainScreenAnimation!.value)),
             child: SizedBox(
-              height: 200,
+              // Extra height prevents long titles from overflowing
+              height: 230,
               child: ListView.separated(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 scrollDirection: Axis.horizontal,
@@ -162,7 +163,7 @@ class MealCard extends StatelessWidget {
             ),
           ],
         ),
-        padding: const EdgeInsets.fromLTRB(14, 48, 14, 14),
+        padding: const EdgeInsets.fromLTRB(14, 44, 14, 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -208,6 +209,8 @@ class MealCard extends StatelessWidget {
         color: Colors.white,
         letterSpacing: 0.3,
       ),
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
     );
   }
 
