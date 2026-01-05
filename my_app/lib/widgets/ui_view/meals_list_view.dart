@@ -53,7 +53,7 @@ class _MealsListViewState extends State<MealsListView>
           child: Transform.translate(
             offset: Offset(0, 30 * (1.0 - widget.mainScreenAnimation!.value)),
             child: SizedBox(
-              height: 200,
+              height: 350,
               child: ListView.separated(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 scrollDirection: Axis.horizontal,
@@ -106,8 +106,8 @@ class MealCard extends StatelessWidget {
   final Animation<double> animation;
   final VoidCallback? onTap;
 
-  static const double _cardWidth = 140;
-  static const double _iconSize = 80;
+  static const double _cardWidth = 160;
+  static const double _iconSize = 70;
 
   @override
   Widget build(BuildContext context) {
@@ -148,12 +148,7 @@ class MealCard extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(16),
-            topRight: Radius.circular(48),
-            bottomLeft: Radius.circular(16),
-            bottomRight: Radius.circular(16),
-          ),
+          borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
               color: meal.endColor.withValues(alpha: 0.4),
@@ -162,13 +157,16 @@ class MealCard extends StatelessWidget {
             ),
           ],
         ),
-        padding: const EdgeInsets.fromLTRB(14, 48, 14, 14),
+        padding: const EdgeInsets.fromLTRB(16, 52, 16, 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildTitle(),
-            const SizedBox(height: 6),
-            Expanded(child: _buildMealsList()),
+            const SizedBox(height: 12),
+            _buildMealsList(),
+            const Spacer(),
+            _buildNutritionInfo(),
+            const SizedBox(height: 12),
             _buildCalories(),
           ],
         ),
@@ -203,25 +201,67 @@ class MealCard extends StatelessWidget {
     return Text(
       meal.title,
       style: const TextStyle(
-        fontWeight: FontWeight.bold,
-        fontSize: 17,
+        fontWeight: FontWeight.w700,
+        fontSize: 18,
         color: Colors.white,
-        letterSpacing: 0.3,
+        letterSpacing: 0.2,
+        height: 1.3,
       ),
+      maxLines: 3,
+      overflow: TextOverflow.ellipsis,
     );
   }
 
   Widget _buildMealsList() {
-    final displayMeals = meal.meals?.take(2).toList() ?? [];
+    final displayMeals = meal.meals?.take(3).toList() ?? [];
     return Text(
-      displayMeals.join('\n'),
+      displayMeals.join(', '),
       style: TextStyle(
-        fontSize: 11,
-        color: Colors.white.withValues(alpha: 0.85),
+        fontSize: 12,
+        color: Colors.white.withValues(alpha: 0.9),
         height: 1.4,
+        fontWeight: FontWeight.w400,
       ),
       maxLines: 2,
       overflow: TextOverflow.ellipsis,
+    );
+  }
+
+  Widget _buildNutritionInfo() {
+    return Row(
+      children: [
+        _buildNutrientTag('P', '${meal.protein}g'),
+        const SizedBox(width: 8),
+        _buildNutrientTag('C', '${meal.carbs}g'),
+      ],
+    );
+  }
+
+  Widget _buildNutrientTag(String label, String value) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: RichText(
+        text: TextSpan(
+          style: const TextStyle(
+            fontSize: 11,
+            color: Colors.white,
+          ),
+          children: [
+            TextSpan(
+              text: '$label: ',
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+            TextSpan(
+              text: value,
+              style: const TextStyle(fontWeight: FontWeight.w400),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -233,17 +273,18 @@ class MealCard extends StatelessWidget {
         Text(
           '${meal.kcal}',
           style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 26,
+            fontWeight: FontWeight.w800,
+            fontSize: 36,
             color: Colors.white,
+            letterSpacing: -0.5,
           ),
         ),
-        const SizedBox(width: 4),
+        const SizedBox(width: 5),
         Text(
           'kcal',
           style: TextStyle(
-            fontSize: 11,
-            color: Colors.white.withValues(alpha: 0.8),
+            fontSize: 13,
+            color: Colors.white.withValues(alpha: 0.9),
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -264,6 +305,8 @@ class MealData {
     required this.endColor,
     this.meals,
     this.kcal = 0,
+    this.protein = 0,
+    this.carbs = 0,
   });
 
   final IconData icon;
@@ -272,6 +315,8 @@ class MealData {
   final Color endColor;
   final List<String>? meals;
   final int kcal;
+  final int protein;
+  final int carbs;
 
   // Predefined meal types with their colors
   static const _breakfastColors = (Color(0xFFFA7D82), Color(0xFFFFB295));
@@ -284,7 +329,9 @@ class MealData {
       icon: Icons.free_breakfast_rounded,
       title: 'Breakfast',
       kcal: 525,
-      meals: ['Bread', 'Peanut butter'],
+      protein: 22,
+      carbs: 65,
+      meals: ['Bread', 'Peanut butter', 'Banana'],
       startColor: _breakfastColors.$1,
       endColor: _breakfastColors.$2,
     ),
@@ -292,7 +339,9 @@ class MealData {
       icon: Icons.lunch_dining_rounded,
       title: 'Lunch',
       kcal: 602,
-      meals: ['Salmon', 'Rice'],
+      protein: 35,
+      carbs: 58,
+      meals: ['Salmon', 'Rice', 'Vegetables'],
       startColor: _lunchColors.$1,
       endColor: _lunchColors.$2,
     ),
@@ -300,7 +349,9 @@ class MealData {
       icon: Icons.dinner_dining_rounded,
       title: 'Dinner',
       kcal: 745,
-      meals: ['Chicken', 'Pasta'],
+      protein: 42,
+      carbs: 72,
+      meals: ['Chicken', 'Pasta', 'Salad'],
       startColor: _dinnerColors.$1,
       endColor: _dinnerColors.$2,
     ),
@@ -308,6 +359,8 @@ class MealData {
       icon: Icons.icecream_rounded,
       title: 'Snack',
       kcal: 125,
+      protein: 8,
+      carbs: 15,
       meals: ['Nuts', 'Yogurt'],
       startColor: _snackColors.$1,
       endColor: _snackColors.$2,

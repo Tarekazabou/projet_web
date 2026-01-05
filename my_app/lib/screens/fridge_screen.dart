@@ -147,6 +147,11 @@ class _FridgeScreenState extends State<FridgeScreen>
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
+                            IconButton(
+                              icon: const Icon(Icons.arrow_back_ios_rounded),
+                              color: MealyTheme.darkerText,
+                              onPressed: () => Navigator.of(context).pop(),
+                            ),
                             Expanded(
                               child: Padding(
                                 padding: const EdgeInsets.all(8.0),

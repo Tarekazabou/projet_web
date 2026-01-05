@@ -660,6 +660,14 @@ class _NutritionScreenState extends State<NutritionScreen>
       color: MealyTheme.background,
       child: Scaffold(
         backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_rounded, color: MealyTheme.darkText),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ),
         body: Stack(
           children: <Widget>[
             getMainListViewUI(),

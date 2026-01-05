@@ -9,6 +9,7 @@ import '../widgets/ui_view/area_list_view.dart';
 import '../providers/nutrition_provider.dart';
 import '../providers/fridge_provider.dart';
 import '../providers/dashboard_provider.dart';
+import '../providers/grocery_provider.dart';
 import 'nutrition_screen.dart';
 import 'fridge_screen.dart';
 import 'recipe_generator_screen.dart';
@@ -85,11 +86,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final nutritionProvider = context.read<NutritionProvider>();
     final fridgeProvider = context.read<FridgeProvider>();
     final dashboardProvider = context.read<DashboardProvider>();
+    final groceryProvider = context.read<GroceryProvider>();
 
     await Future.wait([
       nutritionProvider.loadNutritionData(),
       fridgeProvider.loadFridgeItems(),
       dashboardProvider.loadDashboardData(),
+      groceryProvider.loadGroceryItems(),
     ]);
 
     addAllListData();
@@ -304,8 +307,22 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
     // Area list view - Quick access grid
     listViews.add(
-      Consumer2<FridgeProvider, DashboardProvider>(
-        builder: (context, fridge, dashboard, _) {
+      Consumer3<FridgeProvider, DashboardProvider, GroceryProvider>(
+        builder: (context, fridge, dashboard, grocery, _) {
+          // Calculate dynamic progress values
+          final fridgeProgress = fridge.items.length > 0 
+              ? (fridge.items.length / 20).clamp(0.0, 1.0) 
+              : 0.0;
+          final recipesProgress = dashboard.stats.savedRecipes > 0
+              ? (dashboard.stats.savedRecipes / 30).clamp(0.0, 1.0)
+              : 0.0;
+          final mealsProgress = dashboard.stats.mealsPlanned > 0
+              ? (dashboard.stats.mealsPlanned / 7).clamp(0.0, 1.0)
+              : 0.0;
+          final groceryProgress = grocery.pendingItems > 0
+              ? (grocery.pendingItems / 20).clamp(0.0, 1.0)
+              : 0.0;
+          
           final items = [
             AreaData(
               icon: Icons.kitchen_rounded,
@@ -313,7 +330,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               subtitle: '${fridge.items.length} items',
               startColor: '#FA7D82',
               endColor: '#FFB295',
-              progress: 0.65,
+              progress: fridgeProgress,
             ),
             AreaData(
               icon: Icons.restaurant_menu_rounded,
@@ -321,7 +338,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               subtitle: '${dashboard.stats.savedRecipes} saved',
               startColor: '#738AE6',
               endColor: '#5C5EDD',
-              progress: 0.45,
+              progress: recipesProgress,
             ),
             AreaData(
               icon: Icons.calendar_today_rounded,
@@ -329,15 +346,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               subtitle: '${dashboard.stats.mealsPlanned} this week',
               startColor: '#FE95B6',
               endColor: '#FF5287',
-              progress: 0.72,
+              progress: mealsProgress,
             ),
             AreaData(
               icon: Icons.shopping_cart_rounded,
               title: 'Grocery',
-              subtitle: '${dashboard.stats.fridgeItems} pending',
+              subtitle: '${grocery.pendingItems} pending',
               startColor: '#6F72CA',
               endColor: '#1E1466',
-              progress: 0.38,
+              progress: groceryProgress,
             ),
           ];
 
