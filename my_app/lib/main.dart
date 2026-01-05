@@ -17,6 +17,7 @@ import 'providers/recipe_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/nutrition_provider.dart';
 import 'providers/dashboard_provider.dart';
+import 'providers/grocery_provider.dart';
 import 'utils/app_theme.dart';
 import 'utils/mealy_theme.dart';
 import 'widgets/bottom_bar_view.dart';
@@ -54,6 +55,7 @@ class MealyApp extends StatelessWidget {
             ChangeNotifierProvider(create: (_) => RecipeProvider()),
             ChangeNotifierProvider(create: (_) => NutritionProvider()),
             ChangeNotifierProvider(create: (_) => DashboardProvider()),
+            ChangeNotifierProvider(create: (_) => GroceryProvider()),
             Provider(create: (_) => ApiService()),
           ],
           child: MaterialApp(
