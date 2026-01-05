@@ -585,6 +585,110 @@ def get_recipe_by_id(recipe_id):
         logger.error(f"Error getting recipe: {e}")
         return error_response('Failed to get recipe', 500)
 
+@ai_recipes_bp.route('/generate-multiple', methods=['POST', 'OPTIONS'])
+def generate_multiple_recipes():
+    """
+    🚀 GENERATE MULTIPLE RECIPES - Returns 3 recipe choices
+    
+    Generate 3 different recipes based on the given parameters.
+    User can then select one to use.
+    NO AUTH REQUIRED.
+    
+    Request body:
+    {
+        "ingredients": ["chicken", "rice", "vegetables"],
+        "difficulty": "medium",
+        "servings": 4,
+        "maxTime": 60,
+        "count": 3,
+        "cuisine": "italian",
+        "dietaryPreferences": ["healthy"]
+    }
+    
+    Returns: 3 different recipe options
+    """
+    try:
+        if request.method == 'OPTIONS':
+            return success_response({'message': 'CORS preflight successful'})
+        
+        initialize_services()
+        
+        if not ai_generator:
+            return error_response('AI service not initialized', 503)
+        
+        data = request.get_json() or {}
+        user_id = data.get('userId') or get_user_id()
+        
+        ingredients = data.get('ingredients', [])
+        difficulty = data.get('difficulty', 'medium')
+        servings = data.get('servings', 4)
+        max_time = data.get('maxTime', 60)
+        cuisine = data.get('cuisine')
+        dietary_prefs = data.get('dietaryPreferences', [])
+        count = min(data.get('count', 3), 5)  # Max 5 recipes
+        
+        if not ingredients:
+            return error_response('At least one ingredient is required', 400)
+        
+        logger.info(f"🎯 Generating {count} recipes with ingredients: {ingredients}")
+        
+        recipes = []
+        variation_hints = [
+            "Create a classic, traditional version",
+            "Create a quick and easy version",
+            "Create a gourmet, elevated version"
+        ]
+        
+        for i in range(count):
+            try:
+                # Build varied prompts for different recipe styles
+                prompt = f"""You are a creative chef AI. {variation_hints[i % len(variation_hints)]}.
+
+Create a unique recipe with these requirements:
+- Main ingredients: {', '.join(ingredients)}
+- Difficulty: {difficulty}
+- Servings: {servings}
+- Maximum time: {max_time} minutes
+{f'- Cuisine style: {cuisine}' if cuisine else ''}
+{f'- Dietary preferences: {", ".join(dietary_prefs)}' if dietary_prefs else ''}
+
+Make this recipe distinct from other variations. Be creative!
+Provide clear instructions and realistic nutrition estimates."""
+
+                recipe = ai_generator.generate_recipe(
+                    context_prompt=prompt,
+                    temperature=0.95  # High creativity for variety
+                )
+                
+                # Add metadata
+                recipe['createdAt'] = datetime.utcnow().isoformat()
+                recipe['generatedByAI'] = True
+                recipe['userId'] = user_id
+                recipe['variationIndex'] = i
+                recipe['servingSize'] = servings
+                
+                recipes.append(recipe)
+                logger.info(f"✅ Generated recipe {i+1}/{count}: {recipe.get('title', 'Unknown')}")
+                
+            except Exception as e:
+                logger.warning(f"Failed to generate recipe {i+1}: {e}")
+                continue
+        
+        if not recipes:
+            return error_response('Failed to generate any recipes', 500)
+        
+        return success_response({
+            'recipes': recipes,
+            'count': len(recipes),
+            'message': f'Generated {len(recipes)} recipe options! 🎉'
+        }, 201)
+        
+    except Exception as e:
+        logger.error(f"Error generating multiple recipes: {e}")
+        import traceback
+        traceback.print_exc()
+        return error_response(f'Failed to generate recipes: {str(e)}', 500)
+
 @ai_recipes_bp.route('/status', methods=['GET'])
 def ai_service_status():
     """

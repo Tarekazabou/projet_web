@@ -105,15 +105,22 @@ class _ReceiptScannerScreenState extends State<ReceiptScannerScreen>
       debugPrint('items_updated: ${result['items_updated']}');
       debugPrint('items: ${result['items']}');
 
-      final itemsAdded = result['items_added'] ?? 0;
-      final itemsUpdated = result['items_updated'] ?? 0;
-      final totalProcessed = itemsAdded + itemsUpdated;
+      
+      
 
+      // Handle both wrapped API responses ({data: {...}}) and plain payloads
+      final payload = (result['data'] as Map<String, dynamic>?) ?? result;
+      final itemsAdded = (payload['items_added'] ?? 0) as num;
+      final itemsUpdated = (payload['items_updated'] ?? 0) as num;
+      final isReceipt = payload['is_receipt'] == true;
+      final totalProcessed = itemsAdded + itemsUpdated;
       setState(() {
         _isProcessing = false;
-        _isSuccess = result['is_receipt'] == true && totalProcessed > 0;
-        _resultMessage = result['message'] ?? 'Processing complete';
-        _extractedItems = result['items'] ?? [];
+        _isSuccess = isReceipt && (itemsAdded + itemsUpdated) > 0;
+        _resultMessage =
+            (result['message'] ?? payload['message'] ?? 'Processing complete')
+                .toString();
+        _extractedItems = (payload['items'] as List<dynamic>?) ?? [];
       });
 
       debugPrint('_isSuccess: $_isSuccess (totalProcessed: $totalProcessed)');
