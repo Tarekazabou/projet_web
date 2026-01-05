@@ -417,13 +417,27 @@ See detailed guides for:
 http://localhost:5000/api
 ```
 
-### Authentication
+### Authentication & Roles
+
+The API supports Firebase Authentication and role-based access control:
+
+**Authentication Methods:**
 ```bash
-# Include X-User-Id header for all requests
+# Firebase ID Token (Recommended)
+Authorization: Bearer <firebase_id_token>
+
+# User ID Header (Development)
 X-User-Id: <user_id>
 ```
 
-### Core Endpoints
+**User Roles:**
+- **admin**: Full access to all resources and operations
+- **premium_user**: Advanced AI features and unlimited recipe generation
+- **user**: Standard access to core features
+
+For detailed information about authentication, roles, permissions, and all endpoints, see the **[Complete API Documentation](docs/API.md)**.
+
+### Core Endpoints (Quick Reference)
 
 #### Health Check
 ```http
@@ -478,7 +492,17 @@ GET /api/nutrition/weekly                # Get weekly summary
 POST /api/nutrition/log-meal             # Log a meal
 ```
 
-See [API Documentation](docs/API.md) for complete reference.
+---
+
+**📖 For complete API documentation including:**
+- Detailed authentication and authorization guide
+- Role-based access control (RBAC) system
+- All endpoints with request/response examples
+- Error codes and troubleshooting
+
+**See: [Complete API Documentation (docs/API.md)](docs/API.md)**
+
+---
 
 ## 🤝 Contributing
 
