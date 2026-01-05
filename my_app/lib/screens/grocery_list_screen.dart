@@ -105,16 +105,71 @@ class _GroceryListScreenState extends State<GroceryListScreen> {
   }
 
   Future<void> _togglePurchased(int index) async {
+    final item = _items[index];
+    
     try {
+      // If marking as purchased (not yet purchased), add to fridge first
+      if (!item.purchased) {
+        print('📦 Adding ${item.name} to fridge database...');
+        
+        // Add to fridge - this saves to Firestore database
+        final fridgeResponse = await _api.addFridgeItem({
+          'ingredientName': item.name,
+          'quantity': double.tryParse(item.quantity) ?? 1.0,
+          'unit': item.unit,
+          'category': item.category == 'Other' ? 'Autres' : item.category,
+          'location': 'Main fridge',
+          'notes': 'Added from grocery list',
+          'expirationDate': null,
+        });
+
+        print('✅ Item saved to database: $fridgeResponse');
+
+        // Show success message
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.check_circle, color: Colors.white),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '${item.name} added to fridge and saved to database!',
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: MealyTheme.nearlyGreen,
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 3),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          );
+        }
+      }
+
+      // Toggle purchased status in grocery list
+      print('🔄 Toggling purchased status...');
       await _api.toggleGroceryItemPurchased(index);
-      setState(() {
-        _items[index].purchased = !_items[index].purchased;
-      });
+      
+      // Reload to get fresh data from database
+      print('🔃 Reloading grocery list from database...');
+      await _loadGroceryItems();
+      print('✅ Grocery list updated');
+      
     } catch (e) {
+      print('❌ Error: $e');
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed to update item: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }

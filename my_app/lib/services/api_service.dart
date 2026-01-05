@@ -246,6 +246,13 @@ class ApiService {
     return await post('/recipes/generate-with-ai', params);
   }
 
+  /// Generate multiple recipes (for recipe selection)
+  Future<Map<String, dynamic>> generateMultipleRecipes(
+    Map<String, dynamic> params,
+  ) async {
+    return await post('/recipes/generate-multiple', params);
+  }
+
   Future<Map<String, dynamic>> generateSimpleRecipe(
     Map<String, dynamic> params,
   ) async {

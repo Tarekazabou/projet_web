@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/recipe_provider.dart';
+import '../providers/fridge_provider.dart';
+import '../models/recipe.dart';
+import '../services/api_service.dart';
 import '../utils/mealy_theme.dart';
 import '../widgets/recipe_card.dart';
 
@@ -235,9 +238,9 @@ class _RecipeGeneratorScreenState extends State<RecipeGeneratorScreen>
                 const SizedBox(height: 16),
                 _buildErrorCard(provider.error!),
               ],
-              if (provider.generatedRecipe != null) ...[
+              if (provider.generatedRecipes.isNotEmpty) ...[
                 const SizedBox(height: 24),
-                _buildResultSection(provider),
+                _buildRecipeChoicesSection(provider),
               ],
             ],
           ),
@@ -861,7 +864,7 @@ class _RecipeGeneratorScreenState extends State<RecipeGeneratorScreen>
     );
   }
 
-  Widget _buildResultSection(RecipeProvider provider) {
+  Widget _buildRecipeChoicesSection(RecipeProvider provider) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -881,30 +884,641 @@ class _RecipeGeneratorScreenState extends State<RecipeGeneratorScreen>
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(
-                  Icons.restaurant,
+                  Icons.restaurant_menu,
                   color: MealyTheme.white,
                   size: 20,
                 ),
               ),
               const SizedBox(width: 12),
-              const Text(
-                'Recette Générée',
-                style: TextStyle(
-                  fontFamily: MealyTheme.fontName,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: MealyTheme.darkerText,
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Choisissez une Recette',
+                      style: TextStyle(
+                        fontFamily: MealyTheme.fontName,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: MealyTheme.darkerText,
+                      ),
+                    ),
+                    Text(
+                      'Sélectionnez votre recette préférée',
+                      style: TextStyle(
+                        fontFamily: MealyTheme.fontName,
+                        fontSize: 12,
+                        color: MealyTheme.grey,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 12),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: RecipeCard(recipe: provider.generatedRecipe!),
-        ),
+        const SizedBox(height: 16),
+        ...provider.generatedRecipes.asMap().entries.map((entry) {
+          final index = entry.key;
+          final recipe = entry.value;
+          final isSelected = provider.selectedRecipe == recipe;
+
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: _buildRecipeChoiceCard(recipe, index, isSelected, provider),
+          );
+        }),
       ],
     );
+  }
+
+  Widget _buildRecipeChoiceCard(
+    Recipe recipe,
+    int index,
+    bool isSelected,
+    RecipeProvider provider,
+  ) {
+    final variationLabels = ['Classique', 'Rapide', 'Gourmet'];
+    final variationColors = [
+      const Color(0xFF738AE6),
+      MealyTheme.nearlyOrange,
+      const Color(0xFF6F72CA),
+    ];
+
+    return GestureDetector(
+      onTap: () => _selectRecipe(recipe, provider),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        decoration: BoxDecoration(
+          color: MealyTheme.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? MealyTheme.nearlyGreen : Colors.transparent,
+            width: 3,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: isSelected
+                  ? MealyTheme.nearlyGreen.withOpacity(0.3)
+                  : MealyTheme.grey.withOpacity(0.15),
+              offset: const Offset(0, 4),
+              blurRadius: isSelected ? 16 : 10,
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header with variation label
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    variationColors[index % variationColors.length],
+                    variationColors[index % variationColors.length].withOpacity(
+                      0.7,
+                    ),
+                  ],
+                ),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(17),
+                  topRight: Radius.circular(17),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: MealyTheme.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      'Option ${index + 1} - ${variationLabels[index % variationLabels.length]}',
+                      style: const TextStyle(
+                        fontFamily: MealyTheme.fontName,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: MealyTheme.white,
+                      ),
+                    ),
+                  ),
+                  const Spacer(),
+                  if (isSelected)
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: MealyTheme.white,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.check,
+                        color: MealyTheme.nearlyGreen,
+                        size: 16,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            // Recipe content
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    recipe.title,
+                    style: const TextStyle(
+                      fontFamily: MealyTheme.fontName,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: MealyTheme.darkerText,
+                    ),
+                  ),
+                  if (recipe.description != null) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      recipe.description!,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontFamily: MealyTheme.fontName,
+                        fontSize: 13,
+                        color: MealyTheme.grey,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 12),
+                  // Stats row
+                  Row(
+                    children: [
+                      _buildStatChip(Icons.timer, recipe.formattedTotalTime),
+                      const SizedBox(width: 8),
+                      _buildStatChip(
+                        Icons.people,
+                        '${recipe.servingSize} pers',
+                      ),
+                      const SizedBox(width: 8),
+                      _buildStatChip(Icons.restaurant, recipe.difficulty),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  // Ingredients preview
+                  Text(
+                    '${recipe.ingredients.length} ingrédients',
+                    style: TextStyle(
+                      fontFamily: MealyTheme.fontName,
+                      fontSize: 12,
+                      color: MealyTheme.grey,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Select button
+            if (isSelected)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                child: ElevatedButton.icon(
+                  onPressed: () => _confirmRecipeSelection(recipe),
+                  icon: const Icon(Icons.check_circle, color: MealyTheme.white),
+                  label: const Text(
+                    'Utiliser cette Recette',
+                    style: TextStyle(
+                      fontFamily: MealyTheme.fontName,
+                      fontWeight: FontWeight.bold,
+                      color: MealyTheme.white,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: MealyTheme.nearlyGreen,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatChip(IconData icon, String value) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: MealyTheme.background,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: MealyTheme.nearlyOrange),
+          const SizedBox(width: 4),
+          Text(
+            value,
+            style: const TextStyle(
+              fontFamily: MealyTheme.fontName,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: MealyTheme.darkerText,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _selectRecipe(Recipe recipe, RecipeProvider provider) {
+    provider.selectRecipe(recipe);
+  }
+
+  Future<void> _confirmRecipeSelection(Recipe recipe) async {
+    // Show confirmation dialog with ingredient check
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _buildIngredientCheckSheet(recipe),
+    );
+  }
+
+  Widget _buildIngredientCheckSheet(Recipe recipe) {
+    return Consumer<FridgeProvider>(
+      builder: (context, fridgeProvider, child) {
+        final fridgeItems = fridgeProvider.items;
+        final recipeIngredients = recipe.ingredients;
+
+        // Check which ingredients are available
+        List<Map<String, dynamic>> ingredientStatus = [];
+        List<Map<String, dynamic>> missingIngredients = [];
+
+        for (var ingredient in recipeIngredients) {
+          String ingredientName = '';
+          String quantity = '';
+          String unit = '';
+
+          if (ingredient is String) {
+            ingredientName = ingredient.toLowerCase();
+          } else if (ingredient is Map) {
+            ingredientName =
+                (ingredient['name'] ?? ingredient['ingredientName'] ?? '')
+                    .toString()
+                    .toLowerCase();
+            quantity = (ingredient['quantity'] ?? '1').toString();
+            unit = (ingredient['unit'] ?? 'pcs').toString();
+          }
+
+          // Check if ingredient exists in fridge
+          final fridgeItem = fridgeItems
+              .where(
+                (item) =>
+                    item.name.toLowerCase().contains(ingredientName) ||
+                    ingredientName.contains(item.name.toLowerCase()),
+              )
+              .firstOrNull;
+
+          final isAvailable = fridgeItem != null;
+
+          ingredientStatus.add({
+            'name': ingredientName,
+            'quantity': quantity,
+            'unit': unit,
+            'available': isAvailable,
+            'fridgeItem': fridgeItem,
+          });
+
+          if (!isAvailable) {
+            missingIngredients.add({
+              'name': ingredientName,
+              'quantity': quantity,
+              'unit': unit,
+            });
+          }
+        }
+
+        final availableCount = ingredientStatus
+            .where((i) => i['available'] == true)
+            .length;
+        final totalCount = ingredientStatus.length;
+
+        return Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.85,
+          ),
+          decoration: const BoxDecoration(
+            color: MealyTheme.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Handle
+              Container(
+                margin: const EdgeInsets.only(top: 12),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: MealyTheme.grey.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              // Header
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    Text(
+                      recipe.title,
+                      style: const TextStyle(
+                        fontFamily: MealyTheme.fontName,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: MealyTheme.darkerText,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 12),
+                    // Status summary
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: availableCount == totalCount
+                            ? MealyTheme.nearlyGreen.withOpacity(0.1)
+                            : MealyTheme.nearlyOrange.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            availableCount == totalCount
+                                ? Icons.check_circle
+                                : Icons.warning_amber,
+                            color: availableCount == totalCount
+                                ? MealyTheme.nearlyGreen
+                                : MealyTheme.nearlyOrange,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            availableCount == totalCount
+                                ? 'Tous les ingrédients disponibles!'
+                                : '$availableCount/$totalCount ingrédients disponibles',
+                            style: TextStyle(
+                              fontFamily: MealyTheme.fontName,
+                              fontWeight: FontWeight.w600,
+                              color: availableCount == totalCount
+                                  ? MealyTheme.nearlyGreen
+                                  : MealyTheme.nearlyOrange,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1),
+              // Ingredients list
+              Flexible(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                  itemCount: ingredientStatus.length,
+                  itemBuilder: (context, index) {
+                    final item = ingredientStatus[index];
+                    final isAvailable = item['available'] as bool;
+
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 28,
+                            height: 28,
+                            decoration: BoxDecoration(
+                              color: isAvailable
+                                  ? MealyTheme.nearlyGreen.withOpacity(0.1)
+                                  : Colors.red.withOpacity(0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              isAvailable ? Icons.check : Icons.close,
+                              size: 16,
+                              color: isAvailable
+                                  ? MealyTheme.nearlyGreen
+                                  : Colors.red,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              item['name'].toString().isNotEmpty
+                                  ? '${item['name'][0].toUpperCase()}${item['name'].substring(1)}'
+                                  : 'Ingrédient',
+                              style: TextStyle(
+                                fontFamily: MealyTheme.fontName,
+                                fontSize: 15,
+                                color: MealyTheme.darkerText,
+                                decoration: isAvailable
+                                    ? null
+                                    : TextDecoration.lineThrough,
+                              ),
+                            ),
+                          ),
+                          if (item['quantity'].toString().isNotEmpty)
+                            Text(
+                              '${item['quantity']} ${item['unit']}',
+                              style: TextStyle(
+                                fontFamily: MealyTheme.fontName,
+                                fontSize: 13,
+                                color: MealyTheme.grey,
+                              ),
+                            ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+              // Action buttons
+              Padding(
+                padding: EdgeInsets.only(
+                  left: 20,
+                  right: 20,
+                  bottom: MediaQuery.of(context).padding.bottom + 20,
+                  top: 12,
+                ),
+                child: Column(
+                  children: [
+                    if (missingIngredients.isNotEmpty) ...[
+                      // Add to grocery list button
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: () =>
+                              _addToGroceryList(missingIngredients),
+                          icon: const Icon(Icons.shopping_cart),
+                          label: Text(
+                            'Ajouter ${missingIngredients.length} ingrédient(s) à la liste',
+                            style: const TextStyle(
+                              fontFamily: MealyTheme.fontName,
+                            ),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: MealyTheme.nearlyOrange,
+                            side: const BorderSide(
+                              color: MealyTheme.nearlyOrange,
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+                    // Confirm and use recipe button
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () => _useRecipe(recipe, ingredientStatus),
+                        icon: const Icon(
+                          Icons.restaurant,
+                          color: MealyTheme.white,
+                        ),
+                        label: Text(
+                          availableCount == totalCount
+                              ? 'Préparer cette Recette'
+                              : 'Préparer avec ingrédients disponibles',
+                          style: const TextStyle(
+                            fontFamily: MealyTheme.fontName,
+                            fontWeight: FontWeight.bold,
+                            color: MealyTheme.white,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: MealyTheme.nearlyGreen,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _addToGroceryList(
+    List<Map<String, dynamic>> missingIngredients,
+  ) async {
+    try {
+      final api = ApiService();
+
+      for (var ingredient in missingIngredients) {
+        await api.addGroceryItem({
+          'name': ingredient['name'],
+          'quantity': ingredient['quantity'] ?? '1',
+          'unit': ingredient['unit'] ?? 'pcs',
+          'category': 'Other',
+        });
+      }
+
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '${missingIngredients.length} ingrédient(s) ajouté(s) à la liste de courses!',
+            ),
+            backgroundColor: MealyTheme.nearlyGreen,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur: $e'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _useRecipe(
+    Recipe recipe,
+    List<Map<String, dynamic>> ingredientStatus,
+  ) async {
+    try {
+      final fridgeProvider = context.read<FridgeProvider>();
+
+      // Remove available ingredients from fridge
+      for (var item in ingredientStatus) {
+        if (item['available'] == true && item['fridgeItem'] != null) {
+          final fridgeItem = item['fridgeItem'];
+          // For simplicity, we remove the item - you could also reduce quantity
+          await fridgeProvider.removeItem(fridgeItem.id);
+        }
+      }
+
+      if (mounted) {
+        Navigator.pop(context);
+        Navigator.pop(context); // Go back to previous screen
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text(
+              'Bon appétit! Les ingrédients ont été retirés du frigo.',
+            ),
+            backgroundColor: MealyTheme.nearlyGreen,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur: $e'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 }
