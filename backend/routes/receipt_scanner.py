@@ -11,6 +11,7 @@ import base64
 import requests
 import json
 from datetime import datetime, timedelta
+from ollama import chat
 
 logger = logging.getLogger(__name__)
 receipt_scanner_bp = Blueprint('receipt_scanner', __name__)
@@ -72,29 +73,8 @@ Respond ONLY with valid JSON in this exact format:
 }
 
 Do not include any text before or after the JSON. Only output valid JSON."""
-
-        # Make request to Ollama API
-        response = requests.post(
-            f"{OLLAMA_BASE_URL}/api/generate",
-            json={
-                "model": OLLAMA_MODEL,
-                "prompt": prompt,
-                "images": [image_base64],
-                "stream": False,
-                "options": {
-                    "temperature": 0.1,  # Low temperature for more consistent output
-                    "num_predict": 2048
-                }
-            },
-            timeout=120  # 2 minute timeout for large images
-        )
-        
-        if response.status_code != 200:
-            logger.error(f"Ollama API error: {response.status_code} - {response.text}")
-            raise Exception(f"Ollama API returned status {response.status_code}")
-        
-        result = response.json()
-        response_text = result.get('response', '').strip()
+        response=chat(model="qwen3-vl:235b-instruct-cloud", messages=[{"role": "user", "content": prompt,"images": [image_base64]}])
+        response_text=response.message.content
         
         logger.info(f"Ollama response: {response_text[:500]}...")
         
