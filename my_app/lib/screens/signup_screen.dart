@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
-import '../utils/mealy_theme.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -70,14 +69,27 @@ class _SignupScreenState extends State<SignupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Create Account'),
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: IconThemeData(color: Colors.white),
+        titleTextStyle: TextStyle(
+          color: Colors.white,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      extendBodyBehindAppBar: true,
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              MealyTheme.background,
-              MealyTheme.nearlyWhite,
+              Color(0xFF4CAF50), // Green
+              Color(0xFF81C784), // Light Green
             ],
           ),
         ),
@@ -92,329 +104,227 @@ class _SignupScreenState extends State<SignupScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.all(24),
-                          decoration: BoxDecoration(
-                            color: MealyTheme.white,
-                            borderRadius: const BorderRadius.only(
-                              bottomRight: Radius.circular(8.0),
-                              bottomLeft: Radius.circular(8.0),
-                              topLeft: Radius.circular(8.0),
-                              topRight: Radius.circular(68.0),
+                        // Icon
+                        Icon(
+                          Icons.person_add_outlined,
+                          size: 64,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Title
+                        Text(
+                          'Join Mealy',
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.headlineMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Start your healthy eating journey',
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.bodyLarge
+                              ?.copyWith(color: Colors.grey[600]),
+                        ),
+                        const SizedBox(height: 32),
+
+                        // Name Field
+                        TextFormField(
+                          controller: _nameController,
+                          textCapitalization: TextCapitalization.words,
+                          decoration: InputDecoration(
+                            labelText: 'Full Name',
+                            hintText: 'Enter your full name',
+                            prefixIcon: const Icon(Icons.person_outline),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: MealyTheme.grey.withOpacity(0.2),
-                                offset: const Offset(1.1, 4.0),
-                                blurRadius: 12.0,
-                              ),
-                            ],
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      color: MealyTheme.nearlyOrange.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: const Icon(
-                                      Icons.person_add_outlined,
-                                      color: MealyTheme.nearlyOrange,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  const Text(
-                                    'Create Account',
-                                    style: TextStyle(
-                                      fontFamily: MealyTheme.fontName,
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 20,
-                                      color: MealyTheme.darkerText,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 24),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter your name';
+                            }
+                            if (value.length < 2) {
+                              return 'Name must be at least 2 characters';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
 
-                              // Name Field
-                              TextFormField(
-                                controller: _nameController,
-                                textCapitalization: TextCapitalization.words,
-                                decoration: InputDecoration(
-                                  labelText: 'Full Name',
-                                  hintText: 'Enter your full name',
-                                  prefixIcon: Icon(Icons.person_outline, color: MealyTheme.grey),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                    borderSide: BorderSide(color: MealyTheme.grey.withOpacity(0.3)),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                    borderSide: BorderSide(color: MealyTheme.grey.withOpacity(0.3)),
-                                  ),
-                                  focusedBorder: const OutlineInputBorder(
-                                    borderRadius: BorderRadius.all(Radius.circular(16)),
-                                    borderSide: BorderSide(color: MealyTheme.nearlyOrange, width: 2),
-                                  ),
-                                  filled: true,
-                                  fillColor: MealyTheme.background,
-                                ),
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Please enter your name';
-                                  }
-                                  if (value.length < 2) {
-                                    return 'Name must be at least 2 characters';
-                                  }
-                                  return null;
-                                },
-                              ),
-                              const SizedBox(height: 16),
-
-                              // Email Field
-                              TextFormField(
-                                controller: _emailController,
-                                keyboardType: TextInputType.emailAddress,
-                                decoration: InputDecoration(
-                                  labelText: 'Email',
-                                  hintText: 'Enter your email',
-                                  prefixIcon: Icon(Icons.email_outlined, color: MealyTheme.grey),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                    borderSide: BorderSide(color: MealyTheme.grey.withOpacity(0.3)),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                    borderSide: BorderSide(color: MealyTheme.grey.withOpacity(0.3)),
-                                  ),
-                                  focusedBorder: const OutlineInputBorder(
-                                    borderRadius: BorderRadius.all(Radius.circular(16)),
-                                    borderSide: BorderSide(color: MealyTheme.nearlyOrange, width: 2),
-                                  ),
-                                  filled: true,
-                                  fillColor: MealyTheme.background,
-                                ),
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Please enter your email';
-                                  }
-                                  if (!value.contains('@') || !value.contains('.')) {
-                                    return 'Please enter a valid email';
-                                  }
-                                  return null;
-                                },
-                              ),
-                              const SizedBox(height: 16),
-
-                              // Password Field
-                              TextFormField(
-                                controller: _passwordController,
-                                obscureText: _obscurePassword,
-                                decoration: InputDecoration(
-                                  labelText: 'Password',
-                                  hintText: 'Create a password',
-                                  prefixIcon: Icon(Icons.lock_outline, color: MealyTheme.grey),
-                                  suffixIcon: IconButton(
-                                    icon: Icon(
-                                      _obscurePassword
-                                          ? Icons.visibility_outlined
-                                          : Icons.visibility_off_outlined,
-                                      color: MealyTheme.grey,
-                                    ),
-                                    onPressed: () {
-                                      setState(() {
-                                        _obscurePassword = !_obscurePassword;
-                                      });
-                                    },
-                                  ),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                    borderSide: BorderSide(color: MealyTheme.grey.withOpacity(0.3)),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                    borderSide: BorderSide(color: MealyTheme.grey.withOpacity(0.3)),
-                                  ),
-                                  focusedBorder: const OutlineInputBorder(
-                                    borderRadius: BorderRadius.all(Radius.circular(16)),
-                                    borderSide: BorderSide(color: MealyTheme.nearlyOrange, width: 2),
-                                  ),
-                                  filled: true,
-                                  fillColor: MealyTheme.background,
-                                ),
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Please enter a password';
-                                  }
-                                  if (value.length < 6) {
-                                    return 'Password must be at least 6 characters';
-                                  }
-                                  return null;
-                                },
-                              ),
-                              const SizedBox(height: 16),
-
-                              // Confirm Password Field
-                              TextFormField(
-                                controller: _confirmPasswordController,
-                                obscureText: _obscureConfirmPassword,
-                                decoration: InputDecoration(
-                                  labelText: 'Confirm Password',
-                                  hintText: 'Re-enter your password',
-                                  prefixIcon: Icon(Icons.lock_outline, color: MealyTheme.grey),
-                                  suffixIcon: IconButton(
-                                    icon: Icon(
-                                      _obscureConfirmPassword
-                                          ? Icons.visibility_outlined
-                                          : Icons.visibility_off_outlined,
-                                      color: MealyTheme.grey,
-                                    ),
-                                    onPressed: () {
-                                      setState(() {
-                                        _obscureConfirmPassword = !_obscureConfirmPassword;
-                                      });
-                                    },
-                                  ),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                    borderSide: BorderSide(color: MealyTheme.grey.withOpacity(0.3)),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                    borderSide: BorderSide(color: MealyTheme.grey.withOpacity(0.3)),
-                                  ),
-                                  focusedBorder: const OutlineInputBorder(
-                                    borderRadius: BorderRadius.all(Radius.circular(16)),
-                                    borderSide: BorderSide(color: MealyTheme.nearlyOrange, width: 2),
-                                  ),
-                                  filled: true,
-                                  fillColor: MealyTheme.background,
-                                ),
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Please confirm your password';
-                                  }
-                                  if (value != _passwordController.text) {
-                                    return 'Passwords do not match';
-                                  }
-                                  return null;
-                                },
-                              ),
-                              const SizedBox(height: 16),
-
-                              // Terms and Conditions
-                              Row(
-                                children: [
-                                  Checkbox(
-                                    value: _agreeToTerms,
-                                    activeColor: MealyTheme.nearlyOrange,
-                                    onChanged: (value) {
-                                      setState(() {
-                                        _agreeToTerms = value ?? false;
-                                      });
-                                    },
-                                  ),
-                                  Expanded(
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        setState(() {
-                                          _agreeToTerms = !_agreeToTerms;
-                                        });
-                                      },
-                                      child: Text(
-                                        'I agree to the Terms and Conditions',
-                                        style: const TextStyle(
-                                          fontFamily: MealyTheme.fontName,
-                                          color: MealyTheme.darkerText,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 24),
-
-                              // Sign Up Button
-                              Container(
-                                height: 56,
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      MealyTheme.nearlyOrange,
-                                      MealyTheme.nearlyOrange.withOpacity(0.8),
-                                    ],
-                                  ),
-                                  borderRadius: BorderRadius.circular(16),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: MealyTheme.nearlyOrange.withOpacity(0.4),
-                                      offset: const Offset(0, 4),
-                                      blurRadius: 12,
-                                    ),
-                                  ],
-                                ),
-                                child: Material(
-                                  color: Colors.transparent,
-                                  child: InkWell(
-                                    borderRadius: BorderRadius.circular(16),
-                                    onTap: authProvider.isLoading ? null : _handleSignup,
-                                    child: Center(
-                                      child: authProvider.isLoading
-                                          ? const SizedBox(
-                                              height: 20,
-                                              width: 20,
-                                              child: CircularProgressIndicator(
-                                                strokeWidth: 2,
-                                                color: MealyTheme.white,
-                                              ),
-                                            )
-                                          : const Text(
-                                              'Sign Up',
-                                              style: TextStyle(
-                                                fontFamily: MealyTheme.fontName,
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w700,
-                                                color: MealyTheme.white,
-                                              ),
-                                            ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-
-                              // Back to Login
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    'Already have an account? ',
-                                    style: TextStyle(
-                                      color: MealyTheme.grey,
-                                      fontFamily: MealyTheme.fontName,
-                                    ),
-                                  ),
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.pop(context);
-                                    },
-                                    child: const Text(
-                                      'Login',
-                                      style: TextStyle(
-                                        fontFamily: MealyTheme.fontName,
-                                        fontWeight: FontWeight.bold,
-                                        color: MealyTheme.nearlyOrange,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
+                        // Email Field
+                        TextFormField(
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          decoration: InputDecoration(
+                            labelText: 'Email',
+                            hintText: 'Enter your email',
+                            prefixIcon: const Icon(Icons.email_outlined),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter your email';
+                            }
+                            if (!value.contains('@') || !value.contains('.')) {
+                              return 'Please enter a valid email';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Password Field
+                        TextFormField(
+                          controller: _passwordController,
+                          obscureText: _obscurePassword,
+                          decoration: InputDecoration(
+                            labelText: 'Password',
+                            hintText: 'Create a password',
+                            prefixIcon: const Icon(Icons.lock_outline),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscurePassword
+                                    ? Icons.visibility_outlined
+                                    : Icons.visibility_off_outlined,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _obscurePassword = !_obscurePassword;
+                                });
+                              },
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter a password';
+                            }
+                            if (value.length < 6) {
+                              return 'Password must be at least 6 characters';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Confirm Password Field
+                        TextFormField(
+                          controller: _confirmPasswordController,
+                          obscureText: _obscureConfirmPassword,
+                          decoration: InputDecoration(
+                            labelText: 'Confirm Password',
+                            hintText: 'Re-enter your password',
+                            prefixIcon: const Icon(Icons.lock_outline),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscureConfirmPassword
+                                    ? Icons.visibility_outlined
+                                    : Icons.visibility_off_outlined,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _obscureConfirmPassword =
+                                      !_obscureConfirmPassword;
+                                });
+                              },
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please confirm your password';
+                            }
+                            if (value != _passwordController.text) {
+                              return 'Passwords do not match';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Terms and Conditions
+                        Row(
+                          children: [
+                            Checkbox(
+                              value: _agreeToTerms,
+                              onChanged: (value) {
+                                setState(() {
+                                  _agreeToTerms = value ?? false;
+                                });
+                              },
+                            ),
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    _agreeToTerms = !_agreeToTerms;
+                                  });
+                                },
+                                child: Text(
+                                  'I agree to the Terms and Conditions',
+                                  style: Theme.of(context).textTheme.bodyMedium,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Sign Up Button
+                        FilledButton(
+                          onPressed: authProvider.isLoading
+                              ? null
+                              : _handleSignup,
+                          style: FilledButton.styleFrom(
+                            padding: const EdgeInsets.all(16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: authProvider.isLoading
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Text(
+                                  'Sign Up',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Back to Login
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Already have an account? ',
+                              style: TextStyle(color: Colors.grey[600]),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                              child: const Text(
+                                'Login',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
