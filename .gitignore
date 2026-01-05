@@ -3,6 +3,8 @@ node_modules/
 __pycache__/
 *.pyc
 .env
+backend/venv/
+
 
 # Build outputs
 dist/
