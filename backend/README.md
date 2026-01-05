@@ -67,11 +67,19 @@ FIREBASE_PROJECT_ID=your-firebase-project
 
 ### Running the Server
 
+**Development (optional debug)**
 ```bash
+# Set FLASK_DEBUG=true if you need debug locally; reloader stays off.
 python app.py
 ```
 
-Server runs at `http://localhost:5000`
+**Production (gunicorn/uwsgi)**
+```bash
+# Linux/WSL recommended for gunicorn
+gunicorn --workers 4 --bind 0.0.0.0:5000 wsgi:app
+```
+
+The Flask debug flag and reloader are disabled by default to match production behavior.
 
 ## 📡 API Endpoints
 

@@ -678,10 +678,16 @@ class _FridgeScreenState extends State<FridgeScreen>
         );
         return ScaleTransition(
           scale: animation,
-          child: FloatingActionButton(
-            onPressed: _showAddOptions,
-            backgroundColor: MealyTheme.nearlyOrange,
-            child: const Icon(Icons.add, color: MealyTheme.white),
+          child: Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).padding.bottom + 50,
+              right: 4,
+            ),
+            child: FloatingActionButton(
+              onPressed: _showAddOptions,
+              backgroundColor: MealyTheme.nearlyOrange,
+              child: const Icon(Icons.add, color: MealyTheme.white),
+            ),
           ),
         );
       },

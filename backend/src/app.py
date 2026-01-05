@@ -123,16 +123,13 @@ def bad_request(error):
     return jsonify({'error': 'Bad request', 'message': str(error)}), 400
 
 if __name__ == '__main__':
-    # Run the application
+    # Run the application without the Flask reloader to mirror production behavior
     port = int(os.getenv('PORT', 5000))
-    debug = os.getenv('FLASK_ENV') == 'development'
-    
-    # Fix for Windows socket error on reload
-    # Use 'stat' reloader instead of 'watchdog' to avoid socket issues
+    debug = os.getenv('FLASK_DEBUG', 'false').lower() == 'true'
+
     app.run(
         host='0.0.0.0',
         port=port,
         debug=debug,
-        use_reloader=debug,
-        reloader_type='stat'  # More stable on Windows
+        use_reloader=False
     )

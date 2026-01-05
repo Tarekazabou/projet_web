@@ -189,7 +189,7 @@ class _BottomBarViewState extends State<BottomBarView>
                           focusColor: Colors.transparent,
                           onTap: widget.addClick,
                           child: const Icon(
-                            Icons.add,
+                            Icons.auto_awesome,
                             color: MealyTheme.white,
                             size: 32,
                           ),
