@@ -104,12 +104,17 @@ class _CookFromFridgeScreenState extends State<CookFromFridgeScreen>
         maxCookingTime: _maxCookingTime,
       );
       
-      final recipeData = response['recipe'] ?? response;
+      debugPrint('🍳 API Response: $response');
+      // Extract recipe from nested data structure
+      final data = response['data'] ?? response;
+      final recipeData = data['recipe'] ?? data;
+      debugPrint('🍳 Recipe Data: $recipeData');
       
       setState(() {
         _generatedRecipe = Recipe.fromJson(recipeData);
         _isGenerating = false;
       });
+      debugPrint('🍳 Generated Recipe: ${_generatedRecipe?.title}');
     } catch (e) {
       setState(() {
         _error = e.toString();

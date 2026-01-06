@@ -350,26 +350,113 @@ def ai_suggest_meals():
         })
         
         # Get fridge items
-        fridge_query = db.collection('Fridge').where(filter=FieldFilter('userId', '==', user_id))
+        fridge_query = db.collection('FridgeItem').where(filter=FieldFilter('userId', '==', user_id)).limit(30)
         fridge_docs = fridge_query.stream()
-        fridge_items = [doc.to_dict().get('name', '') for doc in fridge_docs]
+        fridge_items = [doc.to_dict().get('ingredientName', '') for doc in fridge_docs if doc.to_dict().get('ingredientName')]
         
         # Get dietary preferences
         preferences = data.get('preferences', user_data.get('dietaryPreferences', []))
         meal_type = data.get('mealType', 'dinner')
         
-        # Simple AI-like suggestion (in real app, this would call OpenAI/Claude)
-        suggestions = _generate_meal_suggestions(
-            fridge_items=fridge_items,
-            preferences=preferences,
-            meal_type=meal_type,
-            nutrition_goals=nutrition_goals
-        )
+        # Use AI to generate suggestions
+        from services.ai_service import AIRecipeGenerator
+        
+        try:
+            ai_generator = AIRecipeGenerator()
+        except Exception as e:
+            logger.error(f"Failed to initialize AI service: {e}")
+            # Fallback to simple suggestions if AI unavailable
+            suggestions = _generate_meal_suggestions(
+                fridge_items=fridge_items,
+                preferences=preferences,
+                meal_type=meal_type,
+                nutrition_goals=nutrition_goals
+            )
+            return success_response({
+                'suggestions': suggestions,
+                'based_on_fridge': fridge_items[:5],
+                'preferences': preferences,
+                'ai_powered': False
+            })
+        
+        # Build AI prompt for multiple suggestions
+        prompt_parts = []
+        prompt_parts.append("You are a creative chef AI assistant.")
+        prompt_parts.append(f"Generate 3 {meal_type} meal suggestions.")
+        
+        if fridge_items:
+            prompt_parts.append(f"Available ingredients in fridge: {', '.join(fridge_items[:15])}")
+            prompt_parts.append("Prioritize using these ingredients when possible.")
+        
+        if preferences:
+            prompt_parts.append(f"Dietary preferences: {', '.join(preferences)}")
+        
+        prompt_parts.append(f"Target nutrition: ~{nutrition_goals.get('calories', 2000)//3} calories per meal")
+        
+        prompt_parts.append("\nReturn ONLY valid JSON array with 3 meal suggestions:")
+        prompt_parts.append("""[
+  {
+    "name": "Meal Name",
+    "description": "Brief description",
+    "calories": 400,
+    "prepTime": 20,
+    "ingredients": ["ingredient1", "ingredient2"],
+    "difficulty": "easy"
+  }
+]""")
+        
+        context_prompt = "\n".join(prompt_parts)
+        
+        try:
+            import json
+            response = ai_generator.model.generate_content(
+                context_prompt,
+                generation_config={
+                    'temperature': 0.8,
+                    'max_output_tokens': 1024,
+                }
+            )
+            
+            # Parse response
+            response_text = response.text.strip()
+            if response_text.startswith('```'):
+                response_text = response_text.split('\n', 1)[1] if '\n' in response_text else response_text[3:]
+                if response_text.endswith('```'):
+                    response_text = response_text[:-3]
+                response_text = response_text.strip()
+            
+            suggestions = json.loads(response_text)
+            
+            # Add fridge match info
+            fridge_lower = [item.lower() for item in fridge_items]
+            for suggestion in suggestions:
+                ingredients = suggestion.get('ingredients', [])
+                matches = sum(1 for ing in ingredients if any(ing.lower() in f for f in fridge_lower))
+                suggestion['fridgeMatch'] = matches
+                suggestion['matchPercentage'] = int((matches / len(ingredients)) * 100) if ingredients else 0
+            
+            logger.info(f"Generated {len(suggestions)} AI meal suggestions for {meal_type}")
+            
+        except Exception as e:
+            logger.error(f"AI generation failed: {e}, using fallback")
+            suggestions = _generate_meal_suggestions(
+                fridge_items=fridge_items,
+                preferences=preferences,
+                meal_type=meal_type,
+                nutrition_goals=nutrition_goals
+            )
+            return success_response({
+                'suggestions': suggestions,
+                'based_on_fridge': fridge_items[:5],
+                'preferences': preferences,
+                'ai_powered': False
+            })
         
         return success_response({
             'suggestions': suggestions,
             'based_on_fridge': fridge_items[:5],
-            'preferences': preferences
+            'preferences': preferences,
+            'ai_powered': True
         })
         
     except Exception as e:

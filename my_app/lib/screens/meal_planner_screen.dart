@@ -70,9 +70,10 @@ class _MealPlannerScreenState extends State<MealPlannerScreen> {
 
     try {
       final response = await _api.getAIMealSuggestions(mealType: mealType);
+      final data = response['data'] ?? response;
       setState(() {
         _aiSuggestions = List<Map<String, dynamic>>.from(
-          response['suggestions'] ?? [],
+          data['suggestions'] ?? [],
         );
         _isLoadingSuggestions = false;
       });
@@ -708,92 +709,295 @@ class _MealPlannerScreenState extends State<MealPlannerScreen> {
   ) {
     final matchPercent = suggestion['matchPercentage'] ?? 0;
 
-    return Container(
-      margin: EdgeInsets.only(bottom: 12.h),
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: Colors.grey.shade200),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  suggestion['name'] ?? '',
-                  style: TextStyle(
-                    fontSize: 15.sp,
-                    fontWeight: FontWeight.w600,
+    return GestureDetector(
+      onTap: () => _showRecipeDetails(suggestion, mealType),
+      child: Container(
+        margin: EdgeInsets.only(bottom: 12.h),
+        padding: EdgeInsets.all(16.w),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12.r),
+          border: Border.all(color: Colors.grey.shade200),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    suggestion['name'] ?? '',
+                    style: TextStyle(
+                      fontSize: 15.sp,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-                SizedBox(height: 4.h),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.local_fire_department,
-                      size: 14.r,
-                      color: Colors.orange,
-                    ),
-                    SizedBox(width: 4.w),
-                    Text(
-                      '${suggestion['calories']} cal',
-                      style: TextStyle(fontSize: 12.sp, color: MealyTheme.grey),
-                    ),
-                    SizedBox(width: 12.w),
-                    Icon(Icons.timer, size: 14.r, color: MealyTheme.grey),
-                    SizedBox(width: 4.w),
-                    Text(
-                      '${suggestion['prepTime']} min',
-                      style: TextStyle(fontSize: 12.sp, color: MealyTheme.grey),
+                  SizedBox(height: 4.h),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.local_fire_department,
+                        size: 14.r,
+                        color: Colors.orange,
+                      ),
+                      SizedBox(width: 4.w),
+                      Text(
+                        '${suggestion['calories']} cal',
+                        style: TextStyle(fontSize: 12.sp, color: MealyTheme.grey),
+                      ),
+                      SizedBox(width: 12.w),
+                      Icon(Icons.timer, size: 14.r, color: MealyTheme.grey),
+                      SizedBox(width: 4.w),
+                      Text(
+                        '${suggestion['prepTime']} min',
+                        style: TextStyle(fontSize: 12.sp, color: MealyTheme.grey),
+                      ),
+                    ],
+                  ),
+                  if (matchPercent > 0) ...[
+                    SizedBox(height: 8.h),
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 8.w,
+                        vertical: 4.h,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.green.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                      child: Text(
+                        '$matchPercent% in fridge',
+                        style: TextStyle(
+                          fontSize: 11.sp,
+                          color: Colors.green.shade700,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                     ),
                   ],
+                ],
+              ),
+            ),
+            IconButton(
+              onPressed: () {
+                _addMealToPlan(mealType, suggestion);
+                Navigator.pop(context);
+              },
+              icon: Container(
+                padding: EdgeInsets.all(8.w),
+                decoration: BoxDecoration(
+                  color: MealyTheme.nearlyOrange,
+                  borderRadius: BorderRadius.circular(8.r),
                 ),
-                if (matchPercent > 0) ...[
-                  SizedBox(height: 8.h),
+                child: Icon(Icons.add, color: Colors.white, size: 20.r),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showRecipeDetails(Map<String, dynamic> suggestion, String mealType) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.85,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        builder: (context, scrollController) => Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+          ),
+          child: ListView(
+            controller: scrollController,
+            padding: EdgeInsets.all(24.w),
+            children: [
+              // Handle bar
+              Center(
+                child: Container(
+                  width: 40.w,
+                  height: 4.h,
+                  margin: EdgeInsets.only(bottom: 16.h),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2.r),
+                  ),
+                ),
+              ),
+              
+              // AI badge
+              Row(
+                children: [
                   Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 8.w,
-                      vertical: 4.h,
-                    ),
+                    padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
                     decoration: BoxDecoration(
-                      color: Colors.green.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8.r),
+                      color: MealyTheme.nearlyGreen,
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.auto_awesome, color: Colors.white, size: 14.r),
+                        SizedBox(width: 4.w),
+                        Text(
+                          'AI Suggested',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(width: 8.w),
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                    decoration: BoxDecoration(
+                      color: _getMealColor(mealType).withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12.r),
                     ),
                     child: Text(
-                      '$matchPercent% in fridge',
+                      mealType.toUpperCase(),
                       style: TextStyle(
-                        fontSize: 11.sp,
-                        color: Colors.green.shade700,
-                        fontWeight: FontWeight.w500,
+                        color: _getMealColor(mealType),
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
                 ],
-              ],
-            ),
-          ),
-          IconButton(
-            onPressed: () {
-              _addMealToPlan(mealType, suggestion);
-              Navigator.pop(context);
-            },
-            icon: Container(
-              padding: EdgeInsets.all(8.w),
-              decoration: BoxDecoration(
-                color: MealyTheme.nearlyOrange,
-                borderRadius: BorderRadius.circular(8.r),
               ),
-              child: Icon(Icons.add, color: Colors.white, size: 20.r),
+              SizedBox(height: 16.h),
+              
+              // Recipe title
+              Text(
+                suggestion['name'] ?? 'Recipe',
+                style: TextStyle(
+                  fontSize: 24.sp,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: 8.h),
+              
+              // Description
+              if (suggestion['description'] != null) ...[
+                Text(
+                  suggestion['description'],
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                SizedBox(height: 16.h),
+              ],
+              
+              // Quick info
+              Row(
+                children: [
+                  _buildInfoChip(Icons.local_fire_department, '${suggestion['calories'] ?? 0} cal', Colors.orange),
+                  SizedBox(width: 8.w),
+                  _buildInfoChip(Icons.timer, '${suggestion['prepTime'] ?? 0} min', MealyTheme.nearlyGreen),
+                  SizedBox(width: 8.w),
+                  _buildInfoChip(Icons.bar_chart, suggestion['difficulty'] ?? 'medium', Colors.blue),
+                ],
+              ),
+              SizedBox(height: 24.h),
+              
+              // Ingredients
+              Text(
+                'Ingredients',
+                style: TextStyle(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: 12.h),
+              ...((suggestion['ingredients'] as List<dynamic>?) ?? []).map((ingredient) {
+                return Padding(
+                  padding: EdgeInsets.only(bottom: 8.h),
+                  child: Row(
+                    children: [
+                      Icon(Icons.check_circle, size: 18.r, color: MealyTheme.nearlyGreen),
+                      SizedBox(width: 12.w),
+                      Expanded(
+                        child: Text(
+                          ingredient.toString(),
+                          style: TextStyle(fontSize: 14.sp),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+              SizedBox(height: 24.h),
+              
+              // Add to plan button
+              ElevatedButton(
+                onPressed: () {
+                  _addMealToPlan(mealType, suggestion);
+                  Navigator.pop(context); // Close recipe details
+                  Navigator.pop(context); // Close add meal sheet
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: MealyTheme.nearlyOrange,
+                  padding: EdgeInsets.symmetric(vertical: 16.h),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.add, color: Colors.white),
+                    SizedBox(width: 8.w),
+                    Text(
+                      'Add to $mealType',
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoChip(IconData icon, String text, Color color) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20.r),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16.r, color: color),
+          SizedBox(width: 4.w),
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: 12.sp,
+              color: color,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
