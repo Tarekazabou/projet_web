@@ -190,35 +190,24 @@ class _SignupScreenState extends State<SignupScreen>
             child: Column(
               children: [
                 Container(
-                  width: 100,
-                  height: 100,
+                  width: 120,
+                  height: 120,
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        MealyTheme.nearlyOrange,
-                        MealyTheme.nearlyOrange.withOpacity(0.8),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: const BorderRadius.only(
-                      bottomRight: Radius.circular(8.0),
-                      bottomLeft: Radius.circular(8.0),
-                      topLeft: Radius.circular(8.0),
-                      topRight: Radius.circular(40.0),
-                    ),
+                    borderRadius: BorderRadius.circular(24),
                     boxShadow: [
                       BoxShadow(
-                        color: MealyTheme.nearlyOrange.withOpacity(0.4),
+                        color: MealyTheme.nearlyOrange.withOpacity(0.3),
                         offset: const Offset(2, 4),
                         blurRadius: 12,
                       ),
                     ],
                   ),
-                  child: const Icon(
-                    Icons.person_add_rounded,
-                    size: 50,
-                    color: MealyTheme.white,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(24),
+                    child: Image.asset(
+                      'assets/images/mealy_logo.png',
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 24),
