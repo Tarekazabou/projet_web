@@ -253,11 +253,7 @@ class ApiService {
     return await post('/recipes/generate-multiple', params);
   }
 
-  Future<Map<String, dynamic>> generateSimpleRecipe(
-    Map<String, dynamic> params,
-  ) async {
-    return await post('/recipes/generate-simple', params);
-  }
+
 
   /// Get favorite recipes
   Future<List<dynamic>> getFavoriteRecipes({
