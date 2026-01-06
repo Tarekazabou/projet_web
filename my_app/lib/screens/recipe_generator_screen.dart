@@ -25,21 +25,21 @@ class _RecipeGeneratorScreenState extends State<RecipeGeneratorScreen>
   Animation<double>? topBarAnimation;
   double topBarOpacity = 0.0;
 
-  String _difficulty = 'Facile';
+  String _difficulty = 'Easy';
   int _servings = 4;
   int _maxTime = 60;
   final List<String> _dietaryPrefs = [];
 
   final List<String> _availableDietaryPrefs = [
-    'Végétarien',
-    'Végétalien',
-    'Sans Gluten',
-    'Sans Lactose',
-    'Pauvre en Glucides',
+    'Vegetarian',
+    'Vegan',
+    'Gluten-Free',
+    'Lactose-Free',
+    'Low Carb',
     'Keto',
     'Paleo',
     'Halal',
-    'Casher',
+    'Kosher',
   ];
 
   @override
@@ -98,7 +98,7 @@ class _RecipeGeneratorScreenState extends State<RecipeGeneratorScreen>
     if (ingredients.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Veuillez entrer au moins un ingrédient'),
+          content: const Text('Please enter at least one ingredient'),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -123,7 +123,7 @@ class _RecipeGeneratorScreenState extends State<RecipeGeneratorScreen>
       if (provider.error == null && provider.generatedRecipe != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Recette générée avec succès !'),
+            content: const Text('Recipe generated successfully!'),
             backgroundColor: MealyTheme.nearlyGreen,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -394,7 +394,7 @@ class _RecipeGeneratorScreenState extends State<RecipeGeneratorScreen>
                         ),
                         const SizedBox(width: 12),
                         const Text(
-                          'Ingrédients',
+                          'Ingredients',
                           style: TextStyle(
                             fontFamily: MealyTheme.fontName,
                             fontWeight: FontWeight.w600,
@@ -409,8 +409,8 @@ class _RecipeGeneratorScreenState extends State<RecipeGeneratorScreen>
                       controller: _ingredientsController,
                       maxLines: 3,
                       decoration: InputDecoration(
-                        hintText: 'poulet, riz, tomates...',
-                        helperText: 'Séparer par des virgules',
+                        hintText: 'chicken, rice, tomatoes...',
+                        helperText: 'Separate with commas',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
                           borderSide: BorderSide(
@@ -435,7 +435,7 @@ class _RecipeGeneratorScreenState extends State<RecipeGeneratorScreen>
                       ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return 'Veuillez entrer les ingrédients';
+                          return 'Please enter ingredients';
                         }
                         return null;
                       },
@@ -497,7 +497,7 @@ class _RecipeGeneratorScreenState extends State<RecipeGeneratorScreen>
                         ),
                         const SizedBox(width: 12),
                         const Text(
-                          'Préférences',
+                          'Preferences',
                           style: TextStyle(
                             fontFamily: MealyTheme.fontName,
                             fontWeight: FontWeight.w600,
@@ -511,8 +511,8 @@ class _RecipeGeneratorScreenState extends State<RecipeGeneratorScreen>
                     TextFormField(
                       controller: _cuisineController,
                       decoration: InputDecoration(
-                        labelText: 'Type de cuisine (optionnel)',
-                        hintText: 'Français, Italien, Asiatique...',
+                        labelText: 'Cuisine type (optional)',
+                        hintText: 'French, Italian, Asian...',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
@@ -537,7 +537,7 @@ class _RecipeGeneratorScreenState extends State<RecipeGeneratorScreen>
                     DropdownButtonFormField<String>(
                       value: _difficulty,
                       decoration: InputDecoration(
-                        labelText: 'Difficulté',
+                        labelText: 'Difficulty',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
@@ -550,7 +550,7 @@ class _RecipeGeneratorScreenState extends State<RecipeGeneratorScreen>
                         filled: true,
                         fillColor: MealyTheme.background,
                       ),
-                      items: ['Facile', 'Moyen', 'Difficile']
+                      items: ['Easy', 'Medium', 'Hard']
                           .map(
                             (d) => DropdownMenuItem(value: d, child: Text(d)),
                           )
@@ -560,8 +560,8 @@ class _RecipeGeneratorScreenState extends State<RecipeGeneratorScreen>
                     ),
                     const SizedBox(height: 20),
                     _buildSliderSection(
-                      'Portions',
-                      '$_servings pers',
+                      'Servings',
+                      '$_servings servings',
                       _servings.toDouble(),
                       1,
                       12,
@@ -570,7 +570,7 @@ class _RecipeGeneratorScreenState extends State<RecipeGeneratorScreen>
                     ),
                     const SizedBox(height: 16),
                     _buildSliderSection(
-                      'Temps max',
+                      'Max time',
                       '$_maxTime min',
                       _maxTime.toDouble(),
                       15,
@@ -696,7 +696,7 @@ class _RecipeGeneratorScreenState extends State<RecipeGeneratorScreen>
                         ),
                         const SizedBox(width: 12),
                         const Text(
-                          'Préférences Alimentaires',
+                          'Dietary Preferences',
                           style: TextStyle(
                             fontFamily: MealyTheme.fontName,
                             fontWeight: FontWeight.w600,
@@ -815,8 +815,8 @@ class _RecipeGeneratorScreenState extends State<RecipeGeneratorScreen>
                       const SizedBox(width: 12),
                       Text(
                         provider.isLoading
-                            ? 'Génération en cours...'
-                            : 'Générer une Recette',
+                            ? 'Generating...'
+                            : 'Generate Recipe',
                         style: const TextStyle(
                           fontFamily: MealyTheme.fontName,
                           fontSize: 18,
@@ -895,7 +895,7 @@ class _RecipeGeneratorScreenState extends State<RecipeGeneratorScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Choisissez une Recette',
+                      'Choose a Recipe',
                       style: TextStyle(
                         fontFamily: MealyTheme.fontName,
                         fontSize: 20,
@@ -904,7 +904,7 @@ class _RecipeGeneratorScreenState extends State<RecipeGeneratorScreen>
                       ),
                     ),
                     Text(
-                      'Sélectionnez votre recette préférée',
+                      'Select your favorite recipe',
                       style: TextStyle(
                         fontFamily: MealyTheme.fontName,
                         fontSize: 12,
@@ -938,7 +938,7 @@ class _RecipeGeneratorScreenState extends State<RecipeGeneratorScreen>
     bool isSelected,
     RecipeProvider provider,
   ) {
-    final variationLabels = ['Classique', 'Rapide', 'Gourmet'];
+    final variationLabels = ['Classic', 'Quick', 'Gourmet'];
     final variationColors = [
       const Color(0xFF738AE6),
       MealyTheme.nearlyOrange,
@@ -1060,7 +1060,7 @@ class _RecipeGeneratorScreenState extends State<RecipeGeneratorScreen>
                       const SizedBox(width: 8),
                       _buildStatChip(
                         Icons.people,
-                        '${recipe.servingSize} pers',
+                        '${recipe.servingSize} servings',
                       ),
                       const SizedBox(width: 8),
                       _buildStatChip(Icons.restaurant, recipe.difficulty),
@@ -1069,7 +1069,7 @@ class _RecipeGeneratorScreenState extends State<RecipeGeneratorScreen>
                   const SizedBox(height: 12),
                   // Ingredients preview
                   Text(
-                    '${recipe.ingredients.length} ingrédients',
+                    '${recipe.ingredients.length} ingredients',
                     style: TextStyle(
                       fontFamily: MealyTheme.fontName,
                       fontSize: 12,
@@ -1088,7 +1088,7 @@ class _RecipeGeneratorScreenState extends State<RecipeGeneratorScreen>
                   onPressed: () => _confirmRecipeSelection(recipe),
                   icon: const Icon(Icons.check_circle, color: MealyTheme.white),
                   label: const Text(
-                    'Utiliser cette Recette',
+                    'Use this Recipe',
                     style: TextStyle(
                       fontFamily: MealyTheme.fontName,
                       fontWeight: FontWeight.bold,
@@ -1275,8 +1275,8 @@ class _RecipeGeneratorScreenState extends State<RecipeGeneratorScreen>
                           const SizedBox(width: 8),
                           Text(
                             availableCount == totalCount
-                                ? 'Tous les ingrédients disponibles!'
-                                : '$availableCount/$totalCount ingrédients disponibles',
+                                ? 'All ingredients available!'
+                                : '$availableCount/$totalCount ingredients available',
                             style: TextStyle(
                               fontFamily: MealyTheme.fontName,
                               fontWeight: FontWeight.w600,
@@ -1331,7 +1331,7 @@ class _RecipeGeneratorScreenState extends State<RecipeGeneratorScreen>
                             child: Text(
                               item['name'].toString().isNotEmpty
                                   ? '${item['name'][0].toUpperCase()}${item['name'].substring(1)}'
-                                  : 'Ingrédient',
+                                  : 'Ingredient',
                               style: TextStyle(
                                 fontFamily: MealyTheme.fontName,
                                 fontSize: 15,
@@ -1376,7 +1376,7 @@ class _RecipeGeneratorScreenState extends State<RecipeGeneratorScreen>
                               _addToGroceryList(missingIngredients),
                           icon: const Icon(Icons.shopping_cart),
                           label: Text(
-                            'Ajouter ${missingIngredients.length} ingrédient(s) à la liste',
+                            'Add ${missingIngredients.length} ingredient(s) to list',
                             style: const TextStyle(
                               fontFamily: MealyTheme.fontName,
                             ),
@@ -1406,8 +1406,8 @@ class _RecipeGeneratorScreenState extends State<RecipeGeneratorScreen>
                         ),
                         label: Text(
                           availableCount == totalCount
-                              ? 'Préparer cette Recette'
-                              : 'Préparer avec ingrédients disponibles',
+                              ? 'Prepare this Recipe'
+                              : 'Prepare with available ingredients',
                           style: const TextStyle(
                             fontFamily: MealyTheme.fontName,
                             fontWeight: FontWeight.bold,
@@ -1453,7 +1453,7 @@ class _RecipeGeneratorScreenState extends State<RecipeGeneratorScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '${missingIngredients.length} ingrédient(s) ajouté(s) à la liste de courses!',
+              '${missingIngredients.length} ingredient(s) added to grocery list!',
             ),
             backgroundColor: MealyTheme.nearlyGreen,
             behavior: SnackBarBehavior.floating,
@@ -1499,7 +1499,7 @@ class _RecipeGeneratorScreenState extends State<RecipeGeneratorScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text(
-              'Bon appétit! Les ingrédients ont été retirés du frigo.',
+              'Enjoy! Ingredients have been removed from fridge.',
             ),
             backgroundColor: MealyTheme.nearlyGreen,
             behavior: SnackBarBehavior.floating,
