@@ -117,9 +117,9 @@ pytest
 ```
 
 ## Notes
-
 - This repo contains a Firebase Admin service account JSON. Treat it as sensitive and avoid publishing it publicly.
-- The backend’s `/` route may reference a React build folder that isn’t present in this workspace; the API endpoints under `/api/*` are the intended interface.
+- The backend's `/` route may reference a React build folder that isn't present in this workspace; the API endpoints under `/api/*` are the intended interface.
+```
 │   │   ├── pages/               # Page components
 │   │   │   ├── HomePage.jsx
 │   │   │   ├── YourFridgePage.jsx
@@ -180,6 +180,7 @@ pytest
 ├── Dockerfile                 # Production container
 ├── docker-compose.yml         # Development stack
 └── README.md
+```
 
 ## 📚 API Documentation
 
