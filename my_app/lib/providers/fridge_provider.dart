@@ -13,17 +13,22 @@ class FridgeProvider with ChangeNotifier {
   String? get error => _error;
 
   Future<void> loadFridgeItems() async {
+    debugPrint('FridgeProvider: loadFridgeItems() called');
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
       final data = await _apiService.getFridgeItems();
+      debugPrint('FridgeProvider: Got ${data.length} items from API');
       _items = data.map((item) => FridgeItem.fromJson(item)).toList();
+      debugPrint('FridgeProvider: Parsed ${_items.length} items');
     } catch (e) {
+      debugPrint('FridgeProvider: Error loading items: $e');
       _error = e.toString();
     } finally {
       _isLoading = false;
+      debugPrint('FridgeProvider: Calling notifyListeners()');
       notifyListeners();
     }
   }

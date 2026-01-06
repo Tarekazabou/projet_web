@@ -444,6 +444,54 @@ class ApiService {
     return await get('/receipt/test-connection');
   }
 
+  // ==================== Food Scanner Endpoints ====================
+
+  /// Scan a food image and get nutrition facts
+  Future<Map<String, dynamic>> scanFood(
+    String base64Image, {
+    String? date,
+    String? mealType,
+    bool autoLog = false,
+  }) async {
+    return await post('/food/scan', {
+      'image': base64Image,
+      if (date != null) 'date': date,
+      if (mealType != null) 'meal_type': mealType,
+      'auto_log': autoLog,
+    });
+  }
+
+  /// Log a previously scanned food to nutrition tracker
+  Future<Map<String, dynamic>> logScannedFood({
+    required String mealName,
+    required Map<String, dynamic> nutrition,
+    List<String>? foodItems,
+    String? date,
+    String? mealType,
+    String? portionSize,
+    String? healthNotes,
+  }) async {
+    return await post('/food/log', {
+      'meal_name': mealName,
+      'nutrition': nutrition,
+      if (foodItems != null) 'food_items': foodItems,
+      if (date != null) 'date': date,
+      if (mealType != null) 'meal_type': mealType,
+      if (portionSize != null) 'portion_size': portionSize,
+      if (healthNotes != null) 'health_notes': healthNotes,
+    });
+  }
+
+  /// Get food scan history
+  Future<Map<String, dynamic>> getFoodScanHistory({
+    int limit = 10,
+    String? date,
+  }) async {
+    String endpoint = '/food/history?limit=$limit';
+    if (date != null) endpoint += '&date=$date';
+    return await get(endpoint);
+  }
+
   /// Dispose the client when done
   void dispose() {
     _client.close();

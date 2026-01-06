@@ -123,44 +123,6 @@ def add_grocery_item():
         return error_response('Failed to add grocery item', 500)
 
 
-@grocery_bp.route('/items/<int:item_index>', methods=['PUT'])
-def update_grocery_item(item_index):
-    """Update a grocery item by index"""
-    try:
-        user_id = require_current_user()
-        db = get_db()
-        data = request.get_json()
-        
-        doc, list_data = _get_active_grocery_list(db, user_id)
-        
-        if not doc:
-            return error_response('No grocery list found', 404)
-        
-        items = list_data.get('items', [])
-        
-        if item_index < 0 or item_index >= len(items):
-            return error_response('Item not found', 404)
-        
-        # Update item fields
-        for key in ['name', 'quantity', 'unit', 'category', 'purchased']:
-            if key in data:
-                items[item_index][key] = data[key]
-        
-        doc.reference.update({
-            'items': items,
-            'updatedAt': datetime.utcnow()
-        })
-        
-        return success_response({
-            'message': 'Item updated successfully',
-            'item': items[item_index]
-        })
-        
-    except Exception as e:
-        logger.error(f"Error updating grocery item: {e}", exc_info=True)
-        return error_response('Failed to update grocery item', 500)
-
-
 @grocery_bp.route('/items/<int:item_index>', methods=['DELETE'])
 def delete_grocery_item(item_index):
     """Delete a grocery item by index"""
@@ -227,38 +189,6 @@ def toggle_item_purchased(item_index):
     except Exception as e:
         logger.error(f"Error toggling item: {e}", exc_info=True)
         return error_response('Failed to toggle item', 500)
-
-
-@grocery_bp.route('/clear-purchased', methods=['POST'])
-def clear_purchased_items():
-    """Remove all purchased items from the list"""
-    try:
-        user_id = require_current_user()
-        db = get_db()
-        
-        doc, list_data = _get_active_grocery_list(db, user_id)
-        
-        if not doc:
-            return error_response('No grocery list found', 404)
-        
-        items = list_data.get('items', [])
-        
-        remaining = [item for item in items if not item.get('purchased', False)]
-        removed_count = len(items) - len(remaining)
-        
-        doc.reference.update({
-            'items': remaining,
-            'updatedAt': datetime.utcnow()
-        })
-        
-        return success_response({
-            'message': f'Removed {removed_count} purchased items',
-            'remaining_count': len(remaining)
-        })
-        
-    except Exception as e:
-        logger.error(f"Error clearing purchased items: {e}", exc_info=True)
-        return error_response('Failed to clear purchased items', 500)
 
 
 @grocery_bp.route('/from-meal-plan', methods=['POST'])

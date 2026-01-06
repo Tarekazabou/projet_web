@@ -309,14 +309,26 @@ class AreaCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 2),
-                      Text(
-                        areaData!.subtitle,
-                        style: TextStyle(
-                          fontFamily: MealyTheme.fontName,
-                          fontWeight: FontWeight.w400,
-                          fontSize: 12,
-                          color: MealyTheme.grey.withValues(alpha: 0.7),
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              areaData!.subtitle,
+                              style: TextStyle(
+                                fontFamily: MealyTheme.fontName,
+                                fontWeight: FontWeight.w400,
+                                fontSize: 12,
+                                color: MealyTheme.grey.withValues(alpha: 0.7),
+                              ),
+                            ),
+                          ),
+                          Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            size: 14,
+                            color: HexColor(areaData!.startColor).withValues(alpha: 0.6),
+                          ),
+                        ],
                       ),
                     ],
                   ),

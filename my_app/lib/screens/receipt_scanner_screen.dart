@@ -94,14 +94,26 @@ class _ReceiptScannerScreenState extends State<ReceiptScannerScreen>
       final base64Image = base64Encode(_selectedImageBytes!);
 
       // Send to backend
-      final result = await _apiService.scanReceipt(base64Image);
+      final response = await _apiService.scanReceipt(base64Image);
+
+      // Extract data from response wrapper
+      final result = response['data'] as Map<String, dynamic>? ?? response;
+
+      debugPrint('Receipt scan result: $result');
+      debugPrint('is_receipt: ${result['is_receipt']}');
+      debugPrint('items_added: ${result['items_added']}');
+      debugPrint('items_updated: ${result['items_updated']}');
+      debugPrint('items: ${result['items']}');
+
+      
+      
 
       // Handle both wrapped API responses ({data: {...}}) and plain payloads
       final payload = (result['data'] as Map<String, dynamic>?) ?? result;
       final itemsAdded = (payload['items_added'] ?? 0) as num;
       final itemsUpdated = (payload['items_updated'] ?? 0) as num;
       final isReceipt = payload['is_receipt'] == true;
-
+      final totalProcessed = itemsAdded + itemsUpdated;
       setState(() {
         _isProcessing = false;
         _isSuccess = isReceipt && (itemsAdded + itemsUpdated) > 0;
@@ -111,18 +123,28 @@ class _ReceiptScannerScreenState extends State<ReceiptScannerScreen>
         _extractedItems = (payload['items'] as List<dynamic>?) ?? [];
       });
 
+      debugPrint('_isSuccess: $_isSuccess (totalProcessed: $totalProcessed)');
+
       if (_isSuccess) {
         // Refresh fridge items
+        debugPrint('Receipt scan successful! Refreshing fridge items...');
         if (mounted) {
           await context.read<FridgeProvider>().loadFridgeItems();
+          debugPrint('Fridge items refresh completed');
         }
-        _showSuccessSnackBar(
-          '${itemsAdded.toInt()} added • ${itemsUpdated.toInt()} updated',
-        );
-      } else if (!isReceipt) {
-        _showErrorSnackBar(
-          payload['message']?.toString() ?? 'This is not a valid receipt',
-        );
+
+        // Build appropriate message
+        String message;
+        if (itemsAdded > 0 && itemsUpdated > 0) {
+          message = '$itemsAdded new items added, $itemsUpdated items updated!';
+        } else if (itemsUpdated > 0) {
+          message = '$itemsUpdated items updated in your fridge!';
+        } else {
+          message = '$itemsAdded items added to your fridge!';
+        }
+        _showSuccessSnackBar(message);
+      } else if (result['is_receipt'] == false) {
+        _showErrorSnackBar(result['message'] ?? 'This is not a valid receipt');
       }
     } catch (e) {
       setState(() {
