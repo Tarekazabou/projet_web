@@ -259,6 +259,22 @@ class ApiService {
     return await post('/recipes/generate-simple', params);
   }
 
+  /// Get favorite recipes
+  Future<List<dynamic>> getFavoriteRecipes({
+    int perPage = AppConstants.defaultPageSize,
+  }) async {
+    final data = await get('/recipes/list?per_page=$perPage');
+    return data['recipes'] ?? [];
+  }
+
+  /// Get recipe history (same endpoint as getRecipes)
+  Future<List<dynamic>> getRecipeHistory({
+    int perPage = AppConstants.defaultPageSize,
+  }) async {
+    final data = await get('/recipes/list?per_page=$perPage');
+    return data['recipes'] ?? [];
+  }
+
   // ==================== Nutrition Endpoints ====================
 
   Future<Map<String, dynamic>> getNutritionGoals() async {

@@ -123,7 +123,6 @@ class _NutritionScreenState extends State<NutritionScreen>
     listViews.add(
       TitleView(
         titleTxt: 'Calorie Breakdown',
-        subTxt: 'Details',
         animation: Tween<double>(begin: 0.0, end: 1.0).animate(
           CurvedAnimation(
             parent: animationController!,
@@ -181,7 +180,6 @@ class _NutritionScreenState extends State<NutritionScreen>
     listViews.add(
       TitleView(
         titleTxt: 'Hydration',
-        subTxt: 'Goal: 8 glasses',
         animation: Tween<double>(begin: 0.0, end: 1.0).animate(
           CurvedAnimation(
             parent: animationController!,
@@ -225,7 +223,6 @@ class _NutritionScreenState extends State<NutritionScreen>
     listViews.add(
       TitleView(
         titleTxt: 'Macro Goals',
-        subTxt: 'Adjust',
         animation: Tween<double>(begin: 0.0, end: 1.0).animate(
           CurvedAnimation(
             parent: animationController!,
