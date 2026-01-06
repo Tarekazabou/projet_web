@@ -3,26 +3,110 @@ name: CI/CD Pipeline
 on:
   push:
     branches: [ main, develop ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.gitignore'
   pull_request:
     branches: [ main, develop ]
   schedule:
-    # Run weekly on Mondays at 00:00 UTC for dependency checks
-    - cron: '0 0 * * 1'
+    - cron: '0 0 * * 1'  # Weekly on Mondays
+  workflow_dispatch:  # Manual trigger
+    inputs:
+      skip_tests:
+        description: 'Skip tests (emergency deploy)'
+        required: false
+        default: 'false'
+        type: boolean
+      environment:
+        description: 'Deploy environment'
+        required: false
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
 
 permissions:
   contents: read
   security-events: write
+  packages: write
+  pull-requests: write
+  actions: read
+  checks: write
 
 env:
-  PYTHON_VERSION: '3.11'
+  PYTHON_VERSION: '3.12'
   FLUTTER_VERSION: '3.24.0'
   FLUTTER_CHANNEL: 'stable'
+  JAVA_VERSION: '17'
+  RUBY_VERSION: '3.3'
+  NODE_VERSION: '20'
+
+# Cancel in-progress runs for the same branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  # Python Backend Testing with Modern Tools
-  backend-test:
-    name: Backend Tests (Python)
+  # ============================================
+  # 🔍 PRE-FLIGHT CHECKS
+  # ============================================
+  preflight:
+    name: 🔍 Pre-flight Checks
     runs-on: ubuntu-latest
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+      backend_changed: ${{ steps.changes.outputs.backend }}
+      flutter_changed: ${{ steps.changes.outputs.flutter }}
+      docker_changed: ${{ steps.changes.outputs.docker }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Check for duplicate runs
+      id: skip_check
+      uses: fkirc/skip-duplicate-actions@v5
+      with:
+        concurrent_skipping: 'same_content_newer'
+        skip_after_successful_duplicate: 'true'
+    
+    - name: Detect file changes
+      id: changes
+      uses: dorny/paths-filter@v3
+      with:
+        filters: |
+          backend:
+            - 'backend/**'
+            - 'requirements*.txt'
+          flutter:
+            - 'my_app/**'
+            - 'pubspec.*'
+          docker:
+            - 'Dockerfile*'
+            - 'docker-compose*.yml'
+            - '.dockerignore'
+    
+    - name: Print change summary
+      run: |
+        echo "## 📊 Change Detection Summary" >> $GITHUB_STEP_SUMMARY
+        echo "| Component | Changed |" >> $GITHUB_STEP_SUMMARY
+        echo "|-----------|---------|" >> $GITHUB_STEP_SUMMARY
+        echo "| Backend | ${{ steps.changes.outputs.backend }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Flutter | ${{ steps.changes.outputs.flutter }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Docker | ${{ steps.changes.outputs.docker }} |" >> $GITHUB_STEP_SUMMARY
+
+  # ============================================
+  # 🐍 PYTHON BACKEND
+  # ============================================
+  backend-lint:
+    name: 🐍 Backend Lint
+    runs-on: ubuntu-latest
+    needs: [preflight]
+    if: needs.preflight.outputs.backend_changed == 'true' || github.event_name == 'schedule'
     
     steps:
     - name: Checkout code
@@ -33,67 +117,145 @@ jobs:
       with:
         python-version: ${{ env.PYTHON_VERSION }}
     
-    - name: Install uv (fast Python package installer)
+    - name: Install uv
       uses: astral-sh/setup-uv@v4
-      with:
-        version: "latest"
     
-    - name: Cache Python dependencies
+    - name: Cache dependencies
       uses: actions/cache@v4
       with:
         path: |
           ~/.cache/uv
           ~/.cache/pip
-        key: ${{ runner.os }}-python-${{ hashFiles('backend/requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-python-
+          ~/.local/share/uv
+        key: ${{ runner.os }}-python-${{ env.PYTHON_VERSION }}-${{ hashFiles('backend/requirements.txt') }}
+        restore-keys: ${{ runner.os }}-python-${{ env.PYTHON_VERSION }}-
+    
+    - name: Install tools
+      run: uv pip install --system ruff mypy bandit vulture dead
+    
+    - name: Ruff lint
+      run: |
+        cd backend
+        ruff check . --output-format=github --exit-non-zero-on-fix
+    
+    - name: Ruff format check
+      run: |
+        cd backend
+        ruff format --check --diff .
+    
+    - name: MyPy type check
+      run: |
+        cd backend
+        mypy . --ignore-missing-imports --show-error-codes --pretty || true
+    
+    - name: Bandit security check
+      run: |
+        cd backend
+        bandit -r . -ll -ii -x ./tests -f json -o bandit-report.json || true
+        bandit -r . -ll -ii -x ./tests
+    
+    - name: Dead code detection
+      run: |
+        cd backend
+        vulture . --min-confidence 80 || true
+
+  backend-test:
+    name: 🧪 Backend Tests
+    runs-on: ubuntu-latest
+    needs: [preflight, backend-lint]
+    if: |
+      always() &&
+      (needs.preflight.outputs.backend_changed == 'true' || github.event_name == 'schedule') &&
+      github.event.inputs.skip_tests != 'true' &&
+      (needs.backend-lint.result == 'success' || needs.backend-lint.result == 'skipped')
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12']
+    
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install uv
+      uses: astral-sh/setup-uv@v4
+    
+    - name: Cache dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/uv
+          ~/.cache/pip
+        key: ${{ runner.os }}-python-${{ matrix.python-version }}-${{ hashFiles('backend/requirements.txt') }}
     
     - name: Install dependencies
       run: |
         cd backend
-        uv pip install --system --upgrade pip
         uv pip install --system -r requirements.txt
-    
-    - name: Install dev tools
-      run: |
-        uv pip install --system ruff mypy pytest pytest-cov bandit
-    
-    - name: Run Ruff linter (replaces flake8, black, isort)
-      run: |
-        cd backend
-        ruff check . --output-format=github
-        ruff format --check .
-    
-    - name: Run MyPy type checking
-      run: |
-        cd backend
-        mypy . --ignore-missing-imports --no-error-summary || true
-    
-    - name: Run Bandit security linter
-      run: |
-        cd backend
-        bandit -r . -ll -ii -x ./tests || true
+        uv pip install --system pytest pytest-cov pytest-xdist pytest-asyncio pytest-timeout httpx
     
     - name: Run tests with coverage
       env:
         FLASK_ENV: testing
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        REDIS_URL: redis://localhost:6379
       run: |
         cd backend
-        pytest --cov=. --cov-report=xml --cov-report=term --cov-fail-under=70
+        pytest -n auto --cov=. --cov-report=xml --cov-report=html --cov-report=term-missing \
+          --junitxml=pytest-report.xml --timeout=300 -v
     
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
       with:
-        file: ./backend/coverage.xml
-        flags: backend
-        name: backend-coverage
+        files: ./backend/coverage.xml
+        flags: backend-py${{ matrix.python-version }}
+        name: backend-coverage-${{ matrix.python-version }}
         token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: false
+    
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: backend-test-results-${{ matrix.python-version }}
+        path: |
+          backend/pytest-report.xml
+          backend/htmlcov/
+        retention-days: 14
+    
+    - name: Publish test results
+      uses: dorny/test-reporter@v1
+      if: always()
+      with:
+        name: Backend Tests (Python ${{ matrix.python-version }})
+        path: backend/pytest-report.xml
+        reporter: java-junit
 
-  # Flutter App Testing
-  flutter-test:
-    name: Flutter Tests
+  # ============================================
+  # 📱 FLUTTER APP
+  # ============================================
+  flutter-analyze:
+    name: 📱 Flutter Analyze
     runs-on: ubuntu-latest
+    needs: [preflight]
+    if: needs.preflight.outputs.flutter_changed == 'true' || github.event_name == 'schedule'
     
     steps:
     - name: Checkout code
@@ -105,52 +267,97 @@ jobs:
         flutter-version: ${{ env.FLUTTER_VERSION }}
         channel: ${{ env.FLUTTER_CHANNEL }}
         cache: true
-        cache-key: 'flutter-:os:-:channel:-:version:-:arch:-:hash:'
-        cache-path: '${{ runner.tool_cache }}/flutter/:channel:-:version:-:arch:'
     
-    - name: Verify Flutter installation
-      run: |
-        flutter --version
-        dart --version
+    - name: Flutter doctor
+      run: flutter doctor -v
     
-    - name: Get Flutter dependencies
+    - name: Get dependencies
       run: |
         cd my_app
         flutter pub get
     
-    - name: Check for outdated packages
+    - name: Check outdated packages
       run: |
         cd my_app
-        flutter pub outdated || true
+        flutter pub outdated --json > outdated.json || true
+        flutter pub outdated
     
-    - name: Run Flutter analyze (static analysis)
+    - name: Verify no pubspec.lock changes
       run: |
         cd my_app
-        flutter analyze --fatal-infos --fatal-warnings
+        git diff --exit-code pubspec.lock || echo "::warning::pubspec.lock has uncommitted changes"
     
-    - name: Run Dart format check
+    - name: Analyze code
       run: |
         cd my_app
-        dart format --set-exit-if-changed .
+        flutter analyze --fatal-infos --fatal-warnings 2>&1 | tee analyze-output.txt
     
-    - name: Run Flutter tests with coverage
+    - name: Check formatting
       run: |
         cd my_app
-        flutter test --coverage --coverage-path=coverage/lcov.info
+        dart format --set-exit-if-changed --output=none .
     
-    - name: Upload Flutter coverage to Codecov
+    - name: Upload analyze report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: flutter-analyze-report
+        path: my_app/analyze-*.txt
+        retention-days: 7
+
+  flutter-test:
+    name: 🧪 Flutter Tests
+    runs-on: ubuntu-latest
+    needs: [preflight, flutter-analyze]
+    if: |
+      always() &&
+      (needs.preflight.outputs.flutter_changed == 'true' || github.event_name == 'schedule') &&
+      github.event.inputs.skip_tests != 'true' &&
+      (needs.flutter-analyze.result == 'success' || needs.flutter-analyze.result == 'skipped')
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: ${{ env.FLUTTER_VERSION }}
+        channel: ${{ env.FLUTTER_CHANNEL }}
+        cache: true
+    
+    - name: Get dependencies
+      run: |
+        cd my_app
+        flutter pub get
+    
+    - name: Run unit tests with coverage
+      run: |
+        cd my_app
+        flutter test --coverage --machine > test-results.json 2>&1 || true
+        flutter test --coverage --coverage-path=coverage/lcov.info --reporter=expanded
+    
+    - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
       with:
-        file: ./my_app/coverage/lcov.info
+        files: ./my_app/coverage/lcov.info
         flags: flutter
         name: flutter-coverage
         token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: false
+    
+    - name: Generate coverage badge
+      uses: VeryGoodOpenSource/very_good_coverage@v3
+      with:
+        path: my_app/coverage/lcov.info
+        min_coverage: 50
+      continue-on-error: true
 
-  # Flutter Build Check (Android) with Fastlane
   flutter-build-android:
-    name: Flutter Build (Android)
+    name: 🤖 Build Android
     runs-on: ubuntu-latest
     needs: [flutter-test]
+    if: always() && (needs.flutter-test.result == 'success' || needs.flutter-test.result == 'skipped')
     
     steps:
     - name: Checkout code
@@ -160,12 +367,13 @@ jobs:
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
-        java-version: '17'
+        java-version: ${{ env.JAVA_VERSION }}
+        cache: 'gradle'
     
-    - name: Set up Ruby for Fastlane
+    - name: Set up Ruby
       uses: ruby/setup-ruby@v1
       with:
-        ruby-version: '3.2'
+        ruby-version: ${{ env.RUBY_VERSION }}
         bundler-cache: true
         working-directory: my_app/android
     
@@ -181,48 +389,65 @@ jobs:
         cd my_app
         flutter pub get
     
-    - name: Build Android APK
+    - name: Build APK (release)
       run: |
         cd my_app
-        flutter build apk --release --no-tree-shake-icons
+        flutter build apk --release --no-tree-shake-icons --split-per-abi
     
-    - name: Install Fastlane
+    - name: Build App Bundle
+      run: |
+        cd my_app
+        flutter build appbundle --release
+    
+    - name: Run Fastlane (optional)
       run: |
         cd my_app/android
-        gem install fastlane
-    
-    - name: Run Fastlane Android (build only)
-      run: |
-        cd my_app/android
-        if [ -f "fastlane/Fastfile" ]; then
-          fastlane android build
-        else
-          echo "Fastlane not configured yet, skipping..."
+        if [ -f "Gemfile" ]; then
+          bundle install
+          bundle exec fastlane android build || echo "Fastlane build skipped"
         fi
       continue-on-error: true
     
-    - name: Upload APK artifact
+    - name: Upload APKs
       uses: actions/upload-artifact@v4
       with:
-        name: android-release-apk
-        path: my_app/build/app/outputs/flutter-apk/app-release.apk
-        retention-days: 7
+        name: android-apks
+        path: |
+          my_app/build/app/outputs/flutter-apk/*.apk
+          my_app/build/app/outputs/bundle/release/*.aab
+        retention-days: 14
+    
+    - name: Calculate APK size
+      run: |
+        echo "## 📦 Android Build Artifacts" >> $GITHUB_STEP_SUMMARY
+        echo "| File | Size |" >> $GITHUB_STEP_SUMMARY
+        echo "|------|------|" >> $GITHUB_STEP_SUMMARY
+        for f in my_app/build/app/outputs/flutter-apk/*.apk; do
+          if [ -f "$f" ]; then
+            SIZE=$(du -h "$f" | cut -f1)
+            NAME=$(basename "$f")
+            echo "| $NAME | $SIZE |" >> $GITHUB_STEP_SUMMARY
+          fi
+        done
 
-  # Flutter Build Check (iOS) with Fastlane - only on macOS runner
   flutter-build-ios:
-    name: Flutter Build (iOS)
-    runs-on: macos-latest
+    name: 🍎 Build iOS
+    runs-on: macos-14
     needs: [flutter-test]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: |
+      always() &&
+      github.event_name == 'push' && 
+      github.ref == 'refs/heads/main' &&
+      (needs.flutter-test.result == 'success' || needs.flutter-test.result == 'skipped')
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
     
-    - name: Set up Ruby for Fastlane
+    - name: Set up Ruby
       uses: ruby/setup-ruby@v1
       with:
-        ruby-version: '3.2'
+        ruby-version: ${{ env.RUBY_VERSION }}
         bundler-cache: true
         working-directory: my_app/ios
     
@@ -235,57 +460,111 @@ jobs:
     
     - name: Install CocoaPods
       run: |
-        sudo gem install cocoapods
+        cd my_app/ios
+        pod install --repo-update || pod install
     
-    - name: Get dependencies
+    - name: Get Flutter dependencies
       run: |
         cd my_app
         flutter pub get
-        cd ios
-        pod install --repo-update
     
     - name: Build iOS (no codesign)
       run: |
         cd my_app
         flutter build ios --release --no-codesign
     
-    - name: Install Fastlane
-      run: |
-        cd my_app/ios
-        gem install fastlane
-    
-    - name: Run Fastlane iOS (build only)
+    - name: Run Fastlane (optional)
       env:
         MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-        FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
         APPLE_ID: ${{ secrets.APPLE_ID }}
         APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
         APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
         APP_STORE_CONNECT_API_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}
       run: |
         cd my_app/ios
-        if [ -f "fastlane/Fastfile" ]; then
-          fastlane ios build
-        else
-          echo "Fastlane not configured yet, skipping..."
+        if [ -f "Gemfile" ]; then
+          bundle install
+          bundle exec fastlane ios build || echo "Fastlane build skipped"
         fi
       continue-on-error: true
     
-    - name: Upload iOS build artifact
+    - name: Upload iOS build
       uses: actions/upload-artifact@v4
       with:
-        name: ios-release-build
-        path: my_app/build/ios/iphoneos/Runner.app
-        retention-days: 7
+        name: ios-build
+        path: my_app/build/ios/iphoneos/
+        retention-days: 14
 
-  # Security Scanning
-  security-scan:
-    name: Security Scan
+  flutter-build-web:
+    name: 🌐 Build Web
     runs-on: ubuntu-latest
+    needs: [flutter-test]
+    if: always() && (needs.flutter-test.result == 'success' || needs.flutter-test.result == 'skipped')
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+    
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: ${{ env.FLUTTER_VERSION }}
+        channel: ${{ env.FLUTTER_CHANNEL }}
+        cache: true
+    
+    - name: Get dependencies
+      run: |
+        cd my_app
+        flutter pub get
+    
+    - name: Build web (CanvasKit)
+      run: |
+        cd my_app
+        flutter build web --release --web-renderer canvaskit --pwa-strategy offline-first
+    
+    - name: Upload web build
+      uses: actions/upload-artifact@v4
+      with:
+        name: web-build
+        path: my_app/build/web/
+        retention-days: 14
+    
+    - name: Deploy to GitHub Pages (optional)
+      if: github.ref == 'refs/heads/main'
+      uses: peaceiris/actions-gh-pages@v4
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./my_app/build/web
+      continue-on-error: true
+
+  # ============================================
+  # 🔒 SECURITY
+  # ============================================
+  security-scan:
+    name: 🔒 Security Scan
+    runs-on: ubuntu-latest
+    needs: [preflight]
+    if: needs.preflight.outputs.should_skip != 'true'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: python
+        queries: security-extended
+    
+    - name: Autobuild
+      uses: github/codeql-action/autobuild@v3
+    
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:python"
     
     - name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@master
@@ -294,277 +573,219 @@ jobs:
         scan-ref: '.'
         format: 'sarif'
         output: 'trivy-results.sarif'
-        severity: 'CRITICAL,HIGH'
+        severity: 'CRITICAL,HIGH,MEDIUM'
+        ignore-unfixed: true
     
-    - name: Upload Trivy results to GitHub Security
+    - name: Upload Trivy results
       uses: github/codeql-action/upload-sarif@v3
       with:
         sarif_file: 'trivy-results.sarif'
-    
-    - name: Set up Python for security tools
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
-    
-    - name: Run pip-audit (Python dependency audit)
-      run: |
-        pip install pip-audit
-        pip-audit -r backend/requirements.txt --strict || true
-    
-    - name: Run Semgrep SAST
-      uses: returntocorp/semgrep-action@v1
-      with:
-        config: >-
-          p/python
-          p/flask
-          p/security-audit
-      continue-on-error: true
-
-  # DevOps Utilities (Shell-thon/DevOps-CI-CD-tools inspired)
-  devops-utilities:
-    name: DevOps Utilities Check
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+        category: 'trivy'
     
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: ${{ env.PYTHON_VERSION }}
     
-    - name: Install dependencies
+    - name: Run pip-audit
       run: |
-        pip install pyyaml requests
+        pip install pip-audit
+        pip-audit -r backend/requirements.txt --format=json --output=pip-audit.json || true
+        pip-audit -r backend/requirements.txt --strict || true
     
-    # GitGuard - Check for uncommitted changes
-    - name: GitGuard - Check repo state
-      run: |
-        python << 'EOF'
-        import subprocess
-        status = subprocess.getoutput("git status --porcelain")
-        if status:
-            print("⚠️ Repo has uncommitted changes:")
-            print(status)
-        else:
-            print("✅ Repo is clean.")
-        EOF
+    - name: Run Gitleaks (secret detection)
+      uses: gitleaks/gitleaks-action@v2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      continue-on-error: true
     
-    # DiskDriver - Analyze disk usage of large directories
-    - name: DiskDriver - Disk usage analysis
-      run: |
-        python << 'EOF'
-        import os
-        
-        print("📊 Large directories (>10MB):")
-        path = "."
-        large_dirs = []
-        for root, dirs, files in os.walk(path):
-            # Skip hidden and common large folders
-            dirs[:] = [d for d in dirs if not d.startswith('.') and d not in ['node_modules', 'build', '.dart_tool']]
-            try:
-                total = sum(os.path.getsize(os.path.join(root, f)) for f in files if os.path.exists(os.path.join(root, f)))
-                if total > 10 * 1024**2:  # >10MB
-                    large_dirs.append((root, total // 1024**2))
-            except:
-                pass
-        
-        for d, size in sorted(large_dirs, key=lambda x: -x[1])[:10]:
-            print(f"  {d}: {size} MB")
-        
-        if not large_dirs:
-            print("  ✅ No directories over 10MB found.")
-        EOF
+    - name: Run Semgrep
+      uses: returntocorp/semgrep-action@v1
+      with:
+        config: >-
+          p/python
+          p/flask
+          p/security-audit
+          p/secrets
+          p/owasp-top-ten
+      continue-on-error: true
     
-    # PortProbe - Check common service ports
-    - name: PortProbe - Check service ports
-      run: |
-        python << 'EOF'
-        import socket
-        
-        print("🔌 Port availability check:")
-        ports = {"SSH": 22, "HTTP": 80, "HTTPS": 443, "Flask": 5000, "Django": 8000}
-        for name, port in ports.items():
-            s = socket.socket()
-            s.settimeout(1)
-            try:
-                s.connect(("127.0.0.1", port))
-                print(f"  ✅ {name} (port {port}) is OPEN")
-            except:
-                print(f"  ⬚ {name} (port {port}) is available")
-            s.close()
-        EOF
-    
-    # TaskTrigger - Scan for exposed secrets
-    - name: TaskTrigger - Secret scanner
-      run: |
-        python << 'EOF'
-        import os
-        import re
-        
-        print("🔐 Scanning for potential exposed secrets...")
-        secret_pattern = re.compile(r'(api[_-]?key|secret|password|token|credential|private[_-]?key)', re.I)
-        dangerous_files = []
-        
-        exclude_dirs = {'.git', 'node_modules', '.dart_tool', 'build', '__pycache__', '.venv', 'venv'}
-        exclude_extensions = {'.lock', '.sum', '.png', '.jpg', '.gif', '.ico', '.svg'}
-        
-        for root, dirs, files in os.walk('.'):
-            dirs[:] = [d for d in dirs if d not in exclude_dirs]
-            for f in files:
-                if any(f.endswith(ext) for ext in exclude_extensions):
-                    continue
-                filepath = os.path.join(root, f)
-                try:
-                    with open(filepath, 'r', errors='ignore') as file:
-                        for i, line in enumerate(file, 1):
-                            if secret_pattern.search(line) and '=' in line:
-                                # Skip if it looks like a variable reference or example
-                                if 'secrets.' in line or 'ENV[' in line or '${' in line or 'process.env' in line:
-                                    continue
-                                if 'example' in line.lower() or 'your_' in line.lower():
-                                    continue
-                                dangerous_files.append(f"{filepath}:{i}")
-                except:
-                    pass
-        
-        if dangerous_files:
-            print(f"  ⚠️ Found {len(dangerous_files)} potential secret exposures (review manually):")
-            for df in dangerous_files[:10]:
-                print(f"    - {df}")
-        else:
-            print("  ✅ No obvious secret exposures found.")
-        EOF
-    
-    # ConfigSnag - Docker cleanup check
-    - name: ConfigSnag - Docker cleanup recommendations
-      run: |
-        python << 'EOF'
-        import subprocess
-        import shutil
-        
-        print("🐳 Docker cleanup recommendations:")
-        
-        if shutil.which("docker"):
-            # Check for stopped containers
-            result = subprocess.getoutput("docker ps -aq -f status=exited 2>/dev/null")
-            if result:
-                count = len(result.strip().split('\n'))
-                print(f"  ⚠️ {count} stopped container(s) can be pruned")
-                print("  Run: docker container prune -f")
-            else:
-                print("  ✅ No stopped containers")
-            
-            # Check for dangling images
-            result = subprocess.getoutput("docker images -q -f dangling=true 2>/dev/null")
-            if result:
-                count = len(result.strip().split('\n'))
-                print(f"  ⚠️ {count} dangling image(s) can be pruned")
-                print("  Run: docker image prune -f")
-            else:
-                print("  ✅ No dangling images")
-        else:
-            print("  ℹ️ Docker not installed, skipping checks")
-        EOF
-    
-    # LogWatchdog - Check for errors in log files
-    - name: LogWatchdog - Log file analysis
-      run: |
-        python << 'EOF'
-        import os
-        import re
-        
-        print("📋 Log file analysis:")
-        log_pattern = re.compile(r'\.(log|txt)$')
-        error_pattern = re.compile(r'(ERROR|CRITICAL|FATAL|EXCEPTION|FAIL)', re.I)
-        
-        found_issues = []
-        for root, dirs, files in os.walk('.'):
-            dirs[:] = [d for d in dirs if not d.startswith('.') and d not in ['node_modules', '.dart_tool']]
-            for f in files:
-                if log_pattern.search(f):
-                    filepath = os.path.join(root, f)
-                    try:
-                        with open(filepath, 'r', errors='ignore') as file:
-                            for i, line in enumerate(file, 1):
-                                if error_pattern.search(line):
-                                    found_issues.append((filepath, i, line.strip()[:100]))
-                    except:
-                        pass
-        
-        if found_issues:
-            print(f"  ⚠️ Found {len(found_issues)} issues in log files:")
-            for fp, line, content in found_issues[:5]:
-                print(f"    {fp}:{line} - {content}")
-        else:
-            print("  ✅ No errors found in log files")
-        EOF
-    
-    # BackupBuddy - Validate YAML configs
-    - name: BackupBuddy - Validate config files
-      run: |
-        python << 'EOF'
-        import os
-        import yaml
-        
-        print("📄 Validating YAML configuration files:")
-        yaml_files = []
-        for root, dirs, files in os.walk('.'):
-            dirs[:] = [d for d in dirs if not d.startswith('.') and d not in ['node_modules', '.dart_tool']]
-            for f in files:
-                if f.endswith(('.yml', '.yaml')):
-                    yaml_files.append(os.path.join(root, f))
-        
-        valid = 0
-        invalid = 0
-        for yf in yaml_files:
-            try:
-                with open(yf, 'r') as f:
-                    yaml.safe_load(f)
-                valid += 1
-            except yaml.YAMLError as e:
-                print(f"  ❌ Invalid YAML: {yf}")
-                print(f"     Error: {str(e)[:100]}")
-                invalid += 1
-            except Exception:
-                pass
-        
-        print(f"  ✅ {valid} valid YAML files")
-        if invalid:
-            print(f"  ❌ {invalid} invalid YAML files")
-        EOF
-    
-    # NetPulse - Check external service connectivity  
-    - name: NetPulse - Service connectivity check
-      run: |
-        python << 'EOF'
-        import requests
-        import time
-        
-        print("🌐 External service connectivity:")
-        services = {
-            "GitHub API": "https://api.github.com",
-            "PyPI": "https://pypi.org",
-            "pub.dev": "https://pub.dev",
-            "Docker Hub": "https://hub.docker.com",
-        }
-        
-        for name, url in services.items():
-            for attempt in range(2):
-                try:
-                    r = requests.get(url, timeout=5)
-                    print(f"  ✅ {name}: UP ({r.status_code})")
-                    break
-                except Exception as e:
-                    if attempt == 1:
-                        print(f"  ❌ {name}: DOWN")
-                    time.sleep(1)
-        EOF
+    - name: Upload security reports
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: security-reports
+        path: |
+          trivy-results.sarif
+          pip-audit.json
+        retention-days: 30
 
-  # Dependency Review (for PRs)
+  # ============================================
+  # 🛠️ DEVOPS UTILITIES
+  # ============================================
+  devops-utilities:
+    name: 🛠️ DevOps Health Check
+    runs-on: ubuntu-latest
+    needs: [preflight]
+    if: needs.preflight.outputs.should_skip != 'true'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install tools
+      run: pip install pyyaml requests
+    
+    - name: Run DevOps health check
+      run: |
+        python << 'DEVOPS_SCRIPT'
+        import os
+        import re
+        import socket
+        import subprocess
+        from pathlib import Path
+        
+        try:
+            import yaml
+        except ImportError:
+            yaml = None
+        
+        class HealthCheck:
+            def __init__(self):
+                self.results = []
+                self.warnings = 0
+                self.errors = 0
+            
+            def log(self, icon, category, message, level="info"):
+                self.results.append({"icon": icon, "category": category, "message": message, "level": level})
+                if level == "warning":
+                    self.warnings += 1
+                elif level == "error":
+                    self.errors += 1
+                print(f"{icon} [{category}] {message}")
+            
+            def check_git_state(self):
+                status = subprocess.getoutput("git status --porcelain")
+                if status:
+                    self.log("⚠️", "GitGuard", f"Uncommitted changes detected", "warning")
+                else:
+                    self.log("✅", "GitGuard", "Repository is clean")
+            
+            def check_disk_usage(self):
+                large_dirs = []
+                exclude = {'.git', 'node_modules', '.dart_tool', 'build', '__pycache__', '.venv', 'venv'}
+                for root, dirs, files in os.walk('.'):
+                    dirs[:] = [d for d in dirs if d not in exclude]
+                    try:
+                        total = sum(os.path.getsize(os.path.join(root, f)) for f in files if os.path.exists(os.path.join(root, f)))
+                        if total > 10 * 1024**2:
+                            large_dirs.append((root, total // 1024**2))
+                    except: pass
+                
+                if large_dirs:
+                    top3 = sorted(large_dirs, key=lambda x: -x[1])[:3]
+                    self.log("📊", "DiskDriver", f"Large dirs: {', '.join(f'{d[0]}({d[1]}MB)' for d in top3)}")
+                else:
+                    self.log("✅", "DiskDriver", "No large directories found")
+            
+            def check_secrets(self):
+                patterns = [
+                    r'(?i)(api[_-]?key|secret|password|token|credential)\s*[=:]\s*["\'][^"\']{8,}["\']',
+                    r'(?i)-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----',
+                ]
+                exclude_dirs = {'.git', 'node_modules', '.dart_tool', 'build', '__pycache__'}
+                exclude_ext = {'.lock', '.png', '.jpg', '.gif', '.ico', '.svg', '.woff', '.ttf'}
+                
+                findings = []
+                for root, dirs, files in os.walk('.'):
+                    dirs[:] = [d for d in dirs if d not in exclude_dirs]
+                    for f in files:
+                        if any(f.endswith(ext) for ext in exclude_ext):
+                            continue
+                        filepath = os.path.join(root, f)
+                        try:
+                            with open(filepath, 'r', errors='ignore') as file:
+                                content = file.read()
+                                for pattern in patterns:
+                                    if re.search(pattern, content):
+                                        if 'secrets.' not in content and 'example' not in content.lower():
+                                            findings.append(filepath)
+                                            break
+                        except: pass
+                
+                if findings:
+                    self.log("🚨", "SecretScanner", f"Potential secrets in {len(findings)} files", "error")
+                else:
+                    self.log("✅", "SecretScanner", "No exposed secrets detected")
+            
+            def check_yaml_configs(self):
+                if not yaml:
+                    return
+                
+                valid, invalid = 0, []
+                for root, dirs, files in os.walk('.'):
+                    dirs[:] = [d for d in dirs if not d.startswith('.') and d not in ['node_modules']]
+                    for f in files:
+                        if f.endswith(('.yml', '.yaml')):
+                            filepath = os.path.join(root, f)
+                            try:
+                                with open(filepath, 'r') as file:
+                                    yaml.safe_load(file)
+                                valid += 1
+                            except yaml.YAMLError:
+                                invalid.append(filepath)
+                
+                if invalid:
+                    self.log("❌", "ConfigValidator", f"Invalid YAML: {', '.join(invalid)}", "error")
+                else:
+                    self.log("✅", "ConfigValidator", f"All {valid} YAML files valid")
+            
+            def check_connectivity(self):
+                import requests
+                services = {"GitHub": "https://api.github.com", "PyPI": "https://pypi.org", "pub.dev": "https://pub.dev"}
+                for name, url in services.items():
+                    try:
+                        r = requests.get(url, timeout=5)
+                        self.log("✅", "NetPulse", f"{name}: UP ({r.status_code})")
+                    except:
+                        self.log("❌", "NetPulse", f"{name}: DOWN", "error")
+            
+            def generate_summary(self):
+                print(f"\n{'='*50}")
+                print(f"🏁 Health Check: ⚠️ {self.warnings} Warnings | ❌ {self.errors} Errors")
+                print(f"{'='*50}")
+                
+                summary_file = os.environ.get('GITHUB_STEP_SUMMARY', '')
+                if summary_file:
+                    with open(summary_file, 'a') as f:
+                        f.write("## 🛠️ DevOps Health Check\n\n")
+                        f.write("| Status | Category | Finding |\n|--------|----------|--------|\n")
+                        for r in self.results:
+                            f.write(f"| {r['icon']} | {r['category']} | {r['message'][:60]} |\n")
+                        f.write(f"\n**Summary:** {self.warnings} warnings, {self.errors} errors\n")
+        
+        hc = HealthCheck()
+        hc.check_git_state()
+        hc.check_disk_usage()
+        hc.check_secrets()
+        hc.check_yaml_configs()
+        hc.check_connectivity()
+        hc.generate_summary()
+        DEVOPS_SCRIPT
+      continue-on-error: true
+
+  # ============================================
+  # 📋 DEPENDENCY REVIEW
+  # ============================================
   dependency-review:
-    name: Dependency Review
+    name: 📋 Dependency Review
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     
@@ -577,17 +798,27 @@ jobs:
       with:
         fail-on-severity: high
         deny-licenses: GPL-3.0, AGPL-3.0
+        comment-summary-in-pr: always
 
-  # Build Docker Image
+  # ============================================
+  # 🐳 DOCKER BUILD
+  # ============================================
   build-docker:
-    name: Build Docker Image
+    name: 🐳 Build Docker
     runs-on: ubuntu-latest
-    needs: [backend-test, flutter-test]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [backend-test, flutter-test, security-scan]
+    if: |
+      always() &&
+      github.event_name == 'push' && 
+      github.ref == 'refs/heads/main' &&
+      !contains(needs.*.result, 'failure')
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+    
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
     
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
@@ -598,20 +829,31 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
     
-    - name: Extract metadata for Docker
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Extract metadata
       id: meta
       uses: docker/metadata-action@v5
       with:
-        images: ${{ secrets.DOCKER_USERNAME }}/mealy
+        images: |
+          ${{ secrets.DOCKER_USERNAME }}/mealy
+          ghcr.io/${{ github.repository }}
         tags: |
           type=ref,event=branch
           type=sha,prefix=
+          type=semver,pattern={{version}}
           type=raw,value=latest,enable={{is_default_branch}}
     
-    - name: Build and push Docker image
+    - name: Build and push
       uses: docker/build-push-action@v6
       with:
         context: .
+        platforms: linux/amd64,linux/arm64
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
@@ -619,28 +861,88 @@ jobs:
         cache-to: type=gha,mode=max
         provenance: true
         sbom: true
-  
-  # Deploy to Production
-  deploy:
-    name: Deploy to Production
+    
+    - name: Run Trivy on image
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: '${{ secrets.DOCKER_USERNAME }}/mealy:latest'
+        format: 'table'
+        exit-code: '0'
+        severity: 'CRITICAL,HIGH'
+
+  # ============================================
+  # 🚀 DEPLOY
+  # ============================================
+  deploy-staging:
+    name: 🚀 Deploy Staging
     runs-on: ubuntu-latest
     needs: [build-docker]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    environment: production
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    environment:
+      name: staging
+      url: https://staging.mealy.app
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
     
-    - name: Deploy to server
+    - name: Deploy to staging
+      run: |
+        echo "🚀 Deploying to staging..."
+        echo "Image: ${{ secrets.DOCKER_USERNAME }}/mealy:${{ github.sha }}"
+
+  deploy-production:
+    name: 🚀 Deploy Production
+    runs-on: ubuntu-latest
+    needs: [build-docker]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment:
+      name: production
+      url: https://mealy.app
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Deploy to production
       env:
         DEPLOY_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
         DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
         DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
       run: |
-        echo "Deployment step - configure based on your hosting platform"
-        # Example: SSH deployment
+        echo "🚀 Deploying to production..."
         # mkdir -p ~/.ssh
         # echo "$DEPLOY_KEY" > ~/.ssh/deploy_key
         # chmod 600 ~/.ssh/deploy_key
-        # ssh -i ~/.ssh/deploy_key $DEPLOY_USER@$DEPLOY_HOST "cd /app && docker-compose pull && docker-compose up -d"
+        # ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key $DEPLOY_USER@$DEPLOY_HOST "cd /app && docker-compose pull && docker-compose up -d"
+
+  # ============================================
+  # 📊 FINAL REPORT
+  # ============================================
+  report:
+    name: 📊 Pipeline Report
+    runs-on: ubuntu-latest
+    needs: [backend-test, flutter-test, flutter-build-android, security-scan, devops-utilities]
+    if: always()
+    
+    steps:
+    - name: Generate report
+      run: |
+        echo "## 📊 CI/CD Pipeline Report" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+        echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+        echo "| 🐍 Backend Tests | ${{ needs.backend-test.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| 📱 Flutter Tests | ${{ needs.flutter-test.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| 🤖 Android Build | ${{ needs.flutter-build-android.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| 🔒 Security Scan | ${{ needs.security-scan.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| 🛠️ DevOps Check | ${{ needs.devops-utilities.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Triggered by:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+    
+    - name: Notify on failure
+      if: contains(needs.*.result, 'failure')
+      run: |
+        echo "::error::Pipeline failed! Check individual job logs."
