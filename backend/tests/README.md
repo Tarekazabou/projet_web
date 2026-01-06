@@ -1,21 +1,18 @@
-# Backend Testing Configuration
+# Backend Tests
 
-## Test Structure
+This folder contains pytest tests for the Flask backend.
+
+## Test structure
+
 ```
 backend/tests/
-├── __init__.py
-├── conftest.py                 # Pytest fixtures
-├── test_auth.py                # Authentication tests
-├── test_response_handler.py    # Response handler tests
-├── test_validators.py          # Validation tests
-├── test_config.py              # Configuration tests
-├── integration/
-│   ├── test_recipes_api.py     # Recipe endpoints
-│   ├── test_users_api.py       # User endpoints
-│   └── test_ai_recipes_api.py  # AI generation endpoints
-└── unit/
-    ├── test_ai_service.py      # AI service unit tests
-    └── test_rag_service.py     # RAG service unit tests
+    conftest.py
+    test_ai_endpoints.py
+    test_complete_flow.py
+    test_firestore_fridge.py
+    test_fridge_recipe.py
+    test_response_handler.py
+    test_suggest_recipes.py
 ```
 
 ## Running Tests
@@ -32,17 +29,7 @@ pytest --cov=backend --cov-report=html --cov-report=term
 
 ### Specific test file
 ```bash
-pytest tests/test_auth.py -v
-```
-
-### Integration tests only
-```bash
-pytest tests/integration/ -v
-```
-
-### Unit tests only
-```bash
-pytest tests/unit/ -v
+pytest tests/test_complete_flow.py -v
 ```
 
 ## Test Coverage Goals

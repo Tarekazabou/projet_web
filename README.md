@@ -1,263 +1,125 @@
-# Mealy: AI-Powered Recipe & Meal Planning Platform
+# Mealy (Flutter + Flask + Firebase)
 
-> **Version 3.0** - Flutter Mobile App + Full Meal Planning & Smart Grocery Integration
+Mealy is an AI-assisted meal planning app with:
+- a **Flask** backend (Firestore + AI recipe generation)
+- a **Flutter** mobile app (Android/iOS/Web)
 
-[![CI/CD Pipeline](https://github.com/Tarekazabou/projet_web/workflows/CI%2FCD%20Pipeline/badge.svg)](https://github.com/Tarekazabou/projet_web/actions)
-[![codecov](https://codecov.io/gh/Tarekazabou/projet_web/branch/main/graph/badge.svg)](https://codecov.io/gh/Tarekazabou/projet_web)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
-Mealy is an intelligent application that revolutionizes meal planning and recipe discovery using AI. From generating personalized recipes to tracking nutrition and managing grocery lists, Mealy is your comprehensive kitchen assistant.
-
-## 🚀 What's New in Version 3.0
-
-### Flutter Mobile App
-- ✅ **Cross-Platform Mobile App**: Beautiful Flutter app for iOS, Android, and Web
-- ✅ **Modern UI Design**: Inspired by fitness app templates with warm food-focused colors
-- ✅ **Provider State Management**: Efficient state management with Provider pattern
-- ✅ **Firebase Integration**: Firebase Auth and Firestore for real-time data
-- ✅ **Responsive Design**: ScreenUtil for consistent scaling across devices
-
-### Meal Planning System
-- ✅ **Weekly Meal Planner**: Visual calendar with 7-day horizontal scroll
-- ✅ **Meal Type Organization**: Breakfast, Lunch, Dinner, and Snack sections
-- ✅ **AI Meal Suggestions**: Smart recommendations based on fridge contents
-- ✅ **Fridge Match Percentage**: See which ingredients you already have
-- ✅ **Quick Add Meals**: Easy form to add custom meals
-
-### Smart Grocery Lists
-- ✅ **Auto-Generate from Meal Plans**: Create shopping lists from weekly plans
-- ✅ **Fridge-Aware**: Automatically subtracts items you already have
-- ✅ **Category Organization**: Items grouped by Dairy, Produce, Meat, etc.
-- ✅ **Progress Tracking**: Visual percentage of items purchased
-- ✅ **Swipe to Delete**: Easy item removal with swipe gestures
-- ✅ **Toggle Purchased**: Mark items as bought with animated checkmarks
-
-### Backend Improvements
-- ✅ **Enhanced Architecture**: Modular, maintainable code structure with separation of concerns
-- ✅ **Robust Authentication**: JWT tokens, Firebase Auth integration, role-based access control
-- ✅ **New API Endpoints**: Meal plans weekly view, AI suggestions, grocery management
-- ✅ **Firestore Optimizations**: Efficient queries without composite index requirements
-- ✅ **Structured Logging**: JSON logging with request tracing and monitoring
-
-### Testing & Quality
-- ✅ **Comprehensive Tests**: Unit, integration, and E2E tests with >80% coverage
-- ✅ **CI/CD Pipeline**: Automated testing, linting, security scanning, and deployment
-- ✅ **Code Quality**: Pylint, Black, ESLint integration
-
-### DevOps
-- ✅ **Docker Support**: Multi-stage builds with production-optimized images
-- ✅ **Docker Compose**: Full-stack orchestration with Redis and Nginx
-- ✅ **Monitoring**: Health checks, structured logging, and error tracking
-- ✅ **Documentation**: Comprehensive API docs and deployment guides
-
-## 📋 Table of Contents
-
-- [Features](#-features)
-- [Tech Stack](#-tech-stack)
-- [Architecture](#-architecture)
-- [Getting Started](#-getting-started)
-- [Development](#-development)
-- [Testing](#-testing)
-- [Deployment](#-deployment)
-- [API Documentation](#-api-documentation)
-- [Contributing](#-contributing)
-- [License](#-license)
-
-## ✨ Features
-
-### Core Features
-- **🤖 AI Recipe Generation**: Create personalized recipes using Google Gemini AI
-- **📅 Meal Planning**: Plan your weekly meals with drag-and-drop interface
-- **📊 Nutrition Tracking**: Monitor calories, macros, and nutritional goals
-- **🛒 Smart Grocery Lists**: Auto-generate shopping lists from meal plans
-- **🧊 Fridge Management**: Track ingredients and reduce food waste
-- **🔍 Recipe Search**: Find recipes from 13,000+ curated recipes
-- **👤 User Profiles**: Manage dietary preferences, allergies, and nutrition goals
-
-### Technical Features
-- **🔐 Secure Authentication**: Firebase Auth with JWT tokens
-- **🌐 RESTful API**: Well-documented, consistent API design
-- **📱 Responsive Design**: Mobile-first, accessible UI
-- **⚡ Performance**: Caching, lazy loading, optimized queries
-- **🔄 Real-time Updates**: Firebase Firestore integration
-- **📈 Monitoring**: Health checks, logging, and error tracking
-
-## 🛠 Tech Stack
-
-### Backend
-- **Framework**: Flask 2.3+
-- **Database**: Google Firestore
-- **Authentication**: Firebase Authentication + JWT
-- **AI**: Google Gemini (RAG-powered generation)
-- **Embeddings**: Sentence Transformers, FAISS
-- **Server**: Gunicorn (production)
-- **Testing**: Pytest, Coverage
-
-### Flutter Mobile App
-- **Framework**: Flutter 3.9+ / Dart
-- **State Management**: Provider
-- **UI**: flutter_screenutil, Custom Theme (MealyTheme)
-- **Authentication**: Firebase Auth
-- **Database**: Firebase Firestore
-- **HTTP**: http package with custom ApiService
-- **Animations**: Lottie, Built-in Flutter animations
-
-### React Web Frontend
-- **Framework**: React 18 with Vite
-- **Routing**: React Router v6
-- **Styling**: CSS3, Custom Components
-- **Authentication**: Firebase SDK with React Context
-- **Build**: Vite (fast HMR and optimized production builds)
-- **State Management**: React Context API
-
-### DevOps
-- **Containerization**: Docker, Docker Compose
-- **CI/CD**: GitHub Actions
-- **Reverse Proxy**: Nginx (optional)
-- **Caching**: Redis (optional)
-- **Monitoring**: Structured logging, health checks
-
-## 🏗 Architecture
-
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                         Clients                                      │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐     │
-│  │  Flutter App    │  │   React Web     │  │   API Clients   │     │
-│  │ (iOS/Android)   │  │   (Browser)     │  │                 │     │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘     │
-└─────────────────────────────────────────────────────────────────────┘
-                              │
-                              │ HTTPS / REST API
-                              ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                    Backend (Flask + Gunicorn)                        │
-│  ┌────────────────────────────────────────────────────────────┐    │
-│  │  Middleware (Auth, Logging, CORS, X-User-Id Header)        │    │
-│  └────────────────────────────────────────────────────────────┘    │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐           │
-│  │ Recipes  │  │MealPlans │  │ Grocery  │  │ Fridge   │           │
-│  │  Routes  │  │  Routes  │  │  Routes  │  │  Routes  │           │
-│  └──────────┘  └──────────┘  └──────────┘  └──────────┘           │
-└─────────────────────────────────────────────────────────────────────┘
-        │                    │                   │
-        ▼                    ▼                   ▼
-┌──────────────┐   ┌──────────────┐   ┌──────────────┐
-│   Firebase   │   │Google Gemini │   │   Redis      │
-│  Firestore   │   │   AI API     │   │  (Cache)     │
-└──────────────┘   └──────────────┘   └──────────────┘
-```
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- Python 3.11+
-- Node.js 18+ (for frontend tooling)
-- Firebase project with Firestore
-- Google Gemini API key
-- Docker (optional, for containerized deployment)
-
-### Quick Start (Development)
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/Tarekazabou/projet_web.git
-   cd projet_web
-   ```
-
-2. **Set up backend environment variables**
-   ```bash
-   cd backend
-   cp .env.example .env
-   # Edit .env with your configuration (Firebase credentials, API keys, etc.)
-   ```
-
-3. **Install backend dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Run the backend server**
-   ```bash
-   cd backend
-   python app.py
-   ```
-
-5. **Open your browser**
-   Navigate to `http://localhost:5000`
-
-### Flutter Mobile App Setup
-
-1. **Install Flutter dependencies**
-   ```bash
-   cd my_app
-   flutter pub get
-   ```
-
-2. **Configure API URL** in `lib/utils/constants.dart`:
-   - **iOS Simulator**: `http://localhost:5000/api`
-   - **Android Emulator**: `http://10.0.2.2:5000/api`
-   - **Real Device**: `http://YOUR_COMPUTER_IP:5000/api`
-
-3. **Run the Flutter app**
-   ```bash
-   flutter run
-   ```
-
-4. **Available platforms**
-   ```bash
-   flutter run -d chrome    # Web
-   flutter run -d windows   # Windows Desktop
-   flutter run -d android   # Android
-   flutter run -d ios       # iOS
-   ```
-
-### React Web Frontend Setup (Optional)
-
-1. **Set up React frontend**
-   ```bash
-   cd frontend-react
-   npm install
-   ```
-
-2. **Development mode with Hot Reload**
-   ```bash
-   npm run dev
-   ```
-
-3. **Production build**
-   ```bash
-   npm run build
-   ```
-
-### Quick Start (Docker)
-
-1. **Create .env file**
-   ```bash
-   cp backend/.env.template backend/.env
-   # Edit .env with your configuration
-   ```
-
-2. **Build and run**
-   ```bash
-   docker-compose up --build
-   ```
-
-3. **Access the application**
-   - Backend API: `http://localhost:5000`
-   - Health check: `http://localhost:5000/api/health`
-
-## 💻 Development
-
-### Project Structure
+## 📁 Repository structure
 
 ```
 projet_web/
-├── frontend-react/              # React frontend (NEW)
-│   ├── src/
-│   │   ├── components/          # Reusable components
-│   │   │   └── Navbar.jsx
+  backend/     # Flask API
+  my_app/      # Flutter app
+```
+
+## ⚙️ Prerequisites
+
+- Python 3.10+
+- Flutter SDK (matches your app’s requirements in `my_app/`)
+- A Firebase project (Firestore enabled)
+- (Optional) Ollama for local LLM experiments
+
+## 🚀 Quick start (Windows)
+
+### 1) Backend (Flask API)
+
+Create a virtualenv and install dependencies:
+
+```bash
+cd backend
+py -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+Create `backend/.env` with at least:
+
+```env
+SECRET_KEY=dev-secret-key
+FIREBASE_PROJECT_ID=mealy-41bf0
+FIREBASE_CREDENTIAL_PATH=..\\mealy-41bf0-firebase-adminsdk-fbsvc-7d493e86ea.json
+GEMINI_API_KEY=YOUR_GEMINI_API_KEY
+```
+
+Run the API:
+
+```bash
+python app.py
+```
+
+
+### 2) Flutter app
+
+Install dependencies:
+
+```bash
+cd my_app
+flutter pub get
+```
+
+Set the backend base URL in `my_app/lib/utils/constants.dart`:
+
+- Android emulator: `http://10.0.2.2:5000/api`
+- iOS simulator: `http://localhost:5000/api`
+- Real device (same Wi‑Fi): `http://YOUR_PC_IP:5000/api`
+
+Run:
+
+```bash
+flutter run
+```
+
+## 📡 Forward the backend to a real phone ("grok" / ngrok)
+
+If your phone can’t reach your computer directly (different network, USB-only, etc.), you need a tunnel.
+
+### Using ngrok (recommended)
+
+1) Install ngrok and authenticate it (ngrok website instructions).
+2) Start the tunnel:
+
+```bash
+ngrok http 5000
+```
+
+3) Copy the **https** forwarding URL and set:
+
+```text
+apiBaseUrl = https://YOUR_NGROK_DOMAIN/api
+```
+
+## 🧠 Ollama (optional)
+
+This repo already includes the Python `ollama` client in `backend/requirements.txt`, but the backend currently uses **Gemini** for AI generation.
+
+Install Ollama on Windows:
+- Download and install from the official Ollama website.
+- Verify installation:
+
+```bash
+ollama --version
+```
+
+Download and run a model:
+
+```bash
+ollama pull llama3.2
+ollama run llama3.2
+```
+
+Ollama runs a local server (default `http://localhost:11434`).
+
+## 🧪 Tests (backend)
+
+```bash
+cd backend
+pytest
+```
+
+## Notes
+
+- This repo contains a Firebase Admin service account JSON. Treat it as sensitive and avoid publishing it publicly.
+- The backend’s `/` route may reference a React build folder that isn’t present in this workspace; the API endpoints under `/api/*` are the intended interface.
 │   │   ├── pages/               # Page components
 │   │   │   ├── HomePage.jsx
 │   │   │   ├── YourFridgePage.jsx
@@ -318,97 +180,6 @@ projet_web/
 ├── Dockerfile                 # Production container
 ├── docker-compose.yml         # Development stack
 └── README.md
-```
-
-### Running Tests
-
-```bash
-# All tests
-pytest
-
-# With coverage
-pytest --cov=backend --cov-report=html --cov-report=term
-
-# Specific test file
-pytest tests/test_auth.py -v
-
-# Integration tests
-pytest tests/integration/ -v
-```
-
-### Code Quality
-
-```bash
-# Format code
-black backend/
-
-# Lint
-pylint backend/
-flake8 backend/
-
-# Type checking
-mypy backend/
-```
-
-## 🧪 Testing
-
-### Test Coverage
-- Overall: >80%
-- Critical paths: >90%
-- CI integration with Codecov
-
-### Test Types
-- **Unit Tests**: Individual functions and classes
-- **Integration Tests**: API endpoints and database operations
-- **E2E Tests**: Full user workflows (planned)
-
-## 🚢 Deployment
-
-### Environment Variables
-
-Required environment variables (see `backend/.env.template`):
-
-```env
-FLASK_ENV=production
-SECRET_KEY=your-secret-key
-JWT_SECRET_KEY=your-jwt-secret
-GEMINI_API_KEY=your-gemini-key
-FIREBASE_PROJECT_ID=your-project-id
-CORS_ORIGINS=https://yourdomain.com
-```
-
-### Docker Deployment
-
-```bash
-# Build image
-docker build -t mealy:latest .
-
-# Run container
-docker run -d \
-  -p 5000:5000 \
-  --env-file backend/.env \
-  mealy:latest
-```
-
-### Docker Compose (Full Stack)
-
-```bash
-docker-compose up -d
-```
-
-Includes:
-- Flask backend (Gunicorn)
-- Nginx reverse proxy
-- Redis caching
-- Automatic health checks
-
-### Cloud Deployment
-
-See detailed guides for:
-- [Google Cloud Run](docs/deploy-cloud-run.md)
-- [AWS ECS](docs/deploy-aws.md)
-- [Azure Container Instances](docs/deploy-azure.md)
-- [Heroku](docs/deploy-heroku.md)
 
 ## 📚 API Documentation
 
@@ -480,41 +251,7 @@ POST /api/nutrition/log-meal             # Log a meal
 
 See [API Documentation](docs/API.md) for complete reference.
 
-## 🤝 Contributing
-
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-### Development Workflow
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes
-4. Run tests (`pytest`)
-5. Commit changes (`git commit -m 'Add amazing feature'`)
-6. Push to branch (`git push origin feature/amazing-feature`)
-7. Open a Pull Request
 
 ## 📄 License
 
 This project is licensed under the MIT License - see [LICENSE](LICENSE) file for details.
-
-## 👥 Authors
-
-- **Tarek Azabou** - *Initial work* - [Tarekazabou](https://github.com/Tarekazabou)
-
-## 🙏 Acknowledgments
-
-- Google Gemini for AI capabilities
-- Firebase for backend infrastructure
-- Open source community for tools and libraries
-- 13k Recipe dataset contributors
-
-## 📞 Support
-
-- 📧 Email: support@mealy.com
-- 🐛 Issues: [GitHub Issues](https://github.com/Tarekazabou/projet_web/issues)
-- 💬 Discussions: [GitHub Discussions](https://github.com/Tarekazabou/projet_web/discussions)
-
----
-
-**Built with ❤️ using Flask, Firebase, and Google Gemini**

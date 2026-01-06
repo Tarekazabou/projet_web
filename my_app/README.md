@@ -63,7 +63,7 @@ flutter pub get
 
 ### 2. Configure Backend URL
 
-The app connects to your Flask backend. Update the `baseUrl` in `lib/services/api_service.dart` based on your platform:
+The app connects to your Flask backend. Update `apiBaseUrl` in `lib/utils/constants.dart` based on your platform:
 
 - **iOS Simulator**: `http://localhost:5000/api`
 - **Android Emulator**: `http://10.0.2.2:5000/api`
@@ -116,29 +116,33 @@ lib/
 ### Fridge Management
 - `GET /api/fridge/items` - Get fridge items
 - `POST /api/fridge/items` - Add fridge item
-- `DELETE /api/fridge/items/{id}` - Delete fridge item
+- `PUT /api/fridge/items/{item_id}` - Update fridge item
+- `DELETE /api/fridge/items/{item_id}` - Delete fridge item
+- `POST /api/fridge/suggest-recipes` - Suggest recipes from fridge
 
 ### Recipe Generation
-- `GET /api/recipes/list` - Get AI-generated recipes
-- `POST /api/ai-recipes/generate` - Generate new recipe
-- `POST /api/ai-recipes/suggest-from-fridge` - Get recipe suggestions from fridge
+- `GET /api/recipes/list` - List recipes
+- `POST /api/recipes/generate-with-ai` - Generate a recipe with Gemini
+- `POST /api/recipes/generate-multiple` - Generate multiple recipes
+- `GET /api/recipes/status` - AI service status
 
 ### Meal Planning
 - `GET /api/meal-plans/week` - Get weekly meal plan
-- `POST /api/meal-plans` - Add meal to plan
+- `GET /api/meal-plans/` - List meal plan entries
+- `POST /api/meal-plans/` - Add meal to plan
 - `DELETE /api/meal-plans/{id}` - Remove meal from plan
 - `POST /api/meal-plans/ai-suggest` - Get AI meal suggestions
 
 ### Grocery Lists
 - `GET /api/grocery/items` - Get grocery list
 - `POST /api/grocery/items` - Add grocery item
-- `PATCH /api/grocery/items/{id}/toggle` - Toggle purchased status
-- `DELETE /api/grocery/items/{id}` - Remove grocery item
+- `POST /api/grocery/toggle-purchased/{index}` - Toggle purchased status
+- `DELETE /api/grocery/items/{index}` - Remove grocery item
 - `POST /api/grocery/from-meal-plan` - Generate list from meal plan
 
 ### Nutrition Tracking
-- `GET /api/nutrition/summary` - Get daily nutrition summary
-- `POST /api/nutrition/log` - Log food item
+- `GET /api/nutrition/daily/{date}` - Get daily nutrition log
+- `POST /api/nutrition/log-meal` - Log a meal
 
 ## Testing on Different Platforms
 
@@ -154,13 +158,13 @@ lib/
 ### Real Device
 1. Enable USB debugging (Android) or trust computer (iOS)
 2. Connect device via USB
-3. Update `baseUrl` in `api_service.dart` to your computer's IP
+3. Update `apiBaseUrl` in `lib/utils/constants.dart` to your computer's IP
 4. Run `flutter run`
 
 ## Troubleshooting
 
 ### Connection Issues
-- Ensure backend is running: `python backend/run_server.py`
+- Ensure backend is running: `cd backend && python app.py`
 - Check firewall allows connections on port 5000
 - For real device: Use computer's local IP, not localhost
 

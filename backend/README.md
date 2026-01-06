@@ -1,109 +1,115 @@
-# Mealy Backend
+# Mealy Backend (Flask API)
 
-Flask-based REST API for the Mealy recipe planning application.
+Flask REST API for Mealy (Firestore + AI recipe generation + meal planning).
 
-## 📁 Project Structure
+## 📁 Project structure
 
 ```
 backend/
-├── app.py                 # Main Flask application entry point
-├── config.py              # Configuration settings
-├── requirements.txt       # Python dependencies
-├── .env                   # Environment variables (not in git)
-│
-├── routes/                # API endpoint blueprints
-│   ├── __init__.py
-│   ├── ai_recipes.py      # AI-powered recipe generation
-│   ├── dashboard.py       # Dashboard data endpoints
-│   ├── feedback.py        # User feedback endpoints
-│   ├── fridge.py          # Fridge inventory management
-│   ├── grocery.py         # Grocery list endpoints
-│   ├── meal_plans.py      # Meal planning endpoints
-│   ├── nutrition.py       # Nutrition tracking
-│   ├── settings.py        # User settings
-│   └── users.py           # User management
-│
-├── services/              # Business logic
-│   ├── __init__.py
-│   └── ai_service.py      # AI/Gemini integration
-│
-├── utils/                 # Utility functions
-│   ├── __init__.py
-│   ├── auth.py            # Authentication helpers
-│   ├── firebase_connector.py  # Firebase/Firestore connection
-│   └── response_handler.py    # API response formatting
-│
-├── tests/                 # Test files
-│   ├── conftest.py
-│   └── test_*.py
-│
-├── data/                  # Data storage (gitignored)
-└── logs/                  # Application logs (gitignored)
+	app.py
+	config.py
+	requirements.txt
+	routes/
+		ai_recipes.py
+		dashboard.py
+		food_scanner.py
+		fridge.py
+		grocery.py
+		meal_plans.py
+		nutrition.py
+		receipt_scanner.py
+		users.py
+	services/
+		ai_service.py
+	utils/
+		auth.py
+		firebase_connector.py
+		response_handler.py
+	tests/
+		test_*.py
 ```
 
-## 🚀 Getting Started
+## ✅ Prerequisites
 
-### Prerequisites
 - Python 3.10+
-- Firebase project with Firestore
-- Gemini API key
+- Firebase project (Firestore enabled)
+- Gemini API key (for AI generation endpoints)
 
-### Installation
+## 🚀 Setup
+
+### Install dependencies
 
 ```bash
 cd backend
+py -m venv .venv
+.venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### Environment Variables
+### Environment variables
 
-Create a `.env` file:
+Create `backend/.env`:
+
 ```env
 FLASK_ENV=development
-SECRET_KEY=your-secret-key
-GEMINI_API_KEY=your-gemini-api-key
-FIREBASE_PROJECT_ID=your-firebase-project
+SECRET_KEY=dev-secret-key
+
+# Firebase
+FIREBASE_PROJECT_ID=mealy-41bf0
+FIREBASE_CREDENTIAL_PATH=..\\mealy-41bf0-firebase-adminsdk-fbsvc-7d493e86ea.json
+
+# AI (Gemini)
+GEMINI_API_KEY=YOUR_GEMINI_API_KEY
 ```
 
-### Running the Server
+Notes:
+- If `FIREBASE_CREDENTIAL_PATH` is missing or invalid, the backend falls back to Application Default Credentials.
+- If `GEMINI_API_KEY` is missing, AI endpoints will return a “service not initialized” error.
 
-**Development (optional debug)**
+## ▶️ Run
+
+### Development (Windows)
+
 ```bash
-# Set FLASK_DEBUG=true if you need debug locally; reloader stays off.
+cd backend
 python app.py
 ```
 
-**Production (gunicorn/uwsgi)**
+### Production-style server on Windows (recommended)
+
+`gunicorn` is primarily for Linux/WSL. On Windows you can use `waitress` (already in requirements):
+
 ```bash
-# Linux/WSL recommended for gunicorn
-gunicorn --workers 4 --bind 0.0.0.0:5000 wsgi:app
+cd backend
+python -m waitress --listen=0.0.0.0:5000 app:app
 ```
 
-The Flask debug flag and reloader are disabled by default to match production behavior.
+Health check:
 
-## 📡 API Endpoints
-
-| Prefix | Blueprint | Description |
-|--------|-----------|-------------|
-| `/api/recipes` | ai_recipes | AI recipe generation |
-| `/api/fridge` | fridge | Fridge inventory |
-| `/api/meal-plans` | meal_plans | Meal planning |
-| `/api/grocery-lists` | grocery | Grocery lists |
-| `/api/nutrition` | nutrition | Nutrition tracking |
-| `/api/users` | users | User management |
-| `/api/settings` | settings | User settings |
-| `/api/dashboard` | dashboard | Dashboard data |
-| `/api/feedback` | feedback | User feedback |
-| `/api/health` | - | Health check |
-
-## 🔧 Development
-
-### Running Tests
-```bash
-pytest tests/
+```text
+GET http://localhost:5000/api/health
 ```
 
-### Code Structure
-- **routes/**: Each file is a Flask Blueprint handling specific API endpoints
-- **services/**: Business logic separated from routes
-- **utils/**: Shared utilities (auth, database, response formatting)
+## 📡 API overview
+
+Registered prefixes (see `backend/app.py`):
+
+| Prefix | Purpose |
+|--------|---------|
+| `/api/recipes` | AI recipe generation + listing |
+| `/api/fridge` | Fridge inventory + recipe suggestions |
+| `/api/meal-plans` | Meal planning + AI suggestions |
+| `/api/grocery` | Grocery list + stats |
+| `/api/nutrition` | Nutrition goals + daily logs |
+| `/api/users` | Register/login |
+| `/api/dashboard` | Dashboard data |
+| `/api/receipt` | Receipt scanning |
+| `/api/food` | Food scanning |
+| `/api/health` | Health check |
+
+## 🧪 Tests
+
+```bash
+cd backend
+pytest
+```
