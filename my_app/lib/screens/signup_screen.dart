@@ -20,6 +20,23 @@ class _SignupScreenState extends State<SignupScreen>
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _agreeToTerms = false;
+  final List<String> _selectedAllergies = [];
+
+  final List<String> _availableAllergies = [
+    'Peanuts',
+    'Tree Nuts',
+    'Milk',
+    'Eggs',
+    'Wheat',
+    'Soy',
+    'Fish',
+    'Shellfish',
+    'Sesame',
+    'Mustard',
+    'Celery',
+    'Lupin',
+    'Sulfites',
+  ];
 
   AnimationController? animationController;
   Animation<double>? logoAnimation;
@@ -90,6 +107,7 @@ class _SignupScreenState extends State<SignupScreen>
       _emailController.text.trim(),
       _passwordController.text,
       _nameController.text.trim(),
+      allergies: _selectedAllergies,
     );
 
     if (mounted && success) {
@@ -442,7 +460,83 @@ class _SignupScreenState extends State<SignupScreen>
                       return null;
                     },
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 24),
+                  // Allergies Section
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: MealyTheme.nearlyOrange.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.warning_amber_rounded,
+                          color: MealyTheme.nearlyOrange,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        'Allergies (Optional)',
+                        style: TextStyle(
+                          fontFamily: MealyTheme.fontName,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                          color: MealyTheme.darkerText,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Select any food allergies you have',
+                    style: TextStyle(
+                      fontFamily: MealyTheme.fontName,
+                      fontSize: 13,
+                      color: MealyTheme.grey,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: _availableAllergies.map((allergy) {
+                      final isSelected = _selectedAllergies.contains(allergy);
+                      return FilterChip(
+                        label: Text(allergy),
+                        selected: isSelected,
+                        onSelected: (selected) {
+                          setState(() {
+                            if (selected) {
+                              _selectedAllergies.add(allergy);
+                            } else {
+                              _selectedAllergies.remove(allergy);
+                            }
+                          });
+                        },
+                        backgroundColor: MealyTheme.background,
+                        selectedColor: MealyTheme.nearlyOrange.withOpacity(0.2),
+                        checkmarkColor: MealyTheme.nearlyOrange,
+                        labelStyle: TextStyle(
+                          fontFamily: MealyTheme.fontName,
+                          fontSize: 12,
+                          color: isSelected
+                              ? MealyTheme.nearlyOrange
+                              : MealyTheme.grey,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                          side: BorderSide(
+                            color: isSelected
+                                ? MealyTheme.nearlyOrange
+                                : MealyTheme.grey.withOpacity(0.3),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 24),
                   // Terms and Conditions
                   Row(
                     children: [

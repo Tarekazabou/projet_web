@@ -222,8 +222,27 @@ class ApiService {
     await delete('/fridge/items/$id');
   }
 
-  Future<Map<String, dynamic>> suggestRecipesFromFridge() async {
-    return await post('/fridge/suggest-recipes', {});
+  Future<Map<String, dynamic>> suggestRecipesFromFridge({
+    List<String>? dietaryPreferences,
+    int? maxCookingTime,
+    String? difficulty,
+    int? servings,
+  }) async {
+    return await post('/fridge/suggest-recipes', {
+      if (dietaryPreferences != null) 'dietary_preferences': dietaryPreferences,
+      if (maxCookingTime != null) 'max_cooking_time': maxCookingTime,
+      if (difficulty != null) 'difficulty': difficulty,
+      if (servings != null) 'servings': servings,
+    });
+  }
+
+  /// Consume ingredients from fridge when cooking a recipe
+  Future<Map<String, dynamic>> consumeFridgeIngredients(
+    List<Map<String, dynamic>> ingredients,
+  ) async {
+    return await post('/fridge/consume-ingredients', {
+      'ingredients': ingredients,
+    });
   }
 
   // ==================== Recipe Endpoints ====================

@@ -102,18 +102,30 @@ class AuthProvider with ChangeNotifier {
   }
 
   // Signup
-  Future<bool> signup(String email, String password, String username) async {
+  Future<bool> signup(
+    String email,
+    String password,
+    String username, {
+    List<String>? allergies,
+  }) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
       AppLogger.info('Attempting signup for: $email', tag: 'Auth');
-      final response = await _apiService.post('/users/register', {
+      final Map<String, dynamic> requestBody = {
         'email': email,
         'password': password,
         'username': username,
-      });
+      };
+
+      // Add allergies if provided
+      if (allergies != null && allergies.isNotEmpty) {
+        requestBody['allergies'] = allergies;
+      }
+
+      final response = await _apiService.post('/users/register', requestBody);
 
       if (response['success'] == true) {
         AppLogger.success(
