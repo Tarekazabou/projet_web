@@ -5,46 +5,70 @@ on:
     branches: [ main, develop ]
   pull_request:
     branches: [ main, develop ]
+  schedule:
+    # Run weekly on Mondays at 00:00 UTC for dependency checks
+    - cron: '0 0 * * 1'
 
 env:
   PYTHON_VERSION: '3.11'
-  NODE_VERSION: '18'
+  FLUTTER_VERSION: '3.24.0'
+  FLUTTER_CHANNEL: 'stable'
 
 jobs:
-  # Backend Testing
+  # Python Backend Testing with Modern Tools
   backend-test:
-    name: Backend Tests
+    name: Backend Tests (Python)
     runs-on: ubuntu-latest
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ env.PYTHON_VERSION }}
     
-    - name: Cache Python dependencies
-      uses: actions/cache@v3
+    - name: Install uv (fast Python package installer)
+      uses: astral-sh/setup-uv@v4
       with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements.txt') }}
+        version: "latest"
+    
+    - name: Cache Python dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/uv
+          ~/.cache/pip
+        key: ${{ runner.os }}-python-${{ hashFiles('backend/requirements.txt') }}
         restore-keys: |
-          ${{ runner.os }}-pip-
+          ${{ runner.os }}-python-
     
     - name: Install dependencies
       run: |
         cd backend
-        pip install --upgrade pip
-        pip install -r requirements.txt
+        uv pip install --system --upgrade pip
+        uv pip install --system -r requirements.txt
     
-    - name: Run linters
+    - name: Install dev tools
+      run: |
+        uv pip install --system ruff mypy pytest pytest-cov bandit
+    
+    - name: Run Ruff linter (replaces flake8, black, isort)
       run: |
         cd backend
-        pip install pylint black flake8
-        black --check . || true
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics || true
+        ruff check . --output-format=github
+        ruff format --check .
+    
+    - name: Run MyPy type checking
+      run: |
+        cd backend
+        mypy . --ignore-missing-imports --no-error-summary || true
+    
+    - name: Run Bandit security linter
+      run: |
+        cd backend
+        bandit -r . -ll -ii -x ./tests || true
     
     - name: Run tests with coverage
       env:
@@ -52,52 +76,140 @@ jobs:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       run: |
         cd backend
-        pytest --cov=. --cov-report=xml --cov-report=term
+        pytest --cov=. --cov-report=xml --cov-report=term --cov-fail-under=70
     
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
       with:
         file: ./backend/coverage.xml
         flags: backend
         name: backend-coverage
-  
-  # Frontend Testing
-  frontend-test:
-    name: Frontend Tests
+        token: ${{ secrets.CODECOV_TOKEN }}
+
+  # Flutter App Testing
+  flutter-test:
+    name: Flutter Tests
     runs-on: ubuntu-latest
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
       with:
-        node-version: ${{ env.NODE_VERSION }}
+        flutter-version: ${{ env.FLUTTER_VERSION }}
+        channel: ${{ env.FLUTTER_CHANNEL }}
+        cache: true
+        cache-key: 'flutter-:os:-:channel:-:version:-:arch:-:hash:'
+        cache-path: '${{ runner.tool_cache }}/flutter/:channel:-:version:-:arch:'
     
-    - name: Cache Node modules
-      uses: actions/cache@v3
+    - name: Verify Flutter installation
+      run: |
+        flutter --version
+        dart --version
+    
+    - name: Get Flutter dependencies
+      run: |
+        cd my_app
+        flutter pub get
+    
+    - name: Check for outdated packages
+      run: |
+        cd my_app
+        flutter pub outdated || true
+    
+    - name: Run Flutter analyze (static analysis)
+      run: |
+        cd my_app
+        flutter analyze --fatal-infos --fatal-warnings
+    
+    - name: Run Dart format check
+      run: |
+        cd my_app
+        dart format --set-exit-if-changed .
+    
+    - name: Run Flutter tests with coverage
+      run: |
+        cd my_app
+        flutter test --coverage --coverage-path=coverage/lcov.info
+    
+    - name: Upload Flutter coverage to Codecov
+      uses: codecov/codecov-action@v4
       with:
-        path: ~/.npm
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-node-
+        file: ./my_app/coverage/lcov.info
+        flags: flutter
+        name: flutter-coverage
+        token: ${{ secrets.CODECOV_TOKEN }}
+
+  # Flutter Build Check (Android)
+  flutter-build-android:
+    name: Flutter Build (Android)
+    runs-on: ubuntu-latest
+    needs: [flutter-test]
     
-    - name: Install dependencies
-      run: |
-        cd frontend
-        npm ci || npm install
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
     
-    - name: Run ESLint
-      run: |
-        cd frontend
-        npx eslint js/ --ext .js || true
+    - name: Set up Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
     
-    - name: Run tests
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: ${{ env.FLUTTER_VERSION }}
+        channel: ${{ env.FLUTTER_CHANNEL }}
+        cache: true
+    
+    - name: Get dependencies
       run: |
-        cd frontend
-        npm test || echo "Frontend tests not yet implemented"
-  
+        cd my_app
+        flutter pub get
+    
+    - name: Build Android APK
+      run: |
+        cd my_app
+        flutter build apk --release --no-tree-shake-icons
+    
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: android-release-apk
+        path: my_app/build/app/outputs/flutter-apk/app-release.apk
+        retention-days: 7
+
+  # Flutter Build Check (iOS) - only on macOS runner
+  flutter-build-ios:
+    name: Flutter Build (iOS)
+    runs-on: macos-latest
+    needs: [flutter-test]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: ${{ env.FLUTTER_VERSION }}
+        channel: ${{ env.FLUTTER_CHANNEL }}
+        cache: true
+    
+    - name: Get dependencies
+      run: |
+        cd my_app
+        flutter pub get
+    
+    - name: Build iOS (no codesign)
+      run: |
+        cd my_app
+        flutter build ios --release --no-codesign
+
   # Security Scanning
   security-scan:
     name: Security Scan
@@ -105,7 +217,7 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     
     - name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@master
@@ -114,58 +226,101 @@ jobs:
         scan-ref: '.'
         format: 'sarif'
         output: 'trivy-results.sarif'
+        severity: 'CRITICAL,HIGH'
     
     - name: Upload Trivy results to GitHub Security
-      uses: github/codeql-action/upload-sarif@v2
+      uses: github/codeql-action/upload-sarif@v3
       with:
         sarif_file: 'trivy-results.sarif'
     
-    - name: Python dependency check
+    - name: Set up Python for security tools
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Run pip-audit (Python dependency audit)
       run: |
-        pip install safety
-        safety check --file=backend/requirements.txt || true
-  
+        pip install pip-audit
+        pip-audit -r backend/requirements.txt --strict || true
+    
+    - name: Run Semgrep SAST
+      uses: returntocorp/semgrep-action@v1
+      with:
+        config: >-
+          p/python
+          p/flask
+          p/security-audit
+      continue-on-error: true
+
+  # Dependency Review (for PRs)
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Dependency Review
+      uses: actions/dependency-review-action@v4
+      with:
+        fail-on-severity: high
+        deny-licenses: GPL-3.0, AGPL-3.0
+
   # Build Docker Image
   build-docker:
     name: Build Docker Image
     runs-on: ubuntu-latest
-    needs: [backend-test, frontend-test]
+    needs: [backend-test, flutter-test]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     
     - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
+      uses: docker/setup-buildx-action@v3
     
     - name: Login to Docker Hub
-      uses: docker/login-action@v2
+      uses: docker/login-action@v3
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
     
+    - name: Extract metadata for Docker
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ secrets.DOCKER_USERNAME }}/mealy
+        tags: |
+          type=ref,event=branch
+          type=sha,prefix=
+          type=raw,value=latest,enable={{is_default_branch}}
+    
     - name: Build and push Docker image
-      uses: docker/build-push-action@v4
+      uses: docker/build-push-action@v6
       with:
         context: .
         push: true
-        tags: |
-          ${{ secrets.DOCKER_USERNAME }}/mealy:latest
-          ${{ secrets.DOCKER_USERNAME }}/mealy:${{ github.sha }}
-        cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/mealy:buildcache
-        cache-to: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/mealy:buildcache,mode=max
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        provenance: true
+        sbom: true
   
-  # Deploy to Production (example)
+  # Deploy to Production
   deploy:
     name: Deploy to Production
     runs-on: ubuntu-latest
     needs: [build-docker]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment: production
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     
     - name: Deploy to server
       env:

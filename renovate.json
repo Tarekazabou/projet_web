@@ -1,0 +1,85 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":dependencyDashboard",
+    ":semanticCommits",
+    ":preserveSemverRanges",
+    "schedule:weekly"
+  ],
+  "labels": ["dependencies", "renovate"],
+  "prHourlyLimit": 5,
+  "prConcurrentLimit": 10,
+  "timezone": "UTC",
+  "vulnerabilityAlerts": {
+    "labels": ["security"],
+    "automerge": true
+  },
+  "packageRules": [
+    {
+      "description": "Python dependencies",
+      "matchManagers": ["pip_requirements"],
+      "groupName": "python dependencies",
+      "labels": ["python", "dependencies"],
+      "automerge": false,
+      "matchUpdateTypes": ["minor", "patch"]
+    },
+    {
+      "description": "Auto-merge Python patch updates",
+      "matchManagers": ["pip_requirements"],
+      "matchUpdateTypes": ["patch"],
+      "automerge": true,
+      "automergeType": "pr"
+    },
+    {
+      "description": "Flutter/Dart dependencies",
+      "matchManagers": ["pub"],
+      "groupName": "flutter dependencies",
+      "labels": ["flutter", "dart", "dependencies"],
+      "automerge": false
+    },
+    {
+      "description": "Auto-merge Flutter patch updates",
+      "matchManagers": ["pub"],
+      "matchUpdateTypes": ["patch"],
+      "automerge": true,
+      "automergeType": "pr"
+    },
+    {
+      "description": "GitHub Actions",
+      "matchManagers": ["github-actions"],
+      "groupName": "github-actions",
+      "labels": ["ci", "github-actions"],
+      "automerge": true,
+      "automergeType": "pr"
+    },
+    {
+      "description": "Docker dependencies",
+      "matchManagers": ["dockerfile"],
+      "groupName": "docker dependencies",
+      "labels": ["docker", "dependencies"]
+    },
+    {
+      "description": "Major updates require manual review",
+      "matchUpdateTypes": ["major"],
+      "automerge": false,
+      "labels": ["major-update", "needs-review"]
+    },
+    {
+      "description": "Pin Gradle/Android dependencies",
+      "matchManagers": ["gradle"],
+      "groupName": "android dependencies",
+      "labels": ["android", "dependencies"]
+    }
+  ],
+  "pip_requirements": {
+    "fileMatch": ["(^|/)requirements.*\\.txt$"]
+  },
+  "pub": {
+    "fileMatch": ["(^|/)pubspec\\.yaml$"]
+  },
+  "ignoreDeps": [],
+  "ignorePresets": [],
+  "platformAutomerge": true,
+  "rebaseWhen": "conflicted"
+}
