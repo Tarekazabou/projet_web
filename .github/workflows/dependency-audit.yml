@@ -1,0 +1,154 @@
+name: Dependency Audit
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:  # Allow manual trigger
+
+permissions:
+  contents: read
+  security-events: write
+
+env:
+  PYTHON_VERSION: '3.11'
+  FLUTTER_VERSION: '3.24.0'
+
+jobs:
+  # Python Dependency Audit
+  python-audit:
+    name: Python Dependency Audit
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install audit tools
+      run: |
+        pip install pip-audit safety
+    
+    - name: Run pip-audit
+      run: |
+        pip-audit -r backend/requirements.txt --format=json --output=pip-audit-results.json || true
+        pip-audit -r backend/requirements.txt || true
+    
+    - name: Run safety check
+      run: |
+        safety check --file=backend/requirements.txt --json --output=safety-results.json || true
+        safety check --file=backend/requirements.txt || true
+    
+    - name: Check for outdated packages
+      run: |
+        pip install -r backend/requirements.txt
+        pip list --outdated --format=json > outdated-python.json || true
+        echo "### Outdated Python Packages ###"
+        pip list --outdated
+    
+    - name: Upload audit results
+      uses: actions/upload-artifact@v4
+      with:
+        name: python-audit-results
+        path: |
+          pip-audit-results.json
+          safety-results.json
+          outdated-python.json
+        retention-days: 30
+
+  # Flutter/Dart Dependency Audit
+  flutter-audit:
+    name: Flutter Dependency Audit
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: ${{ env.FLUTTER_VERSION }}
+        channel: 'stable'
+        cache: true
+    
+    - name: Get dependencies
+      run: |
+        cd my_app
+        flutter pub get
+    
+    - name: Check for outdated packages
+      run: |
+        cd my_app
+        echo "### Flutter Outdated Packages ###"
+        flutter pub outdated
+        flutter pub outdated --json > ../outdated-flutter.json || true
+    
+    - name: Analyze dependencies
+      run: |
+        cd my_app
+        echo "### Dependency Tree ###"
+        flutter pub deps
+    
+    - name: Check for security advisories
+      run: |
+        cd my_app
+        # Flutter doesn't have a built-in security audit, but we can check pubspec.lock
+        echo "### Checking pubspec.lock for known issues ###"
+        cat pubspec.lock
+    
+    - name: Upload audit results
+      uses: actions/upload-artifact@v4
+      with:
+        name: flutter-audit-results
+        path: outdated-flutter.json
+        retention-days: 30
+
+  # GitHub Actions Version Check
+  actions-audit:
+    name: GitHub Actions Audit
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Check action versions
+      run: |
+        echo "### GitHub Actions in use ###"
+        grep -r "uses:" .github/workflows/ | grep -v "#" | sort | uniq
+    
+    - name: Actionlint
+      uses: raven-actions/actionlint@v2
+      with:
+        fail-on-error: false
+
+  # Summary Report
+  summary:
+    name: Audit Summary
+    runs-on: ubuntu-latest
+    needs: [python-audit, flutter-audit, actions-audit]
+    if: always()
+    
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        merge-multiple: true
+    
+    - name: Generate summary
+      run: |
+        echo "## Dependency Audit Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| Component | Status |" >> $GITHUB_STEP_SUMMARY
+        echo "|-----------|--------|" >> $GITHUB_STEP_SUMMARY
+        echo "| Python Audit | ${{ needs.python-audit.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Flutter Audit | ${{ needs.flutter-audit.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Actions Audit | ${{ needs.actions-audit.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Check artifacts for detailed reports." >> $GITHUB_STEP_SUMMARY
