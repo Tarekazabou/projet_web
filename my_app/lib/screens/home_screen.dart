@@ -12,6 +12,7 @@ import '../providers/dashboard_provider.dart';
 import 'nutrition_screen.dart';
 import 'fridge_screen.dart';
 import 'recipe_generator_screen.dart';
+import 'recipe_list_screen.dart';
 import 'grocery_list_screen.dart';
 import 'meal_planner_screen.dart';
 
@@ -361,7 +362,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   screen = const FridgeScreen();
                   break;
                 case 'recipes':
-                  screen = const RecipeGeneratorScreen();
+                  screen = const RecipeListScreen();
                   break;
                 case 'meal plans':
                   screen = const MealPlannerScreen();
