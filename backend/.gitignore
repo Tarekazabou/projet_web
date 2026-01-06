@@ -25,10 +25,7 @@ MANIFEST
 # Flask
 instance/
 .webassets-cache
-
-# Environment variables
 .env
-.env.*
 # .venv
 # env/
 # venv/
