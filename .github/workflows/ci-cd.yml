@@ -9,6 +9,10 @@ on:
     # Run weekly on Mondays at 00:00 UTC for dependency checks
     - cron: '0 0 * * 1'
 
+permissions:
+  contents: read
+  security-events: write
+
 env:
   PYTHON_VERSION: '3.11'
   FLUTTER_VERSION: '3.24.0'
