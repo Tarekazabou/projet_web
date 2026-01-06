@@ -312,8 +312,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       Consumer3<FridgeProvider, DashboardProvider, GroceryProvider>(
         builder: (context, fridge, dashboard, grocery, _) {
           // Calculate dynamic progress values
-          final fridgeProgress = fridge.items.length > 0 
-              ? (fridge.items.length / 20).clamp(0.0, 1.0) 
+          final fridgeProgress = fridge.items.length > 0
+              ? (fridge.items.length / 20).clamp(0.0, 1.0)
               : 0.0;
           final recipesProgress = dashboard.stats.savedRecipes > 0
               ? (dashboard.stats.savedRecipes / 30).clamp(0.0, 1.0)
@@ -324,7 +324,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           final groceryProgress = grocery.pendingItems > 0
               ? (grocery.pendingItems / 20).clamp(0.0, 1.0)
               : 0.0;
-          
+
           final items = [
             AreaData(
               icon: Icons.kitchen_rounded,
@@ -713,9 +713,7 @@ class _AddMealBottomSheetState extends State<_AddMealBottomSheet> {
     Navigator.pop(context); // Close the bottom sheet first
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => const FoodScannerScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => const FoodScannerScreen()),
     ).then((_) {
       // Refresh data when returning from scanner
       widget.onMealAdded();
@@ -797,10 +795,7 @@ class _AddMealBottomSheetState extends State<_AddMealBottomSheet> {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Text(
                       'or enter manually',
-                      style: TextStyle(
-                        color: Colors.grey[500],
-                        fontSize: 12,
-                      ),
+                      style: TextStyle(color: Colors.grey[500], fontSize: 12),
                     ),
                   ),
                   Expanded(child: Divider(color: Colors.grey[300])),
