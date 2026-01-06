@@ -146,7 +146,7 @@ jobs:
         name: flutter-coverage
         token: ${{ secrets.CODECOV_TOKEN }}
 
-  # Flutter Build Check (Android)
+  # Flutter Build Check (Android) with Fastlane
   flutter-build-android:
     name: Flutter Build (Android)
     runs-on: ubuntu-latest
@@ -161,6 +161,13 @@ jobs:
       with:
         distribution: 'temurin'
         java-version: '17'
+    
+    - name: Set up Ruby for Fastlane
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.2'
+        bundler-cache: true
+        working-directory: my_app/android
     
     - name: Set up Flutter
       uses: subosito/flutter-action@v2
@@ -179,6 +186,21 @@ jobs:
         cd my_app
         flutter build apk --release --no-tree-shake-icons
     
+    - name: Install Fastlane
+      run: |
+        cd my_app/android
+        gem install fastlane
+    
+    - name: Run Fastlane Android (build only)
+      run: |
+        cd my_app/android
+        if [ -f "fastlane/Fastfile" ]; then
+          fastlane android build
+        else
+          echo "Fastlane not configured yet, skipping..."
+        fi
+      continue-on-error: true
+    
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
       with:
@@ -186,7 +208,7 @@ jobs:
         path: my_app/build/app/outputs/flutter-apk/app-release.apk
         retention-days: 7
 
-  # Flutter Build Check (iOS) - only on macOS runner
+  # Flutter Build Check (iOS) with Fastlane - only on macOS runner
   flutter-build-ios:
     name: Flutter Build (iOS)
     runs-on: macos-latest
@@ -197,6 +219,13 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     
+    - name: Set up Ruby for Fastlane
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.2'
+        bundler-cache: true
+        working-directory: my_app/ios
+    
     - name: Set up Flutter
       uses: subosito/flutter-action@v2
       with:
@@ -204,15 +233,50 @@ jobs:
         channel: ${{ env.FLUTTER_CHANNEL }}
         cache: true
     
+    - name: Install CocoaPods
+      run: |
+        sudo gem install cocoapods
+    
     - name: Get dependencies
       run: |
         cd my_app
         flutter pub get
+        cd ios
+        pod install --repo-update
     
     - name: Build iOS (no codesign)
       run: |
         cd my_app
         flutter build ios --release --no-codesign
+    
+    - name: Install Fastlane
+      run: |
+        cd my_app/ios
+        gem install fastlane
+    
+    - name: Run Fastlane iOS (build only)
+      env:
+        MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+        FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+        APPLE_ID: ${{ secrets.APPLE_ID }}
+        APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+        APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+        APP_STORE_CONNECT_API_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}
+      run: |
+        cd my_app/ios
+        if [ -f "fastlane/Fastfile" ]; then
+          fastlane ios build
+        else
+          echo "Fastlane not configured yet, skipping..."
+        fi
+      continue-on-error: true
+    
+    - name: Upload iOS build artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ios-release-build
+        path: my_app/build/ios/iphoneos/Runner.app
+        retention-days: 7
 
   # Security Scanning
   security-scan:

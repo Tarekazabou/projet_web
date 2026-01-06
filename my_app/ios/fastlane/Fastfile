@@ -1,0 +1,106 @@
+# Fastlane configuration for iOS
+# Documentation: https://docs.fastlane.tools
+
+default_platform(:ios)
+
+platform :ios do
+  desc "Setup certificates and provisioning profiles"
+  lane :setup_signing do
+    match(
+      type: "appstore",
+      readonly: is_ci,
+      app_identifier: ENV["BUNDLE_ID"] || "com.mealy.app"
+    )
+  end
+
+  desc "Build iOS app"
+  lane :build do
+    setup_signing if is_ci
+    
+    build_app(
+      workspace: "Runner.xcworkspace",
+      scheme: "Runner",
+      configuration: "Release",
+      export_method: "app-store",
+      output_directory: "./build",
+      output_name: "Mealy.ipa",
+      clean: true,
+      skip_codesigning: !is_ci
+    )
+  end
+
+  desc "Build iOS app for development"
+  lane :build_dev do
+    match(
+      type: "development",
+      readonly: is_ci,
+      app_identifier: ENV["BUNDLE_ID"] || "com.mealy.app"
+    )
+    
+    build_app(
+      workspace: "Runner.xcworkspace",
+      scheme: "Runner",
+      configuration: "Debug",
+      export_method: "development",
+      output_directory: "./build",
+      output_name: "Mealy-dev.ipa"
+    )
+  end
+
+  desc "Run tests"
+  lane :test do
+    run_tests(
+      workspace: "Runner.xcworkspace",
+      scheme: "Runner",
+      devices: ["iPhone 15"],
+      clean: true
+    )
+  end
+
+  desc "Upload to TestFlight"
+  lane :beta do
+    build
+    
+    upload_to_testflight(
+      skip_waiting_for_build_processing: true,
+      apple_id: ENV["APPLE_ID"],
+      app_identifier: ENV["BUNDLE_ID"] || "com.mealy.app",
+      changelog: "Bug fixes and improvements"
+    )
+  end
+
+  desc "Upload to App Store"
+  lane :release do
+    build
+    
+    upload_to_app_store(
+      skip_metadata: false,
+      skip_screenshots: true,
+      submit_for_review: false,
+      automatic_release: false,
+      force: true
+    )
+  end
+
+  desc "Increment build number"
+  lane :bump_build do
+    increment_build_number(
+      build_number: latest_testflight_build_number + 1
+    )
+  end
+
+  desc "Increment version number"
+  lane :bump_version do |options|
+    increment_version_number(
+      bump_type: options[:type] || "patch"
+    )
+  end
+
+  # Error handling
+  error do |lane, exception|
+    notification(
+      title: "Fastlane Error",
+      message: "#{lane} failed with #{exception.message}"
+    )
+  end
+end

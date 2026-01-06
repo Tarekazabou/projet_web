@@ -1,0 +1,236 @@
+# Codemagic CI/CD Configuration for Flutter
+# Documentation: https://docs.codemagic.io/yaml/yaml-getting-started/
+
+workflows:
+  # Android Build & Deploy
+  android-workflow:
+    name: Android Build
+    max_build_duration: 60
+    instance_type: mac_mini_m1
+    
+    environment:
+      flutter: 3.24.0
+      java: 17
+      groups:
+        - google_play_credentials  # Add your credentials in Codemagic UI
+        - firebase_credentials
+      vars:
+        PACKAGE_NAME: "com.mealy.app"
+        GOOGLE_PLAY_TRACK: internal
+    
+    triggering:
+      events:
+        - push
+        - pull_request
+      branch_patterns:
+        - pattern: main
+          include: true
+          source: true
+        - pattern: develop
+          include: true
+          source: true
+    
+    scripts:
+      - name: Set up local.properties
+        script: |
+          echo "flutter.sdk=$HOME/programs/flutter" > "$CM_BUILD_DIR/my_app/android/local.properties"
+      
+      - name: Get Flutter packages
+        script: |
+          cd my_app
+          flutter packages pub get
+      
+      - name: Run Flutter analyze
+        script: |
+          cd my_app
+          flutter analyze --fatal-infos
+      
+      - name: Run Flutter tests
+        script: |
+          cd my_app
+          flutter test --coverage
+        ignore_failure: true
+      
+      - name: Build APK (debug)
+        script: |
+          cd my_app
+          flutter build apk --debug
+      
+      - name: Build APK (release)
+        script: |
+          cd my_app
+          flutter build apk --release
+      
+      - name: Build App Bundle (release)
+        script: |
+          cd my_app
+          flutter build appbundle --release
+    
+    artifacts:
+      - my_app/build/**/outputs/**/*.apk
+      - my_app/build/**/outputs/**/*.aab
+      - my_app/build/**/outputs/**/mapping.txt
+      - my_app/build/flutter_drive_log.txt
+    
+    publishing:
+      email:
+        recipients:
+          - team@mealy.app
+        notify:
+          success: true
+          failure: true
+      
+      google_play:
+        credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+        track: $GOOGLE_PLAY_TRACK
+        submit_as_draft: true
+
+  # iOS Build & Deploy
+  ios-workflow:
+    name: iOS Build
+    max_build_duration: 90
+    instance_type: mac_mini_m1
+    integrations:
+      app_store_connect: codemagic  # Add your integration in Codemagic UI
+    
+    environment:
+      flutter: 3.24.0
+      xcode: latest
+      cocoapods: default
+      groups:
+        - app_store_credentials
+        - firebase_credentials
+      vars:
+        BUNDLE_ID: "com.mealy.app"
+        APP_STORE_APPLE_ID: "1234567890"  # Replace with your App Store ID
+    
+    triggering:
+      events:
+        - push
+        - pull_request
+      branch_patterns:
+        - pattern: main
+          include: true
+          source: true
+    
+    scripts:
+      - name: Get Flutter packages
+        script: |
+          cd my_app
+          flutter packages pub get
+      
+      - name: Install CocoaPods dependencies
+        script: |
+          cd my_app/ios
+          pod install
+      
+      - name: Run Flutter analyze
+        script: |
+          cd my_app
+          flutter analyze --fatal-infos
+      
+      - name: Run Flutter tests
+        script: |
+          cd my_app
+          flutter test --coverage
+        ignore_failure: true
+      
+      - name: Set up code signing (automatic)
+        script: |
+          keychain initialize
+          app-store-connect fetch-signing-files "$BUNDLE_ID" --type IOS_APP_STORE --create
+          keychain add-certificates
+          xcode-project use-profiles
+      
+      - name: Build iOS IPA
+        script: |
+          cd my_app
+          flutter build ipa --release \
+            --export-options-plist=/Users/builder/export_options.plist
+    
+    artifacts:
+      - my_app/build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+      - my_app/build/flutter_drive_log.txt
+    
+    publishing:
+      email:
+        recipients:
+          - team@mealy.app
+        notify:
+          success: true
+          failure: true
+      
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        beta_groups:
+          - Beta Testers
+        submit_to_app_store: false
+
+  # Web Build
+  web-workflow:
+    name: Web Build
+    max_build_duration: 30
+    instance_type: mac_mini_m1
+    
+    environment:
+      flutter: 3.24.0
+    
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+    
+    scripts:
+      - name: Get Flutter packages
+        script: |
+          cd my_app
+          flutter packages pub get
+      
+      - name: Build Web
+        script: |
+          cd my_app
+          flutter build web --release --web-renderer canvaskit
+    
+    artifacts:
+      - my_app/build/web/**
+
+  # PR Checks (fast)
+  pr-checks:
+    name: PR Checks
+    max_build_duration: 30
+    instance_type: mac_mini_m1
+    
+    environment:
+      flutter: 3.24.0
+    
+    triggering:
+      events:
+        - pull_request
+      branch_patterns:
+        - pattern: '*'
+          include: true
+    
+    scripts:
+      - name: Get Flutter packages
+        script: |
+          cd my_app
+          flutter packages pub get
+      
+      - name: Check formatting
+        script: |
+          cd my_app
+          dart format --set-exit-if-changed .
+      
+      - name: Analyze code
+        script: |
+          cd my_app
+          flutter analyze --fatal-infos --fatal-warnings
+      
+      - name: Run tests
+        script: |
+          cd my_app
+          flutter test

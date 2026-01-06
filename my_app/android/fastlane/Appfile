@@ -1,0 +1,9 @@
+# Android Fastlane Appfile
+# Documentation: https://docs.fastlane.tools/advanced/#appfile
+
+# Package name
+package_name(ENV["PACKAGE_NAME"] || "com.mealy.app")
+
+# Path to your Google Play JSON key file
+# Generate from Google Play Console -> Setup -> API Access
+json_key_file(ENV["GOOGLE_PLAY_JSON_KEY"] || "google-play-key.json")

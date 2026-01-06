@@ -1,0 +1,20 @@
+# iOS Fastlane Appfile
+# Documentation: https://docs.fastlane.tools/advanced/#appfile
+
+# App identifier (bundle ID)
+app_identifier(ENV["BUNDLE_ID"] || "com.mealy.app")
+
+# Apple ID email
+apple_id(ENV["APPLE_ID"] || "developer@mealy.app")
+
+# Team ID (from Apple Developer Portal)
+team_id(ENV["TEAM_ID"] || "XXXXXXXXXX")
+
+# iTunes Connect Team ID (if different from developer portal)
+itc_team_id(ENV["ITC_TEAM_ID"] || "XXXXXXXXXX")
+
+# For App Store Connect API Key (recommended for CI/CD)
+# Set these as environment variables:
+# - APP_STORE_CONNECT_API_KEY_ID
+# - APP_STORE_CONNECT_API_ISSUER_ID  
+# - APP_STORE_CONNECT_API_KEY_CONTENT (base64 encoded .p8 file)

@@ -1,0 +1,143 @@
+# Fastlane configuration for Android
+# Documentation: https://docs.fastlane.tools
+
+default_platform(:android)
+
+platform :android do
+  desc "Build debug APK"
+  lane :build_debug do
+    gradle(
+      task: "assembleDebug",
+      project_dir: "./"
+    )
+  end
+
+  desc "Build release APK"
+  lane :build do
+    gradle(
+      task: "assembleRelease",
+      project_dir: "./"
+    )
+  end
+
+  desc "Build release App Bundle (AAB)"
+  lane :build_bundle do
+    gradle(
+      task: "bundleRelease",
+      project_dir: "./"
+    )
+  end
+
+  desc "Run unit tests"
+  lane :test do
+    gradle(
+      task: "test",
+      project_dir: "./"
+    )
+  end
+
+  desc "Deploy to internal testing track"
+  lane :internal do
+    build_bundle
+    
+    upload_to_play_store(
+      track: "internal",
+      aab: "../build/app/outputs/bundle/release/app-release.aab",
+      json_key: ENV["GOOGLE_PLAY_JSON_KEY"] || "google-play-key.json",
+      package_name: ENV["PACKAGE_NAME"] || "com.mealy.app",
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+
+  desc "Deploy to alpha/closed testing track"
+  lane :alpha do
+    build_bundle
+    
+    upload_to_play_store(
+      track: "alpha",
+      aab: "../build/app/outputs/bundle/release/app-release.aab",
+      json_key: ENV["GOOGLE_PLAY_JSON_KEY"] || "google-play-key.json",
+      package_name: ENV["PACKAGE_NAME"] || "com.mealy.app",
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+
+  desc "Deploy to beta/open testing track"
+  lane :beta do
+    build_bundle
+    
+    upload_to_play_store(
+      track: "beta",
+      aab: "../build/app/outputs/bundle/release/app-release.aab",
+      json_key: ENV["GOOGLE_PLAY_JSON_KEY"] || "google-play-key.json",
+      package_name: ENV["PACKAGE_NAME"] || "com.mealy.app",
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+
+  desc "Deploy to production"
+  lane :release do
+    build_bundle
+    
+    upload_to_play_store(
+      track: "production",
+      aab: "../build/app/outputs/bundle/release/app-release.aab",
+      json_key: ENV["GOOGLE_PLAY_JSON_KEY"] || "google-play-key.json",
+      package_name: ENV["PACKAGE_NAME"] || "com.mealy.app",
+      skip_upload_metadata: false,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      release_status: "draft"  # Use "completed" for immediate release
+    )
+  end
+
+  desc "Promote internal to beta"
+  lane :promote_to_beta do
+    upload_to_play_store(
+      track: "internal",
+      track_promote_to: "beta",
+      json_key: ENV["GOOGLE_PLAY_JSON_KEY"] || "google-play-key.json",
+      package_name: ENV["PACKAGE_NAME"] || "com.mealy.app",
+      skip_upload_apk: true,
+      skip_upload_aab: true
+    )
+  end
+
+  desc "Promote beta to production"
+  lane :promote_to_production do
+    upload_to_play_store(
+      track: "beta",
+      track_promote_to: "production",
+      json_key: ENV["GOOGLE_PLAY_JSON_KEY"] || "google-play-key.json",
+      package_name: ENV["PACKAGE_NAME"] || "com.mealy.app",
+      skip_upload_apk: true,
+      skip_upload_aab: true,
+      rollout: "0.1"  # 10% rollout
+    )
+  end
+
+  desc "Increment version code"
+  lane :bump_version_code do
+    # Read current version code from build.gradle
+    # This is a simplified example - you may need to adjust for your setup
+    gradle(
+      task: "incrementVersionCode",
+      project_dir: "./"
+    )
+  end
+
+  # Error handling
+  error do |lane, exception|
+    # Slack notification (optional)
+    # slack(
+    #   message: "Fastlane Android failed: #{exception.message}",
+    #   success: false
+    # )
+  end
+end
