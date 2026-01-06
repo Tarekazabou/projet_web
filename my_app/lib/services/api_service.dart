@@ -439,10 +439,6 @@ class ApiService {
     return await post('/receipt/scan', {'image': base64Image});
   }
 
-  /// Test if Ollama connection is available
-  Future<Map<String, dynamic>> testReceiptScannerConnection() async {
-    return await get('/receipt/test-connection');
-  }
 
   // ==================== Food Scanner Endpoints ====================
 

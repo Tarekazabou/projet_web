@@ -28,9 +28,6 @@ def register():
         if not email or not password or not username:
             return jsonify({'success': False, 'message': 'Email, password, and username are required'}), 400
         
-        if len(password) < 6:
-            return jsonify({'success': False, 'message': 'Password must be at least 6 characters'}), 400
-        
         db = get_db()
         users_ref = db.collection('User')
         
@@ -44,7 +41,7 @@ def register():
             'email': email,
             'username': username,
             'displayName': username,
-            'password': hash_password(password),  # Hash the password
+            'password': hashlib.sha256(password.encode()).hexdigest(),  # Hash the password
             'createdAt': datetime.utcnow(),
             'updatedAt': datetime.utcnow(),
             'dietary_preferences': [],

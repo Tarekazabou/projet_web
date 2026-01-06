@@ -16,6 +16,7 @@ import 'recipe_generator_screen.dart';
 import 'recipe_list_screen.dart';
 import 'grocery_list_screen.dart';
 import 'meal_planner_screen.dart';
+import 'food_scanner_screen.dart';
 
 /// Home screen - My Diary style
 /// Inspired by fitness app my_diary_screen.dart
@@ -708,6 +709,19 @@ class _AddMealBottomSheetState extends State<_AddMealBottomSheet> {
     }
   }
 
+  void _openFoodScanner() {
+    Navigator.pop(context); // Close the bottom sheet first
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const FoodScannerScreen(),
+      ),
+    ).then((_) {
+      // Refresh data when returning from scanner
+      widget.onMealAdded();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -748,7 +762,51 @@ class _AddMealBottomSheetState extends State<_AddMealBottomSheet> {
                   color: MealyTheme.darkerText,
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
+
+              // Scan Food Button
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: OutlinedButton.icon(
+                  onPressed: _openFoodScanner,
+                  icon: const Icon(Icons.camera_alt_outlined, size: 24),
+                  label: const Text(
+                    'Scan Food with Camera',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: MealyTheme.nearlyOrange,
+                    side: const BorderSide(
+                      color: MealyTheme.nearlyOrange,
+                      width: 1.5,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Divider with "or" text
+              Row(
+                children: [
+                  Expanded(child: Divider(color: Colors.grey[300])),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      'or enter manually',
+                      style: TextStyle(
+                        color: Colors.grey[500],
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                  Expanded(child: Divider(color: Colors.grey[300])),
+                ],
+              ),
+              const SizedBox(height: 16),
 
               // Meal type selector
               Wrap(

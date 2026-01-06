@@ -292,32 +292,3 @@ def scan_receipt():
     except Exception as e:
         logger.error(f"Error scanning receipt: {e}")
         return error_response(str(e), 500)
-
-
-@receipt_scanner_bp.route('/test-connection', methods=['GET'])
-def test_ollama_connection():
-    """Test if Ollama is running and the model is available."""
-    try:
-        # Check if Ollama is running
-        response = requests.get(f"{OLLAMA_BASE_URL}/api/tags", timeout=5)
-        
-        if response.status_code != 200:
-            return error_response('Ollama is not responding', 503)
-        
-        models = response.json().get('models', [])
-        model_names = [m.get('name', '') for m in models]
-        
-        # Check if our model is available
-        model_available = any(OLLAMA_MODEL in name for name in model_names)
-        
-        return success_response({
-            'ollama_running': True,
-            'model_available': model_available,
-            'required_model': OLLAMA_MODEL,
-            'available_models': model_names
-        })
-        
-    except requests.exceptions.ConnectionError:
-        return error_response('Cannot connect to Ollama. Make sure it is running.', 503)
-    except Exception as e:
-        return error_response(str(e), 500)
