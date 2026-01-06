@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../providers/dashboard_provider.dart';
+import '../providers/fridge_provider.dart';
 import '../utils/mealy_theme.dart';
+import 'recipe_list_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key, this.animationController});
@@ -306,35 +309,39 @@ class _ProfileScreenState extends State<ProfileScreen>
           opacity: animation,
           child: Transform.translate(
             offset: Offset(0, 30 * (1 - animation.value)),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _buildStatCard(
-                      '12',
-                      'Recipes\nSaved',
-                      Icons.bookmark,
-                    ),
+            child: Consumer2<DashboardProvider, FridgeProvider>(
+              builder: (context, dashboard, fridge, _) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _buildStatCard(
+                          '${dashboard.stats.savedRecipes}',
+                          'Recipes\nSaved',
+                          Icons.bookmark,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildStatCard(
+                          '${dashboard.stats.mealsPlanned}',
+                          'Meals\nPlanned',
+                          Icons.calendar_month,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildStatCard(
+                          '${fridge.items.length}',
+                          'Items\nTracked',
+                          Icons.kitchen,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildStatCard(
-                      '28',
-                      'Meals\nPlanned',
-                      Icons.calendar_month,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildStatCard(
-                      '45',
-                      'Items\nTracked',
-                      Icons.kitchen,
-                    ),
-                  ),
-                ],
-              ),
+                );
+              },
             ),
           ),
         );
@@ -563,13 +570,13 @@ class _ProfileScreenState extends State<ProfileScreen>
                     _buildSettingsItem(
                       'Favorite Recipes',
                       Icons.favorite_border,
-                      onTap: () => _showComingSoon(),
+                      onTap: () => _navigateToRecipes(),
                     ),
                     const Divider(height: 1, indent: 16, endIndent: 16),
                     _buildSettingsItem(
                       'Recipe History',
                       Icons.history,
-                      onTap: () => _showComingSoon(),
+                      onTap: () => _navigateToRecipes(),
                     ),
                     const Divider(height: 1, indent: 16, endIndent: 16),
                     _buildSettingsItem(
@@ -751,6 +758,15 @@ class _ProfileScreenState extends State<ProfileScreen>
           ),
         );
       },
+    );
+  }
+
+  void _navigateToRecipes() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const RecipeListScreen(),
+      ),
     );
   }
 

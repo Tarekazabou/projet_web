@@ -21,6 +21,11 @@ class TitleView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Safety check for required parameters
+    if (animationController == null || animation == null) {
+      return const SizedBox.shrink();
+    }
+
     return AnimatedBuilder(
       animation: animationController!,
       builder: (BuildContext context, Widget? child) {
@@ -49,38 +54,39 @@ class TitleView extends StatelessWidget {
                       ),
                     ),
                   ),
-                  InkWell(
-                    highlightColor: Colors.transparent,
-                    borderRadius: const BorderRadius.all(Radius.circular(4.0)),
-                    onTap: onTap ?? () {},
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 8),
-                      child: Row(
-                        children: <Widget>[
-                          Text(
-                            subTxt,
-                            textAlign: TextAlign.left,
-                            style: const TextStyle(
-                              fontFamily: MealyTheme.fontName,
-                              fontWeight: FontWeight.normal,
-                              fontSize: 16,
-                              letterSpacing: 0.5,
-                              color: MealyTheme.nearlyOrange,
+                  if (subTxt.isNotEmpty)
+                    InkWell(
+                      highlightColor: Colors.transparent,
+                      borderRadius: const BorderRadius.all(Radius.circular(4.0)),
+                      onTap: onTap ?? () {},
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 8),
+                        child: Row(
+                          children: <Widget>[
+                            Text(
+                              subTxt,
+                              textAlign: TextAlign.left,
+                              style: const TextStyle(
+                                fontFamily: MealyTheme.fontName,
+                                fontWeight: FontWeight.normal,
+                                fontSize: 16,
+                                letterSpacing: 0.5,
+                                color: MealyTheme.nearlyOrange,
+                              ),
                             ),
-                          ),
-                          const SizedBox(
-                            height: 38,
-                            width: 26,
-                            child: Icon(
-                              Icons.arrow_forward,
-                              color: MealyTheme.darkText,
-                              size: 18,
+                            const SizedBox(
+                              height: 38,
+                              width: 26,
+                              child: Icon(
+                                Icons.arrow_forward,
+                                color: MealyTheme.darkText,
+                                size: 18,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                  ),
                 ],
               ),
             ),
