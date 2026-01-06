@@ -22,20 +22,20 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
     
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ env.PYTHON_VERSION }}
     
     - name: Install uv (fast Python package installer)
-      uses: astral-sh/setup-uv@v4
+      uses: astral-sh/setup-uv@v7
       with:
         version: "latest"
     
     - name: Cache Python dependencies
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: |
           ~/.cache/uv
@@ -79,7 +79,7 @@ jobs:
         pytest --cov=. --cov-report=xml --cov-report=term --cov-fail-under=70
     
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v5
       with:
         file: ./backend/coverage.xml
         flags: backend
@@ -93,7 +93,7 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
     
     - name: Set up Flutter
       uses: subosito/flutter-action@v2
@@ -135,7 +135,7 @@ jobs:
         flutter test --coverage --coverage-path=coverage/lcov.info
     
     - name: Upload Flutter coverage to Codecov
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v5
       with:
         file: ./my_app/coverage/lcov.info
         flags: flutter
@@ -150,10 +150,10 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
     
     - name: Set up Java
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@v5
       with:
         distribution: 'temurin'
         java-version: '17'
@@ -176,7 +176,7 @@ jobs:
         flutter build apk --release --no-tree-shake-icons
     
     - name: Upload APK artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: android-release-apk
         path: my_app/build/app/outputs/flutter-apk/app-release.apk
@@ -191,7 +191,7 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
     
     - name: Set up Flutter
       uses: subosito/flutter-action@v2
@@ -217,7 +217,7 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
     
     - name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@master
@@ -229,12 +229,12 @@ jobs:
         severity: 'CRITICAL,HIGH'
     
     - name: Upload Trivy results to GitHub Security
-      uses: github/codeql-action/upload-sarif@v3
+      uses: github/codeql-action/upload-sarif@v4
       with:
         sarif_file: 'trivy-results.sarif'
     
     - name: Set up Python for security tools
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ env.PYTHON_VERSION }}
     
@@ -260,7 +260,7 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
     
     - name: Dependency Review
       uses: actions/dependency-review-action@v4
@@ -277,7 +277,7 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
     
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
@@ -320,7 +320,7 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
     
     - name: Deploy to server
       env:
