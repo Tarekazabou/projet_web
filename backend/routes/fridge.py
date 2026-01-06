@@ -211,6 +211,73 @@ def delete_fridge_item(item_id):
         logger.error(f"Error deleting fridge item: {e}")
         return error_response(str(e), 500)
 
+@fridge_bp.route('/consume-ingredients', methods=['POST'])
+def consume_ingredients():
+    """
+    Remove or reduce ingredients from fridge when user cooks a recipe
+    
+    Request body:
+    {
+        "ingredients": [
+            {"name": "chicken", "quantity": 500, "unit": "g"},
+            {"name": "tomatoes", "quantity": 3, "unit": "pieces"}
+        ]
+    }
+    """
+    try:
+        user_id = require_current_user()
+        db = get_db()
+        
+        data = request.get_json() or {}
+        ingredients_to_consume = data.get('ingredients', [])
+        
+        if not ingredients_to_consume:
+            return error_response('No ingredients provided', 400)
+        
+        logger.info(f"🍳 Consuming ingredients for user {user_id}: {ingredients_to_consume}")
+        
+        # Get all fridge items for the user
+        query = db.collection('FridgeItem').where(filter=FieldFilter('userId', '==', user_id))
+        docs = list(query.stream())
+        
+        consumed = []
+        not_found = []
+        
+        for ingredient in ingredients_to_consume:
+            ingredient_name = ingredient.get('name', '').lower()
+            
+            # Find matching fridge item
+            found = False
+            for doc in docs:
+                item = doc.to_dict()
+                fridge_item_name = item.get('ingredientName', '').lower()
+                
+                # Check if names match (partial match)
+                if ingredient_name in fridge_item_name or fridge_item_name in ingredient_name:
+                    # Delete the item from fridge
+                    doc.reference.delete()
+                    consumed.append({
+                        'name': item.get('ingredientName'),
+                        'id': doc.id
+                    })
+                    found = True
+                    logger.info(f"✅ Consumed: {item.get('ingredientName')}")
+                    break
+            
+            if not found:
+                not_found.append(ingredient_name)
+        
+        return success_response({
+            'consumed': consumed,
+            'not_found': not_found,
+            'message': f'Consumed {len(consumed)} ingredients from fridge'
+        })
+        
+    except Exception as e:
+        logger.error(f"Error consuming ingredients: {e}")
+        return error_response(str(e), 500)
+
+
 @fridge_bp.route('/suggest-recipes', methods=['POST'])
 def suggest_recipes_from_fridge():
     """

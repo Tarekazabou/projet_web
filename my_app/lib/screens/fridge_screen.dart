@@ -4,6 +4,7 @@ import '../models/fridge_item.dart';
 import '../providers/fridge_provider.dart';
 import '../utils/mealy_theme.dart';
 import 'receipt_scanner_screen.dart';
+import 'cook_from_fridge_screen.dart';
 
 class FridgeScreen extends StatefulWidget {
   const FridgeScreen({super.key, this.animationController});
@@ -207,6 +208,8 @@ class _FridgeScreenState extends State<FridgeScreen>
             _buildCategoryChips(),
             const SizedBox(height: 16),
             _buildSummaryCard(fridgeProvider.items),
+            const SizedBox(height: 16),
+            _buildCookFromFridgeButton(fridgeProvider.items),
             const SizedBox(height: 24),
             _buildItemsGrid(filteredItems, fridgeProvider),
           ],
@@ -370,6 +373,128 @@ class _FridgeScreenState extends State<FridgeScreen>
                         ],
                       ),
                     ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildCookFromFridgeButton(List<FridgeItem> items) {
+    return AnimatedBuilder(
+      animation: animationController!,
+      builder: (context, child) {
+        final animation = Tween<double>(begin: 0.0, end: 1.0).animate(
+          CurvedAnimation(
+            parent: animationController!,
+            curve: const Interval(0.25, 0.75, curve: Curves.fastOutSlowIn),
+          ),
+        );
+        return FadeTransition(
+          opacity: animation,
+          child: Transform.translate(
+            offset: Offset(0, 30 * (1 - animation.value)),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: items.isEmpty
+                      ? null
+                      : () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const CookFromFridgeScreen(),
+                            ),
+                          ).then((_) {
+                            // Refresh fridge items when returning
+                            context.read<FridgeProvider>().loadFridgeItems();
+                          });
+                        },
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: items.isEmpty
+                            ? [Colors.grey.shade300, Colors.grey.shade400]
+                            : [
+                                MealyTheme.nearlyGreen,
+                                MealyTheme.nearlyGreen.withOpacity(0.8),
+                              ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: items.isEmpty
+                          ? []
+                          : [
+                              BoxShadow(
+                                color: MealyTheme.nearlyGreen.withOpacity(0.3),
+                                offset: const Offset(0, 4),
+                                blurRadius: 12,
+                              ),
+                            ],
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.auto_awesome,
+                            color: Colors.white,
+                            size: 28,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Cook from Fridge',
+                                style: TextStyle(
+                                  fontFamily: MealyTheme.fontName,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                  color: items.isEmpty
+                                      ? Colors.grey.shade600
+                                      : Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                items.isEmpty
+                                    ? 'Add ingredients to get started'
+                                    : 'Generate a recipe with ${items.length} ingredients',
+                                style: TextStyle(
+                                  fontFamily: MealyTheme.fontName,
+                                  fontSize: 13,
+                                  color: items.isEmpty
+                                      ? Colors.grey.shade500
+                                      : Colors.white.withOpacity(0.9),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(
+                          Icons.arrow_forward_ios,
+                          color: items.isEmpty
+                              ? Colors.grey.shade500
+                              : Colors.white,
+                          size: 20,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
