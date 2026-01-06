@@ -8,43 +8,43 @@ Mealy is an AI-assisted meal planning app with:
 
 ```
 projet_web/
-├── backend/                    # Flask API
-│   ├── app.py                 # Main Flask application
-│   ├── config.py              # Configuration management
-│   ├── requirements.txt       # Python dependencies
-│   ├── pyproject.toml         # Python project config
-│   ├── routes/                # API endpoints
+├── backend/                    
+│   ├── app.py                 
+│   ├── config.py              
+│   ├── requirements.txt       
+│   ├── pyproject.toml         
+│   ├── routes/                
 │   │   ├── __init__.py
-│   │   ├── ai_recipes.py      # AI recipe generation
-│   │   ├── dashboard.py       # Dashboard data
-│   │   ├── food_scanner.py    # Food scanning
-│   │   ├── fridge.py          # Fridge management
-│   │   ├── grocery.py         # Grocery list
-│   │   ├── meal_plans.py      # Meal planning
-│   │   ├── nutrition.py       # Nutrition tracking
-│   │   ├── receipt_scanner.py # Receipt scanning
-│   │   └── users.py           # User management
-│   ├── services/              # Business logic
+│   │   ├── ai_recipes.py      
+│   │   ├── dashboard.py       
+│   │   ├── food_scanner.py    
+│   │   ├── fridge.py          
+│   │   ├── grocery.py         
+│   │   ├── meal_plans.py      
+│   │   ├── nutrition.py      
+│   │   ├── receipt_scanner.py 
+│   │   └── users.py           
+│   ├── services/              
 │   │   ├── __init__.py
-│   │   └── ai_service.py      # Gemini AI integration
-│   ├── utils/                 # Utilities
+│   │   └── ai_service.py     
+│   ├── utils/                
 │   │   ├── __init__.py
-│   │   ├── auth.py            # Authentication
-│   │   ├── firebase_connector.py # Firebase setup
-│   │   └── response_handler.py   # Standardized responses
-│   ├── data/                  # Data files
-│   └── tests/                 # Test suite
-├── my_app/                    # Flutter mobile app
+│   │   ├── auth.py          
+│   │   ├── firebase_connector.py 
+│   │   └── response_handler.py   
+│   ├── data/                 
+│   └── tests/                
+├── my_app/                   
 │   ├── lib/
-│   │   ├── main.dart          # App entry point
-│   │   ├── models/            # Data models
+│   │   ├── main.dart          
+│   │   ├── models/            
 │   │   │   ├── user.dart
 │   │   │   ├── recipe.dart
 │   │   │   ├── fridge_item.dart
 │   │   │   ├── meal_plan.dart
 │   │   │   ├── grocery_item.dart
 │   │   │   └── tab_icon_data.dart
-│   │   ├── providers/         # State management
+│   │   ├── providers/         
 │   │   │   ├── auth_provider.dart
 │   │   │   ├── fridge_provider.dart
 │   │   │   ├── recipe_provider.dart
@@ -52,7 +52,7 @@ projet_web/
 │   │   │   ├── grocery_provider.dart
 │   │   │   ├── nutrition_provider.dart
 │   │   │   └── dashboard_provider.dart
-│   │   ├── screens/           # UI screens
+│   │   ├── screens/           
 │   │   │   ├── home_screen.dart
 │   │   │   ├── login_screen.dart
 │   │   │   ├── fridge_screen.dart
@@ -61,9 +61,9 @@ projet_web/
 │   │   │   ├── grocery_list_screen.dart
 │   │   │   ├── nutrition_screen.dart
 │   │   │   └── profile_screen.dart
-│   │   ├── services/          # API communication
+│   │   ├── services/        
 │   │   │   └── api_service.dart
-│   │   ├── utils/             # Utilities
+│   │   ├── utils/            
 │   │   │   ├── constants.dart
 │   │   │   ├── logger.dart
 │   │   │   ├── extensions.dart
@@ -81,23 +81,23 @@ projet_web/
 │   │   │   ├── empty_state_widget.dart
 │   │   │   ├── gradient_scaffold.dart
 │   │   │   └── loading_widgets.dart
-│   │   └── firebase_options.dart # Firebase config
-│   ├── android/               # Android platform files
-│   ├── ios/                   # iOS platform files
-│   ├── web/                   # Web platform files
-│   ├── windows/               # Windows platform files
-│   ├── linux/                 # Linux platform files
-│   ├── macos/                 # macOS platform files
-│   ├── assets/                # Images, fonts, etc.
-│   ├── test/                  # Flutter tests
-│   ├── pubspec.yaml           # Flutter dependencies
+│   │   └── firebase_options.dart 
+│   ├── android/             
+│   ├── ios/                   
+│   ├── web/                 
+│   ├── windows/               
+│   ├── linux/                 
+│   ├── macos/                 
+│   ├── assets/                
+│   ├── test/                  
+│   ├── pubspec.yaml          
 │   └── README.md
-├── .github/                   # GitHub workflows
-├── firebase.json              # Firebase config
-├── firestore.indexes.json     # Firestore indexes
-├── firestore.rules            # Firestore security rules
-├── renovate.json              # Renovate config
-└── README.md                  # This file
+├── .github/              
+├── firebase.json            
+├── firestore.indexes.json   
+├── firestore.rules           
+├── renovate.json              
+└── README.md                  
 ```
 
 ## ⚙️ Prerequisites
