@@ -8,14 +8,102 @@ Mealy is an AI-assisted meal planning app with:
 
 ```
 projet_web/
-  backend/     # Flask API
-  my_app/      # Flutter app
+├── backend/                    # Flask API
+│   ├── app.py                 # Main Flask application
+│   ├── config.py              # Configuration management
+│   ├── requirements.txt       # Python dependencies
+│   ├── pyproject.toml         # Python project config
+│   ├── routes/                # API endpoints
+│   │   ├── __init__.py
+│   │   ├── ai_recipes.py      # AI recipe generation
+│   │   ├── dashboard.py       # Dashboard data
+│   │   ├── food_scanner.py    # Food scanning
+│   │   ├── fridge.py          # Fridge management
+│   │   ├── grocery.py         # Grocery list
+│   │   ├── meal_plans.py      # Meal planning
+│   │   ├── nutrition.py       # Nutrition tracking
+│   │   ├── receipt_scanner.py # Receipt scanning
+│   │   └── users.py           # User management
+│   ├── services/              # Business logic
+│   │   ├── __init__.py
+│   │   └── ai_service.py      # Gemini AI integration
+│   ├── utils/                 # Utilities
+│   │   ├── __init__.py
+│   │   ├── auth.py            # Authentication
+│   │   ├── firebase_connector.py # Firebase setup
+│   │   └── response_handler.py   # Standardized responses
+│   ├── data/                  # Data files
+│   └── tests/                 # Test suite
+├── my_app/                    # Flutter mobile app
+│   ├── lib/
+│   │   ├── main.dart          # App entry point
+│   │   ├── models/            # Data models
+│   │   │   ├── user.dart
+│   │   │   ├── recipe.dart
+│   │   │   ├── fridge_item.dart
+│   │   │   ├── meal_plan.dart
+│   │   │   ├── grocery_item.dart
+│   │   │   └── tab_icon_data.dart
+│   │   ├── providers/         # State management
+│   │   │   ├── auth_provider.dart
+│   │   │   ├── fridge_provider.dart
+│   │   │   ├── recipe_provider.dart
+│   │   │   ├── meal_plan_provider.dart
+│   │   │   ├── grocery_provider.dart
+│   │   │   ├── nutrition_provider.dart
+│   │   │   └── dashboard_provider.dart
+│   │   ├── screens/           # UI screens
+│   │   │   ├── home_screen.dart
+│   │   │   ├── login_screen.dart
+│   │   │   ├── fridge_screen.dart
+│   │   │   ├── recipe_generator_screen.dart
+│   │   │   ├── meal_planner_screen.dart
+│   │   │   ├── grocery_list_screen.dart
+│   │   │   ├── nutrition_screen.dart
+│   │   │   └── profile_screen.dart
+│   │   ├── services/          # API communication
+│   │   │   └── api_service.dart
+│   │   ├── utils/             # Utilities
+│   │   │   ├── constants.dart
+│   │   │   ├── logger.dart
+│   │   │   ├── extensions.dart
+│   │   │   ├── app_theme.dart
+│   │   │   ├── mealy_theme.dart
+│   │   │   └── validators.dart
+│   │   ├── widgets/           # Reusable components
+│   │   │   ├── recipe_card.dart
+│   │   │   ├── recipe_detail_sheet.dart
+│   │   │   ├── meal_slot_card.dart
+│   │   │   ├── grocery_item_tile.dart
+│   │   │   ├── bottom_bar_view.dart
+│   │   │   ├── app_buttons.dart
+│   │   │   ├── app_text_field.dart
+│   │   │   ├── empty_state_widget.dart
+│   │   │   ├── gradient_scaffold.dart
+│   │   │   └── loading_widgets.dart
+│   │   └── firebase_options.dart # Firebase config
+│   ├── android/               # Android platform files
+│   ├── ios/                   # iOS platform files
+│   ├── web/                   # Web platform files
+│   ├── windows/               # Windows platform files
+│   ├── linux/                 # Linux platform files
+│   ├── macos/                 # macOS platform files
+│   ├── assets/                # Images, fonts, etc.
+│   ├── test/                  # Flutter tests
+│   ├── pubspec.yaml           # Flutter dependencies
+│   └── README.md
+├── .github/                   # GitHub workflows
+├── firebase.json              # Firebase config
+├── firestore.indexes.json     # Firestore indexes
+├── firestore.rules            # Firestore security rules
+├── renovate.json              # Renovate config
+└── README.md                  # This file
 ```
 
 ## ⚙️ Prerequisites
 
 - Python 3.10+
-- Flutter SDK (matches your app’s requirements in `my_app/`)
+- Flutter SDK (matches your app's requirements in `my_app/`)
 - A Firebase project (Firestore enabled)
 - (Optional) Ollama for local LLM experiments
 
@@ -37,7 +125,7 @@ Create `backend/.env` with at least:
 ```env
 SECRET_KEY=dev-secret-key
 FIREBASE_PROJECT_ID=mealy-41bf0
-FIREBASE_CREDENTIAL_PATH=..\\mealy-41bf0-firebase-adminsdk-fbsvc-7d493e86ea.json
+FIREBASE_CREDENTIAL_PATH=..\mealy-41bf0-firebase-adminsdk-fbsvc-7d493e86ea.json
 GEMINI_API_KEY=YOUR_GEMINI_API_KEY
 ```
 
@@ -71,7 +159,7 @@ flutter run
 
 ## 📡 Forward the backend to a real phone ("grok" / ngrok)
 
-If your phone can’t reach your computer directly (different network, USB-only, etc.), you need a tunnel.
+If your phone can't reach your computer directly (different network, USB-only, etc.), you need a tunnel.
 
 ### Using ngrok (recommended)
 
@@ -114,72 +202,6 @@ Ollama runs a local server (default `http://localhost:11434`).
 ```bash
 cd backend
 pytest
-```
-
-## Notes
-- This repo contains a Firebase Admin service account JSON. Treat it as sensitive and avoid publishing it publicly.
-- The backend's `/` route may reference a React build folder that isn't present in this workspace; the API endpoints under `/api/*` are the intended interface.
-```
-│   │   ├── pages/               # Page components
-│   │   │   ├── HomePage.jsx
-│   │   │   ├── YourFridgePage.jsx
-│   │   │   ├── RecipeGeneratorPage.jsx
-│   │   │   ├── MealPlannerPage.jsx
-│   │   │   ├── NutritionTrackerPage.jsx
-│   │   │   ├── GroceryListPage.jsx
-│   │   │   └── LoginPage.jsx
-│   │   ├── context/             # React Context
-│   │   │   └── AuthContext.jsx
-│   │   ├── services/            # API services
-│   │   │   └── apiClient.js
-│   │   ├── utils/               # Utilities
-│   │   ├── config/              # Configuration
-│   │   │   ├── api.js
-│   │   │   └── firebase.js
-│   │   ├── App.jsx              # Main app
-│   │   └── main.jsx             # Entry point
-│   ├── dist/                    # Production build
-│   ├── package.json
-│   ├── vite.config.js           # Vite config
-│   └── README.md
-├── frontend/                    # Legacy vanilla JS (deprecated)
-├── backend/
-│   ├── config.py                # Configuration management
-│   ├── requirements.txt         # Python dependencies
-│   ├── src/
-│   │   └── app.py               # Main Flask app (serves React build)
-│   ├── routes/                  # API endpoints
-│   │   ├── ai_recipes.py       # AI recipe generation
-│   │   ├── recipes.py          # Recipe CRUD
-│   │   ├── users.py            # User management
-│   │   └── ...
-│   ├── services/               # Business logic
-│   │   ├── ai_service.py       # Gemini AI integration
-│   │   └── rag_service.py      # RAG system
-│   ├── utils/                  # Utilities
-│   │   ├── auth.py            # Authentication
-│   │   ├── validators.py      # Input validation
-│   │   ├── middleware.py      # Request/response middleware
-│   │   ├── logging_config.py  # Logging setup
-│   │   └── response_handler.py# Standardized responses
-│   └── tests/                 # Test suite
-│       ├── conftest.py        # Test fixtures
-│       ├── test_*.py          # Test files
-│       └── integration/       # Integration tests
-├── frontend/
-│   ├── index.html
-│   ├── js/
-│   │   ├── app.js             # Main app controller
-│   │   ├── auth.js            # Authentication
-│   │   ├── recipe-generator.js
-│   │   └── ...
-│   └── css/
-├── .github/
-│   └── workflows/
-│       └── ci-cd.yml          # CI/CD pipeline
-├── Dockerfile                 # Production container
-├── docker-compose.yml         # Development stack
-└── README.md
 ```
 
 ## 📚 API Documentation
@@ -252,6 +274,9 @@ POST /api/nutrition/log-meal             # Log a meal
 
 See [API Documentation](docs/API.md) for complete reference.
 
+## Notes
+- This repo contains a Firebase Admin service account JSON. Treat it as sensitive and avoid publishing it publicly.
+- The backend's `/` route may reference a React build folder that isn't present in this workspace; the API endpoints under `/api/*` are the intended interface.
 
 ## 📄 License
 
