@@ -320,6 +320,248 @@ jobs:
           p/security-audit
       continue-on-error: true
 
+  # DevOps Utilities (Shell-thon/DevOps-CI-CD-tools inspired)
+  devops-utilities:
+    name: DevOps Utilities Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install dependencies
+      run: |
+        pip install pyyaml requests
+    
+    # GitGuard - Check for uncommitted changes
+    - name: GitGuard - Check repo state
+      run: |
+        python << 'EOF'
+        import subprocess
+        status = subprocess.getoutput("git status --porcelain")
+        if status:
+            print("⚠️ Repo has uncommitted changes:")
+            print(status)
+        else:
+            print("✅ Repo is clean.")
+        EOF
+    
+    # DiskDriver - Analyze disk usage of large directories
+    - name: DiskDriver - Disk usage analysis
+      run: |
+        python << 'EOF'
+        import os
+        
+        print("📊 Large directories (>10MB):")
+        path = "."
+        large_dirs = []
+        for root, dirs, files in os.walk(path):
+            # Skip hidden and common large folders
+            dirs[:] = [d for d in dirs if not d.startswith('.') and d not in ['node_modules', 'build', '.dart_tool']]
+            try:
+                total = sum(os.path.getsize(os.path.join(root, f)) for f in files if os.path.exists(os.path.join(root, f)))
+                if total > 10 * 1024**2:  # >10MB
+                    large_dirs.append((root, total // 1024**2))
+            except:
+                pass
+        
+        for d, size in sorted(large_dirs, key=lambda x: -x[1])[:10]:
+            print(f"  {d}: {size} MB")
+        
+        if not large_dirs:
+            print("  ✅ No directories over 10MB found.")
+        EOF
+    
+    # PortProbe - Check common service ports
+    - name: PortProbe - Check service ports
+      run: |
+        python << 'EOF'
+        import socket
+        
+        print("🔌 Port availability check:")
+        ports = {"SSH": 22, "HTTP": 80, "HTTPS": 443, "Flask": 5000, "Django": 8000}
+        for name, port in ports.items():
+            s = socket.socket()
+            s.settimeout(1)
+            try:
+                s.connect(("127.0.0.1", port))
+                print(f"  ✅ {name} (port {port}) is OPEN")
+            except:
+                print(f"  ⬚ {name} (port {port}) is available")
+            s.close()
+        EOF
+    
+    # TaskTrigger - Scan for exposed secrets
+    - name: TaskTrigger - Secret scanner
+      run: |
+        python << 'EOF'
+        import os
+        import re
+        
+        print("🔐 Scanning for potential exposed secrets...")
+        secret_pattern = re.compile(r'(api[_-]?key|secret|password|token|credential|private[_-]?key)', re.I)
+        dangerous_files = []
+        
+        exclude_dirs = {'.git', 'node_modules', '.dart_tool', 'build', '__pycache__', '.venv', 'venv'}
+        exclude_extensions = {'.lock', '.sum', '.png', '.jpg', '.gif', '.ico', '.svg'}
+        
+        for root, dirs, files in os.walk('.'):
+            dirs[:] = [d for d in dirs if d not in exclude_dirs]
+            for f in files:
+                if any(f.endswith(ext) for ext in exclude_extensions):
+                    continue
+                filepath = os.path.join(root, f)
+                try:
+                    with open(filepath, 'r', errors='ignore') as file:
+                        for i, line in enumerate(file, 1):
+                            if secret_pattern.search(line) and '=' in line:
+                                # Skip if it looks like a variable reference or example
+                                if 'secrets.' in line or 'ENV[' in line or '${' in line or 'process.env' in line:
+                                    continue
+                                if 'example' in line.lower() or 'your_' in line.lower():
+                                    continue
+                                dangerous_files.append(f"{filepath}:{i}")
+                except:
+                    pass
+        
+        if dangerous_files:
+            print(f"  ⚠️ Found {len(dangerous_files)} potential secret exposures (review manually):")
+            for df in dangerous_files[:10]:
+                print(f"    - {df}")
+        else:
+            print("  ✅ No obvious secret exposures found.")
+        EOF
+    
+    # ConfigSnag - Docker cleanup check
+    - name: ConfigSnag - Docker cleanup recommendations
+      run: |
+        python << 'EOF'
+        import subprocess
+        import shutil
+        
+        print("🐳 Docker cleanup recommendations:")
+        
+        if shutil.which("docker"):
+            # Check for stopped containers
+            result = subprocess.getoutput("docker ps -aq -f status=exited 2>/dev/null")
+            if result:
+                count = len(result.strip().split('\n'))
+                print(f"  ⚠️ {count} stopped container(s) can be pruned")
+                print("  Run: docker container prune -f")
+            else:
+                print("  ✅ No stopped containers")
+            
+            # Check for dangling images
+            result = subprocess.getoutput("docker images -q -f dangling=true 2>/dev/null")
+            if result:
+                count = len(result.strip().split('\n'))
+                print(f"  ⚠️ {count} dangling image(s) can be pruned")
+                print("  Run: docker image prune -f")
+            else:
+                print("  ✅ No dangling images")
+        else:
+            print("  ℹ️ Docker not installed, skipping checks")
+        EOF
+    
+    # LogWatchdog - Check for errors in log files
+    - name: LogWatchdog - Log file analysis
+      run: |
+        python << 'EOF'
+        import os
+        import re
+        
+        print("📋 Log file analysis:")
+        log_pattern = re.compile(r'\.(log|txt)$')
+        error_pattern = re.compile(r'(ERROR|CRITICAL|FATAL|EXCEPTION|FAIL)', re.I)
+        
+        found_issues = []
+        for root, dirs, files in os.walk('.'):
+            dirs[:] = [d for d in dirs if not d.startswith('.') and d not in ['node_modules', '.dart_tool']]
+            for f in files:
+                if log_pattern.search(f):
+                    filepath = os.path.join(root, f)
+                    try:
+                        with open(filepath, 'r', errors='ignore') as file:
+                            for i, line in enumerate(file, 1):
+                                if error_pattern.search(line):
+                                    found_issues.append((filepath, i, line.strip()[:100]))
+                    except:
+                        pass
+        
+        if found_issues:
+            print(f"  ⚠️ Found {len(found_issues)} issues in log files:")
+            for fp, line, content in found_issues[:5]:
+                print(f"    {fp}:{line} - {content}")
+        else:
+            print("  ✅ No errors found in log files")
+        EOF
+    
+    # BackupBuddy - Validate YAML configs
+    - name: BackupBuddy - Validate config files
+      run: |
+        python << 'EOF'
+        import os
+        import yaml
+        
+        print("📄 Validating YAML configuration files:")
+        yaml_files = []
+        for root, dirs, files in os.walk('.'):
+            dirs[:] = [d for d in dirs if not d.startswith('.') and d not in ['node_modules', '.dart_tool']]
+            for f in files:
+                if f.endswith(('.yml', '.yaml')):
+                    yaml_files.append(os.path.join(root, f))
+        
+        valid = 0
+        invalid = 0
+        for yf in yaml_files:
+            try:
+                with open(yf, 'r') as f:
+                    yaml.safe_load(f)
+                valid += 1
+            except yaml.YAMLError as e:
+                print(f"  ❌ Invalid YAML: {yf}")
+                print(f"     Error: {str(e)[:100]}")
+                invalid += 1
+            except Exception:
+                pass
+        
+        print(f"  ✅ {valid} valid YAML files")
+        if invalid:
+            print(f"  ❌ {invalid} invalid YAML files")
+        EOF
+    
+    # NetPulse - Check external service connectivity  
+    - name: NetPulse - Service connectivity check
+      run: |
+        python << 'EOF'
+        import requests
+        import time
+        
+        print("🌐 External service connectivity:")
+        services = {
+            "GitHub API": "https://api.github.com",
+            "PyPI": "https://pypi.org",
+            "pub.dev": "https://pub.dev",
+            "Docker Hub": "https://hub.docker.com",
+        }
+        
+        for name, url in services.items():
+            for attempt in range(2):
+                try:
+                    r = requests.get(url, timeout=5)
+                    print(f"  ✅ {name}: UP ({r.status_code})")
+                    break
+                except Exception as e:
+                    if attempt == 1:
+                        print(f"  ❌ {name}: DOWN")
+                    time.sleep(1)
+        EOF
+
   # Dependency Review (for PRs)
   dependency-review:
     name: Dependency Review
