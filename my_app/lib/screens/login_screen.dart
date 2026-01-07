@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../services/api_service.dart';
 import '../utils/mealy_theme.dart';
 import 'signup_screen.dart';
 
@@ -61,6 +62,132 @@ class _LoginScreenState extends State<LoginScreen>
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _showApiUrlDialog() async {
+    final urlController = TextEditingController();
+    final currentUrl = await ApiService.getCustomUrl();
+    final isUsingCustom = await ApiService.isUsingCustomUrl();
+    
+    if (currentUrl != null) {
+      urlController.text = currentUrl;
+    }
+
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.settings, color: MealyTheme.nearlyOrange),
+            const SizedBox(width: 8),
+            const Text(
+              'API Configuration',
+              style: TextStyle(
+                fontFamily: MealyTheme.fontName,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              isUsingCustom ? 'Currently using custom URL' : 'Currently using default URL',
+              style: TextStyle(
+                fontFamily: MealyTheme.fontName,
+                fontSize: 12,
+                color: isUsingCustom ? MealyTheme.nearlyOrange : MealyTheme.grey,
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: urlController,
+              decoration: InputDecoration(
+                labelText: 'API Base URL',
+                hintText: 'http://127.0.0.1:5000',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: MealyTheme.nearlyOrange, width: 2),
+                ),
+                prefixIcon: const Icon(Icons.link),
+              ),
+              keyboardType: TextInputType.url,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '/api will be added automatically',
+              style: TextStyle(
+                fontFamily: MealyTheme.fontName,
+                fontSize: 11,
+                color: MealyTheme.grey,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          if (isUsingCustom)
+            TextButton(
+              onPressed: () async {
+                await ApiService.clearCustomBaseUrl();
+                if (mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text('Reset to default URL'),
+                      backgroundColor: MealyTheme.nearlyOrange,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                  );
+                }
+              },
+              child: Text(
+                'Reset',
+                style: TextStyle(color: Colors.red[400]),
+              ),
+            ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: MealyTheme.grey),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final url = urlController.text.trim();
+              if (url.isNotEmpty) {
+                await ApiService.setCustomBaseUrl(url);
+                if (mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('API URL updated to: $url'),
+                      backgroundColor: MealyTheme.nearlyOrange,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                  );
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: MealyTheme.nearlyOrange,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: const Text('Save', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _handleLogin() async {
@@ -139,36 +266,39 @@ class _LoginScreenState extends State<LoginScreen>
             offset: Offset(0, 30 * (1 - logoAnimation!.value)),
             child: Column(
               children: [
-                Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        MealyTheme.nearlyOrange,
-                        MealyTheme.nearlyOrange.withOpacity(0.8),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: const BorderRadius.only(
-                      bottomRight: Radius.circular(8.0),
-                      bottomLeft: Radius.circular(8.0),
-                      topLeft: Radius.circular(8.0),
-                      topRight: Radius.circular(40.0),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: MealyTheme.nearlyOrange.withOpacity(0.4),
-                        offset: const Offset(2, 4),
-                        blurRadius: 12,
+                GestureDetector(
+                  onLongPress: _showApiUrlDialog,
+                  child: Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          MealyTheme.nearlyOrange,
+                          MealyTheme.nearlyOrange.withOpacity(0.8),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.restaurant_menu,
-                    size: 50,
-                    color: MealyTheme.white,
+                      borderRadius: const BorderRadius.only(
+                        bottomRight: Radius.circular(8.0),
+                        bottomLeft: Radius.circular(8.0),
+                        topLeft: Radius.circular(8.0),
+                        topRight: Radius.circular(40.0),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: MealyTheme.nearlyOrange.withOpacity(0.4),
+                          offset: const Offset(2, 4),
+                          blurRadius: 12,
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.restaurant_menu,
+                      size: 50,
+                      color: MealyTheme.white,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 24),

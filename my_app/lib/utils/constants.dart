@@ -7,7 +7,7 @@ class AppConstants {
   static const String appVersion = '1.0.0';
 
   // API Configuration
-  static const String apiBaseUrl = 'http://localhost:5000/api';
+  static const String apiBaseUrl = 'https://545f9421e7bb.ngrok-free.app';
   // For Android Emulator: 'http://10.0.2.2:5000/api'
   // For iOS Simulator: 'http://localhost:5000/api'
   // For real device: 'http://YOUR_IP:5000/api'

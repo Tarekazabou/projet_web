@@ -27,11 +27,52 @@ class NetworkException implements Exception {
 }
 
 class ApiService {
-  static const String baseUrl = AppConstants.apiBaseUrl;
+  static const String _customUrlKey = 'custom_api_base_url';
+  static String? _cachedBaseUrl;
 
   final http.Client _client;
 
   ApiService({http.Client? client}) : _client = client ?? http.Client();
+
+  /// Get the current base URL (custom or default)
+  static Future<String> getBaseUrl() async {
+    if (_cachedBaseUrl != null) return _cachedBaseUrl!;
+    final prefs = await SharedPreferences.getInstance();
+    _cachedBaseUrl = prefs.getString(_customUrlKey) ?? AppConstants.apiBaseUrl;
+    return _cachedBaseUrl!;
+  }
+
+  /// Set a custom base URL
+  static Future<void> setCustomBaseUrl(String url) async {
+    final prefs = await SharedPreferences.getInstance();
+    // Remove trailing slash if present
+    String cleanUrl = url.endsWith('/') ? url.substring(0, url.length - 1) : url;
+    // Ensure /api suffix is present
+    if (!cleanUrl.endsWith('/api')) {
+      cleanUrl = '$cleanUrl/api';
+    }
+    await prefs.setString(_customUrlKey, cleanUrl);
+    _cachedBaseUrl = cleanUrl;
+  }
+
+  /// Clear custom base URL and use default
+  static Future<void> clearCustomBaseUrl() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_customUrlKey);
+    _cachedBaseUrl = AppConstants.apiBaseUrl;
+  }
+
+  /// Check if using custom URL
+  static Future<bool> isUsingCustomUrl() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.containsKey(_customUrlKey);
+  }
+
+  /// Get current custom URL (or null if using default)
+  static Future<String?> getCustomUrl() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_customUrlKey);
+  }
 
   Future<Map<String, String>> get _headers async {
     final prefs = await SharedPreferences.getInstance();
@@ -46,6 +87,7 @@ class ApiService {
 
   Future<Map<String, dynamic>> get(String endpoint) async {
     try {
+      final baseUrl = await getBaseUrl();
       final url = '$baseUrl$endpoint';
       AppLogger.apiRequest('GET', url);
 
@@ -73,6 +115,7 @@ class ApiService {
     Map<String, dynamic> body,
   ) async {
     try {
+      final baseUrl = await getBaseUrl();
       final url = '$baseUrl$endpoint';
       AppLogger.apiRequest('POST', url, body: body);
 
@@ -105,6 +148,7 @@ class ApiService {
     Map<String, dynamic> body,
   ) async {
     try {
+      final baseUrl = await getBaseUrl();
       final url = '$baseUrl$endpoint';
       AppLogger.apiRequest('PUT', url, body: body);
 
@@ -129,6 +173,7 @@ class ApiService {
 
   Future<Map<String, dynamic>> delete(String endpoint) async {
     try {
+      final baseUrl = await getBaseUrl();
       final url = '$baseUrl$endpoint';
       AppLogger.apiRequest('DELETE', url);
 
