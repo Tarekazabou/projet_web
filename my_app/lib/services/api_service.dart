@@ -553,16 +553,6 @@ class ApiService {
     });
   }
 
-  /// Get food scan history
-  Future<Map<String, dynamic>> getFoodScanHistory({
-    int limit = 10,
-    String? date,
-  }) async {
-    String endpoint = '/food/history?limit=$limit';
-    if (date != null) endpoint += '&date=$date';
-    return await get(endpoint);
-  }
-
   /// Dispose the client when done
   void dispose() {
     _client.close();
