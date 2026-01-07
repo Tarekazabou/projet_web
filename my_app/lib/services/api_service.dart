@@ -46,7 +46,9 @@ class ApiService {
   static Future<void> setCustomBaseUrl(String url) async {
     final prefs = await SharedPreferences.getInstance();
     // Remove trailing slash if present
-    String cleanUrl = url.endsWith('/') ? url.substring(0, url.length - 1) : url;
+    String cleanUrl = url.endsWith('/')
+        ? url.substring(0, url.length - 1)
+        : url;
     // Ensure /api suffix is present
     if (!cleanUrl.endsWith('/api')) {
       cleanUrl = '$cleanUrl/api';
@@ -317,8 +319,6 @@ class ApiService {
     return await post('/recipes/generate-multiple', params);
   }
 
-
-
   /// Get favorite recipes
   Future<List<dynamic>> getFavoriteRecipes({
     int perPage = AppConstants.defaultPageSize,
@@ -514,7 +514,6 @@ class ApiService {
   Future<Map<String, dynamic>> scanReceipt(String base64Image) async {
     return await post('/receipt/scan', {'image': base64Image});
   }
-
 
   // ==================== Food Scanner Endpoints ====================
 

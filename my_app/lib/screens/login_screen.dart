@@ -68,7 +68,7 @@ class _LoginScreenState extends State<LoginScreen>
     final urlController = TextEditingController();
     final currentUrl = await ApiService.getCustomUrl();
     final isUsingCustom = await ApiService.isUsingCustomUrl();
-    
+
     if (currentUrl != null) {
       urlController.text = currentUrl;
     }
@@ -97,11 +97,15 @@ class _LoginScreenState extends State<LoginScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              isUsingCustom ? 'Currently using custom URL' : 'Currently using default URL',
+              isUsingCustom
+                  ? 'Currently using custom URL'
+                  : 'Currently using default URL',
               style: TextStyle(
                 fontFamily: MealyTheme.fontName,
                 fontSize: 12,
-                color: isUsingCustom ? MealyTheme.nearlyOrange : MealyTheme.grey,
+                color: isUsingCustom
+                    ? MealyTheme.nearlyOrange
+                    : MealyTheme.grey,
               ),
             ),
             const SizedBox(height: 16),
@@ -115,7 +119,10 @@ class _LoginScreenState extends State<LoginScreen>
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: MealyTheme.nearlyOrange, width: 2),
+                  borderSide: BorderSide(
+                    color: MealyTheme.nearlyOrange,
+                    width: 2,
+                  ),
                 ),
                 prefixIcon: const Icon(Icons.link),
               ),
@@ -144,22 +151,18 @@ class _LoginScreenState extends State<LoginScreen>
                       content: const Text('Reset to default URL'),
                       backgroundColor: MealyTheme.nearlyOrange,
                       behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
                   );
                 }
               },
-              child: Text(
-                'Reset',
-                style: TextStyle(color: Colors.red[400]),
-              ),
+              child: Text('Reset', style: TextStyle(color: Colors.red[400])),
             ),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Cancel',
-              style: TextStyle(color: MealyTheme.grey),
-            ),
+            child: Text('Cancel', style: TextStyle(color: MealyTheme.grey)),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -173,7 +176,9 @@ class _LoginScreenState extends State<LoginScreen>
                       content: Text('API URL updated to: $url'),
                       backgroundColor: MealyTheme.nearlyOrange,
                       behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
                   );
                 }
@@ -181,7 +186,9 @@ class _LoginScreenState extends State<LoginScreen>
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: MealyTheme.nearlyOrange,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
             child: const Text('Save', style: TextStyle(color: Colors.white)),
           ),
@@ -205,7 +212,9 @@ class _LoginScreenState extends State<LoginScreen>
           content: Text(authProvider.error!),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
       );
     }
@@ -219,10 +228,7 @@ class _LoginScreenState extends State<LoginScreen>
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              MealyTheme.background,
-              MealyTheme.nearlyWhite,
-            ],
+            colors: [MealyTheme.background, MealyTheme.nearlyWhite],
           ),
         ),
         child: SafeArea(
@@ -390,18 +396,28 @@ class _LoginScreenState extends State<LoginScreen>
                     decoration: InputDecoration(
                       labelText: 'Email',
                       hintText: 'Enter your email',
-                      prefixIcon: Icon(Icons.email_outlined, color: MealyTheme.grey),
+                      prefixIcon: Icon(
+                        Icons.email_outlined,
+                        color: MealyTheme.grey,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide(color: MealyTheme.grey.withOpacity(0.3)),
+                        borderSide: BorderSide(
+                          color: MealyTheme.grey.withOpacity(0.3),
+                        ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide(color: MealyTheme.grey.withOpacity(0.3)),
+                        borderSide: BorderSide(
+                          color: MealyTheme.grey.withOpacity(0.3),
+                        ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
-                        borderSide: const BorderSide(color: MealyTheme.nearlyOrange, width: 2),
+                        borderSide: const BorderSide(
+                          color: MealyTheme.nearlyOrange,
+                          width: 2,
+                        ),
                       ),
                       filled: true,
                       fillColor: MealyTheme.background,
@@ -424,7 +440,10 @@ class _LoginScreenState extends State<LoginScreen>
                     decoration: InputDecoration(
                       labelText: 'Password',
                       hintText: 'Enter your password',
-                      prefixIcon: Icon(Icons.lock_outline, color: MealyTheme.grey),
+                      prefixIcon: Icon(
+                        Icons.lock_outline,
+                        color: MealyTheme.grey,
+                      ),
                       suffixIcon: IconButton(
                         icon: Icon(
                           _obscurePassword
@@ -438,15 +457,22 @@ class _LoginScreenState extends State<LoginScreen>
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide(color: MealyTheme.grey.withOpacity(0.3)),
+                        borderSide: BorderSide(
+                          color: MealyTheme.grey.withOpacity(0.3),
+                        ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide(color: MealyTheme.grey.withOpacity(0.3)),
+                        borderSide: BorderSide(
+                          color: MealyTheme.grey.withOpacity(0.3),
+                        ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
-                        borderSide: const BorderSide(color: MealyTheme.nearlyOrange, width: 2),
+                        borderSide: const BorderSide(
+                          color: MealyTheme.nearlyOrange,
+                          width: 2,
+                        ),
                       ),
                       filled: true,
                       fillColor: MealyTheme.background,
@@ -632,7 +658,9 @@ class _LoginScreenState extends State<LoginScreen>
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const SignupScreen()),
+                    MaterialPageRoute(
+                      builder: (context) => const SignupScreen(),
+                    ),
                   );
                 },
                 child: const Text(
